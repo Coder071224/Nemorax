@@ -50,7 +50,7 @@ class ChatService:
     def _provider_messages(self, messages: Sequence[MessageSchema]) -> list[LLMMessage]:
         non_empty_messages = [message for message in messages if message.content]
         trimmed_messages = non_empty_messages[-self._settings.llm.message_window :]
-        prompt = self._prompt_service.get_system_prompt()
+        prompt = self._prompt_service.get_system_prompt_for_query(_extract_last_user_message(trimmed_messages))
         provider_messages = [LLMMessage(role="system", content=prompt)]
         provider_messages.extend(
             LLMMessage(role=message.role, content=message.content)
