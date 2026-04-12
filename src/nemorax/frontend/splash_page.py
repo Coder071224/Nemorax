@@ -449,30 +449,29 @@ class SplashPage(ft.Container):
         self._page.run_task(self._run_loading_sequence)
 
     async def _run_loading_sequence(self) -> None:
-        total_steps = len(_LOADING_STEPS)
-        bar_max_width = self._bar_max_width()
-
-        await self._set_step(0, bar_max_width, total_steps)
         try:
-            loop = asyncio.get_running_loop()
-            await asyncio.wait_for(
-                loop.run_in_executor(None, api_client.check_health),
-                timeout=6.0,
-            )
-        except (asyncio.TimeoutError, RuntimeError, OSError):
+            total_steps = len(_LOADING_STEPS)
+            bar_max_width = self._bar_max_width()
+
+            await self._set_step(0, bar_max_width, total_steps)
+            try:
+                await asyncio.wait_for(
+                    asyncio.to_thread(api_client.check_health),
+                    timeout=6.0,
+                )
+            except (asyncio.TimeoutError, OSError):
+                pass
+
+            await self._set_step(1, bar_max_width, total_steps)
+            await self._set_step(2, bar_max_width, total_steps)
+            await self._animate_bar(bar_max_width)
+            await asyncio.sleep(0.20)
+        except Exception:
+            # Never strand the UI on the splash loader because of a transient task failure.
             pass
-
-        await self._set_step(1, bar_max_width, total_steps)
-        await asyncio.sleep(_LOADING_STEPS[1][1])
-
-        await self._set_step(2, bar_max_width, total_steps)
-        await asyncio.sleep(_LOADING_STEPS[2][1])
-
-        await self._animate_bar(bar_max_width)
-        await asyncio.sleep(0.20)
-
-        if self._on_continue is not None:
-            self._on_continue()
+        finally:
+            if self._on_continue is not None:
+                self._on_continue()
 
     async def _set_step(
         self,
