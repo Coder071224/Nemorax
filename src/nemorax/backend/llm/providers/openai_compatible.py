@@ -250,7 +250,8 @@ class OpenAICompatibleChatProvider(ChatProvider):
             "messages": [{"role": item.role, "content": item.content} for item in messages],
             "temperature": self._settings.temperature,
             "top_p": self._settings.top_p,
-            "stream": self._settings.stream,
+            # The frontend expects a single completed reply payload, not SSE chunks.
+            "stream": False,
         }
         if self.name == "groq":
             payload["max_completion_tokens"] = self._settings.max_completion_tokens

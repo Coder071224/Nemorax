@@ -204,7 +204,7 @@ def load_settings() -> Settings:
 
     api = ApiSettings(
         app_name=_read_str("NEMORAX_APP_NAME", default="Nemorax API"),
-        app_version=_read_str("NEMORAX_APP_VERSION", default="3.0.0"),
+        app_version=_read_str("NEMORAX_APP_VERSION", default="1.0.0"),
         environment=_read_str("NEMORAX_ENV", default="development"),
         log_level=_read_str("LOG_LEVEL", default="INFO"),
         backend_host=_read_str("BACKEND_HOST", default="0.0.0.0"),

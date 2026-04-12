@@ -113,3 +113,52 @@ class ProviderFactoryTests(unittest.TestCase):
         import asyncio
 
         asyncio.run(run_test())
+
+    def test_chat_completion_requests_non_streaming_payload(self) -> None:
+        provider = OpenAICompatibleChatProvider(
+            LLMSettings(
+                provider="groq",
+                model="llama-test",
+                fallback_model=None,
+                base_url="https://api.groq.com/openai/v1",
+                api_key="secret",
+                request_timeout_seconds=30.0,
+                health_timeout_seconds=5.0,
+                temperature=0.25,
+                top_p=1.0,
+                max_completion_tokens=900,
+                reasoning_effort="medium",
+                include_reasoning=False,
+                stream=True,
+                seed=7,
+                max_context_tokens=4096,
+                message_window=10,
+                prompt_knowledge_chars=6000,
+            ),
+            provider_name="groq",
+        )
+
+        captured_payload: dict[str, object] = {}
+        response = httpx.Response(
+            200,
+            json={"choices": [{"message": {"content": "Hello"}}]},
+            request=httpx.Request("POST", "https://api.groq.com/openai/v1/chat/completions"),
+        )
+
+        class DummyClient:
+            async def post(self, *args, **kwargs):
+                captured_payload.update(kwargs.get("json", {}))
+                return response
+
+        async def run_test() -> None:
+            result = await provider._post_chat_completion(
+                DummyClient(),
+                model="llama-test",
+                messages=[LLMMessage(role="user", content="Hello")],
+            )
+            self.assertEqual(result.content, "Hello")
+
+        import asyncio
+
+        asyncio.run(run_test())
+        self.assertIs(captured_payload.get("stream"), False)
