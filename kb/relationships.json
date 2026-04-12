@@ -1,0 +1,1934 @@
+[
+  {
+    "relationship_id": "rel_3ec7d6e556306caf",
+    "subject_entity_id": "entity_ad753d141514efdc",
+    "predicate": "predecessor_of",
+    "object_entity_id": "entity_0854fa751bd95eb0",
+    "object_name": null,
+    "valid_from": "1982",
+    "valid_to": "1992-04-09",
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.92,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_c913fed477b24153",
+    "subject_entity_id": "entity_ad753d141514efdc",
+    "predicate": "renamed_to",
+    "object_entity_id": "entity_0854fa751bd95eb0",
+    "object_name": null,
+    "valid_from": "1992-04-10",
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.92,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_2a1e0ca2ecdab18b",
+    "subject_entity_id": "entity_0854fa751bd95eb0",
+    "predicate": "formerly_known_as",
+    "object_entity_id": "entity_ad753d141514efdc",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.92,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_8a36136b5efab292",
+    "subject_entity_id": "entity_0854fa751bd95eb0",
+    "predicate": "effective_on_date",
+    "object_entity_id": null,
+    "object_name": "1992-04-10",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.95,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_ba0e7dfcee18c483",
+    "subject_entity_id": "entity_0854fa751bd95eb0",
+    "predicate": "predecessor_of",
+    "object_entity_id": "entity_6f2c444ac70d6211",
+    "object_name": null,
+    "valid_from": "1992-04-10",
+    "valid_to": "1998-04-22",
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.95,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_aed8a9a093453369",
+    "subject_entity_id": "entity_0854fa751bd95eb0",
+    "predicate": "renamed_to",
+    "object_entity_id": "entity_6f2c444ac70d6211",
+    "object_name": null,
+    "valid_from": "1998-04-23",
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.95,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_47d569e5d4e42d9d",
+    "subject_entity_id": "entity_6f2c444ac70d6211",
+    "predicate": "formerly_known_as",
+    "object_entity_id": "entity_0854fa751bd95eb0",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.95,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_2f293421bfd55aa6",
+    "subject_entity_id": "entity_6f2c444ac70d6211",
+    "predicate": "effective_on_date",
+    "object_entity_id": null,
+    "object_name": "1998-04-23",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.95,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_960349e44be0c650",
+    "subject_entity_id": "entity_6f2c444ac70d6211",
+    "predicate": "predecessor_of",
+    "object_entity_id": "entity_a111656cd57cd645",
+    "object_name": null,
+    "valid_from": "1998-04-23",
+    "valid_to": "2010-02-21",
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.95,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_a38f6f346ebede2e",
+    "subject_entity_id": "entity_6f2c444ac70d6211",
+    "predicate": "renamed_to",
+    "object_entity_id": "entity_a111656cd57cd645",
+    "object_name": null,
+    "valid_from": "2010-02-22",
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.95,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_0e855eb1c79d90b3",
+    "subject_entity_id": "entity_a111656cd57cd645",
+    "predicate": "formerly_known_as",
+    "object_entity_id": "entity_6f2c444ac70d6211",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.95,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_7ae42400cced22e5",
+    "subject_entity_id": "entity_a111656cd57cd645",
+    "predicate": "effective_on_date",
+    "object_entity_id": null,
+    "object_name": "2010-02-22",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.97,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_af3ee4f6476c6630",
+    "subject_entity_id": "entity_a111656cd57cd645",
+    "predicate": "predecessor_of",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": "2010-02-22",
+    "valid_to": "2021-07-29",
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.97,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_3959419994c10e69",
+    "subject_entity_id": "entity_a111656cd57cd645",
+    "predicate": "renamed_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": "2021-07-30",
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.97,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_0c675746a1e0ea37",
+    "subject_entity_id": "entity_e3fd2d5e27d053d1",
+    "predicate": "formerly_known_as",
+    "object_entity_id": "entity_a111656cd57cd645",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.97,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_64c24571ed61f11d",
+    "subject_entity_id": "entity_e3fd2d5e27d053d1",
+    "predicate": "effective_on_date",
+    "object_entity_id": null,
+    "object_name": "2021-07-30",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.98,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_ad24f72fecc93c04",
+    "subject_entity_id": "entity_173f4428ac3d7f33",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.92,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_6cc1a40cb5119545",
+    "subject_entity_id": "entity_353d5d1bdeae80b3",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.92,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_37fbd7414c21532e",
+    "subject_entity_id": "entity_b30bd995526140eb",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.92,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_6dfd39f880cc5cec",
+    "subject_entity_id": "entity_2d763282313be843",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.92,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_b0b3f26a441779e4",
+    "subject_entity_id": "entity_91c68f3529f7dd94",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.92,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_6ffa8565694b1210",
+    "subject_entity_id": "entity_77e53c0698866b81",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.92,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_82e4b016f5fe70bc",
+    "subject_entity_id": "entity_d9fd2a96d0146006",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.92,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_1d7536cdca517ea3",
+    "subject_entity_id": "entity_d9fd2a96d0146006",
+    "predicate": "campus_formerly_known_as",
+    "object_entity_id": null,
+    "object_name": "USEP former campus in Bislig City",
+    "valid_from": "2018",
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "confidence": 0.55,
+    "notes": "Derived from the official history page wording; a formal prior campus name is not stated there."
+  },
+  {
+    "relationship_id": "rel_b99e6dc1a16fceab",
+    "subject_entity_id": "entity_9b16b44d0e0a5cac",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "policy/manual",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/documents"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_c0c194cc2f5d3852",
+    "subject_entity_id": "entity_261278aa18a250c6",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.9,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_b2a4c05dfb08ee99",
+    "subject_entity_id": "entity_8483131bd50dd783",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_261278aa18a250c6",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_fc9a8b67e0712530",
+    "subject_entity_id": "entity_e17480eba2d514b6",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_261278aa18a250c6",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_60297c60e7426008",
+    "subject_entity_id": "entity_fa6b4fa739769588",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_261278aa18a250c6",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_87ffca67aeb92ef5",
+    "subject_entity_id": "entity_a3b74c47d3f1eaa8",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_261278aa18a250c6",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_0f4a5bf616421bd3",
+    "subject_entity_id": "entity_9cb3c81eae144b7f",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_261278aa18a250c6",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_da57e02e0af9b28c",
+    "subject_entity_id": "entity_ea5fb6d361886470",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_261278aa18a250c6",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_b528aff8c9be4f89",
+    "subject_entity_id": "entity_57f7309ce3b41805",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_261278aa18a250c6",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_101834998e56f563",
+    "subject_entity_id": "entity_05c44a7e342f64ce",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_261278aa18a250c6",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_6c7e822e339f25d2",
+    "subject_entity_id": "entity_84978af74a5d0f6b",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_261278aa18a250c6",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_8e949340149628c7",
+    "subject_entity_id": "entity_7f8f09cd8735fa16",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_261278aa18a250c6",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_8f47469d0faee8fc",
+    "subject_entity_id": "entity_f67bf035d010850d",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_261278aa18a250c6",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_4d2c2345ed895601",
+    "subject_entity_id": "entity_f3dec67141b4dc82",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_261278aa18a250c6",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_67d0a95f696be647",
+    "subject_entity_id": "entity_7250a60820f7493c",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_261278aa18a250c6",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_b3eee25d45161827",
+    "subject_entity_id": "entity_c49204b4f2802bda",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_261278aa18a250c6",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_30554452d2cdd5c1",
+    "subject_entity_id": "entity_0d9aeef66a263844",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_261278aa18a250c6",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_210df2a8e8fa4287",
+    "subject_entity_id": "entity_a2bca9949a551696",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.9,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_f9c9131df196e0a9",
+    "subject_entity_id": "entity_5bb8c75ed3122142",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_c475764ec768acfa",
+    "subject_entity_id": "entity_db15e57d0768d525",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_210df2a8e8fa4287",
+    "subject_entity_id": "entity_a2bca9949a551696",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.9,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_0597f2742658a19c",
+    "subject_entity_id": "entity_f5c6afd5cdc90928",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_10224a8e346e357b",
+    "subject_entity_id": "entity_b8ee9e30c106259a",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_046bd315de117c0d",
+    "subject_entity_id": "entity_dd24dccd8a3708a0",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_016ad24ba94230ea",
+    "subject_entity_id": "entity_856448c83f187ee3",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_86b69ab27b2687df",
+    "subject_entity_id": "entity_be4c9d5fa85c1755",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_e1a0320936e7cd0b",
+    "subject_entity_id": "entity_8ba8544d68b50928",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_41163679cf33d478",
+    "subject_entity_id": "entity_06f0ee5e0061942e",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_210df2a8e8fa4287",
+    "subject_entity_id": "entity_a2bca9949a551696",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.9,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_df95289ec56a70f1",
+    "subject_entity_id": "entity_6fb954714b4c0de8",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_f78f7d26910d6b76",
+    "subject_entity_id": "entity_e520d88e7dcae670",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_d35ed11e6e756526",
+    "subject_entity_id": "entity_f40f5c37fe285307",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_4ba01f08b8418a54",
+    "subject_entity_id": "entity_51524ebdc15c14cb",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_b79378298acc3e66",
+    "subject_entity_id": "entity_35837dabd0d52f16",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_8e7e7ba9789a1e2c",
+    "subject_entity_id": "entity_c876ad5180d8a072",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_77d3aa33db0679ac",
+    "subject_entity_id": "entity_b29711770d6dd72e",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_0f031ecba89eeded",
+    "subject_entity_id": "entity_67684f9c6f225489",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_507f7ad53789a868",
+    "subject_entity_id": "entity_a682b50e6bd8b1f4",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_210df2a8e8fa4287",
+    "subject_entity_id": "entity_a2bca9949a551696",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.9,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_3b71dc9e5643ecf4",
+    "subject_entity_id": "entity_269d9ccf23a0e10d",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_a5d6811236d705fb",
+    "subject_entity_id": "entity_fe0923c19691d158",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_810d7360eacb827b",
+    "subject_entity_id": "entity_f78b1587b8c8d780",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_5f8ade3add224cab",
+    "subject_entity_id": "entity_d5b3d1ca6a9254e9",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_210df2a8e8fa4287",
+    "subject_entity_id": "entity_a2bca9949a551696",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.9,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_d1801357e30ba78b",
+    "subject_entity_id": "entity_d9faadf1260c6c03",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_210df2a8e8fa4287",
+    "subject_entity_id": "entity_a2bca9949a551696",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.9,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_48b9aeaa67bba476",
+    "subject_entity_id": "entity_408ecfd2f50430fe",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_dd9a30994386a7c9",
+    "subject_entity_id": "entity_8ffd5c27fb3f6afe",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/registrar"
+    ],
+    "confidence": 0.9,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_89d3ce6a0dd9d75a",
+    "subject_entity_id": "entity_d25524e921b73eed",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/library"
+    ],
+    "confidence": 0.9,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_4116532371d19b2d",
+    "subject_entity_id": "entity_5ff2d85a2ae65717",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/colleges/college-of-business-and-management"
+    ],
+    "confidence": 0.9,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_bab07073c77d4d9a",
+    "subject_entity_id": "entity_2cff3447d63f7aa6",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "transparency",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/transparency-seal"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_c0c194cc2f5d3852",
+    "subject_entity_id": "entity_261278aa18a250c6",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.9,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_b6ef3fa60a3ac562",
+    "subject_entity_id": "entity_01b59b85de65de4f",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_261278aa18a250c6",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_210df2a8e8fa4287",
+    "subject_entity_id": "entity_a2bca9949a551696",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.9,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_c90dbf101414d8bd",
+    "subject_entity_id": "entity_19343e7d3943a174",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_63b3ae414f866e0e",
+    "subject_entity_id": "entity_dbefb40fc83384f6",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_8e2c2be12a683b7c",
+    "subject_entity_id": "entity_7b5ba27a1b6f77b7",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_9069c731b0089b0f",
+    "subject_entity_id": "entity_28f724837a3fb923",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_4896a005dbff1b9f",
+    "subject_entity_id": "entity_2c8b93ff1e27bad2",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_278a64c56af947d3",
+    "subject_entity_id": "entity_79d91e2f2c0b3bf9",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_fd44b696bd2d7fa4",
+    "subject_entity_id": "entity_ad745a671f7012b5",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_10224a8e346e357b",
+    "subject_entity_id": "entity_b8ee9e30c106259a",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_782e131344154959",
+    "subject_entity_id": "entity_1a8430cd4e0993b4",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_016ad24ba94230ea",
+    "subject_entity_id": "entity_856448c83f187ee3",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_a358afbb1d787b1e",
+    "subject_entity_id": "entity_0eabef4354f919e2",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_966fe25ebca48cd2",
+    "subject_entity_id": "entity_4ba13a855c0fc900",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_bc08bad532ab8d0b",
+    "subject_entity_id": "entity_b9cb409791972326",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_8d34f930d02cceeb",
+    "subject_entity_id": "entity_58c5a2b5ead7979f",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_ce34b2645b4d2778",
+    "subject_entity_id": "entity_3f86346c17d4a7ce",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_8016627ad5d8c598",
+    "subject_entity_id": "entity_ea66f30413350d7f",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_eeacefe712c28c9f",
+    "subject_entity_id": "entity_cd2b1e6539ebee96",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_ad33497af9176a0a",
+    "subject_entity_id": "entity_f9df39dce70b9b34",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_9648397c0426c4b2",
+    "subject_entity_id": "entity_fef0b3a86738387c",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_bbc034942c669b1e",
+    "subject_entity_id": "entity_1796d22c06c2e89a",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_3b71dc9e5643ecf4",
+    "subject_entity_id": "entity_269d9ccf23a0e10d",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_e67ec00c77a001ab",
+    "subject_entity_id": "entity_210941666b652870",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_d1801357e30ba78b",
+    "subject_entity_id": "entity_d9faadf1260c6c03",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_0c0e79cf4aa2d16e",
+    "subject_entity_id": "entity_98c91d4e1b4fd91d",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_6504bb4cfcb9e127",
+    "subject_entity_id": "entity_92a359fc32e8fa48",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_5f8ade3add224cab",
+    "subject_entity_id": "entity_d5b3d1ca6a9254e9",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_a2bca9949a551696",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "confidence": 0.88,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_89d3ce6a0dd9d75a",
+    "subject_entity_id": "entity_d25524e921b73eed",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/library/acquisitions/periodicals/main-campus"
+    ],
+    "confidence": 0.9,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_89d3ce6a0dd9d75a",
+    "subject_entity_id": "entity_d25524e921b73eed",
+    "predicate": "belongs_to",
+    "object_entity_id": "entity_e3fd2d5e27d053d1",
+    "object_name": null,
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/library/electronic-resources"
+    ],
+    "confidence": 0.9,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_82b82882bae4b970",
+    "subject_entity_id": "entity_68ff63fb82e0e5df",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1LI4qP_Ge4NfFhDhZ5mlXR5dY5YP3laX4&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_48eb7308ef2be6c8",
+    "subject_entity_id": "entity_688c62b2c1e6ae38",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1HhapHPsYOdC_Tn2Zicee1-CsOLV_y77R&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_fd9dcf102bbe13f0",
+    "subject_entity_id": "entity_380ee99b0f577ce8",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "transparency",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://doc-0s-9o-docstext.googleusercontent.com/export/e6hpso97lrhpva19l3uocm525o/tr90hsud4bsg40geasa46ie120/1775947910000/118069644834388500470/*/18L4kCKwGKZeEuLdTde6w38w5SXorMOh6?format=txt"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_82b82882bae4b970",
+    "subject_entity_id": "entity_68ff63fb82e0e5df",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1ss0zQUX9dwbisyLhgS-i29GOo52xO_IV&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_82b82882bae4b970",
+    "subject_entity_id": "entity_68ff63fb82e0e5df",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1dz0-SY6JK4P8U5ZYG-VMdYaC_503uaFy&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_82b82882bae4b970",
+    "subject_entity_id": "entity_68ff63fb82e0e5df",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1REip2gziolPOMbtpYXDDA-boeEtRU8A5&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_22093eef8065e056",
+    "subject_entity_id": "entity_b06f0a24a0f89961",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1Iicz_ulVzW-f2-i0poP4kHDozYPGyJkz&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_a5dc53a37b9e1ae5",
+    "subject_entity_id": "entity_1c5e025c8d33f347",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=17lb4Pgd3YBo-bexW_5W346-FisBD7eId&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_f0c7bcd2e392c675",
+    "subject_entity_id": "entity_44b4beeb9a931d04",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1r8BW8v8W4oNvejSrkeMBJJPln372Abib&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_6ffd3049f0f71f81",
+    "subject_entity_id": "entity_beafb9967e0b53b6",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1hC4kcD4wdQh6Xp5MkuCzWntgFogJdHij&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_22d69b59021a622c",
+    "subject_entity_id": "entity_4adf8e9d87e676e8",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1H0DHIocwVFAHCqTJSgPLaf91qUJSjLUQ&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_58a4906f76711df8",
+    "subject_entity_id": "entity_9b7b70cb4a60b9a0",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1mEqkAXUJOisWTERNTTWanb-2ILyNY4aL&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_89631882b2925a29",
+    "subject_entity_id": "entity_d2a399272f1d8e69",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=12iKnLBCGB8GREbBxKh9RvVOHWW1PtfCP&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_6c2aa875d084422a",
+    "subject_entity_id": "entity_80175643626e79e7",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1aMaFhMpNtJGP2b2_7sNyjfDKtMjCf07h&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_fea01e5257953f4c",
+    "subject_entity_id": "entity_d39e47ba172dfd12",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "forms",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1nYvXdOlYAB_4zyb0ACtlvFV4-FxvNcal&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_d30fcb1de591b67b",
+    "subject_entity_id": "entity_1da7ea5402c92569",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1FxQA9Bf-oiyx75uBisI9UThrVL0G_0lp&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_e49a5f86720febb3",
+    "subject_entity_id": "entity_1cf952ff78d4b5b7",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/public_files/files/SDSSU%20Budget%20for%20FY%202020.pdf"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_f5ec5b06a118a674",
+    "subject_entity_id": "entity_94da1a0af5073ce0",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/public_files/files/SDSSU%20Perfomance%20Targets%20FY%202020.pdf"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_4ba9686b0049da70",
+    "subject_entity_id": "entity_9942f7a4e2cc384c",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/public_files/files/Budget%20for%20FY%202019_compressed.pdf"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_d651b2059e955049",
+    "subject_entity_id": "entity_ae8a6164eb94cf2d",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1olP2nxqg1WIaOT-lt0v5u1vcLckwP0mq&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_564fa8b732e58d42",
+    "subject_entity_id": "entity_4b518e95ccfb1157",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1jcnPmd3oXd0IoSh1tBVzdeGR0gYZ2o1t&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_52cb81eed3d3f6bf",
+    "subject_entity_id": "entity_43e7f9e84e9b1435",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "forms",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1f1GdBceXApZ3_RHKcf3MK88-EgINcMzT&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_3067645b2f7caf75",
+    "subject_entity_id": "entity_ccda2351cb2270d3",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/public_files/files/APP%20for%202019%20%28Income%29%20of%20Surigao%20del%20Sur%20Satet%20University-Caraga%20Region.pdf"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_b12106d4dfce0751",
+    "subject_entity_id": "entity_4be895fffcafee7b",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/public_files/files/APP%20for%202019%20%28GOP%29%20of%20Surigao%20del%20Sur%20State%20University-Caraga%20Rrgion.pdf"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_200bafaaebe37c2a",
+    "subject_entity_id": "entity_e8ec25eb63e24110",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/public_files/files/APP-for-2020-GOP-of-Surigao-del-Sur-Satet-University.pdf"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_8f8a2bd13620bca4",
+    "subject_entity_id": "entity_4d1a62bb12285c43",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/public_files/files/Surigao%20del%20Sur%20State%20University%20%28SDSSU%29%20Procurement%20Monitoring%20Report%20as%20of%20Jan.-June%202019.pdf"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_94aabe6e8384a05a",
+    "subject_entity_id": "entity_6d40f1696c3b2bb8",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/public_files/files/Surigao%20del%20Sur%20State%20University%20Procurement%20Monitoring%20Report%20as%20of%20January-June%202018.pdf"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_817389f4634a16e1",
+    "subject_entity_id": "entity_8fa67446164392df",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/public_files/files/Surigao%20del%20Sur%20State%20University%20SDSSU%20Procurement%20Monitoring%20Report%20as%20of%20July-December%202018.pdf"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_5e917b77a18f9022",
+    "subject_entity_id": "entity_38b8ca66f8c15642",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1VkSCYqy0wuYGzQwhUlujRFfAI8rcvq38&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_4a39625b47abcc21",
+    "subject_entity_id": "entity_0987efb03a7270c6",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=107b65W8Q1ZkabT5hJnn1QEvrPWv_-u7Z&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_998c5b3d1692906c",
+    "subject_entity_id": "entity_109067ba3c56daa7",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1WsPyCgNxHWxEQ1LyZQf-WMOuEkrL8vc8&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  },
+  {
+    "relationship_id": "rel_b87de9e904bdc429",
+    "subject_entity_id": "entity_d30274fc013e1c91",
+    "predicate": "document_belongs_to",
+    "object_entity_id": null,
+    "object_name": "external_document",
+    "valid_from": null,
+    "valid_to": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1sHmDxdJBIOqeKCPwNB4aV3jtP82jqRaf&export=download"
+    ],
+    "confidence": 0.85,
+    "notes": null
+  }
+]

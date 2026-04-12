@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#08111f">
+  <meta name="description" content="Official Nemorax download website. Learn what Nemorax does, review release information, and access the current Windows and Android distribution channels.">
+  <meta name="robots" content="index,follow">
+  <meta property="og:title" content="Nemorax | Official Downloads">
+  <meta property="og:description" content="Official public website for Nemorax releases, installation guidance, platform availability, and support information.">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="assets/Nemorax.png">
+  <title>Nemorax | Official Downloads</title>
+  <link rel="stylesheet" href="assets/css/main.css">
+</head>
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <div class="container topbar__inner">
+        <a class="brand" href="#home" aria-label="Nemorax home">
+          <img class="brand__mark" src="assets/Nemorax.png" alt="Nemorax logo">
+          <span class="brand__text">
+            <strong>Nemorax</strong>
+            <small>Official download portal</small>
+          </span>
+        </a>
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav">
+          <span></span>
+          <span></span>
+        </button>
+        <nav class="site-nav" id="site-nav" aria-label="Primary">
+          <a href="#features">Features</a>
+          <a href="#preview">Preview</a>
+          <a href="#downloads">Downloads</a>
+          <a href="#install">Install</a>
+          <a href="#support">Support</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="home">
+      <section class="hero section">
+        <div class="hero__backdrop hero__backdrop--north"></div>
+        <div class="hero__backdrop hero__backdrop--east"></div>
+        <div class="container hero__grid">
+          <div class="hero__copy reveal">
+            <p class="eyebrow">Release line v1.0.0</p>
+            <h1>AI assistance for campus information, packaged for <span class="shimmer-text">real users</span> and <span class="shimmer-text">real devices.</span></h1>
+            <p class="hero__lede">
+              Nemorax is the official Nemis assistant across desktop, web, and mobile-friendly views.
+              It combines conversational support, account-aware settings, history management, and a flexible AI backend in one product.
+            </p>
+            <div class="hero__actions">
+              <a class="button button--primary" href="#downloads">Get Nemorax</a>
+              <a class="button button--secondary" href="#release">View release details</a>
+            </div>
+            <ul class="hero__meta" aria-label="Release highlights">
+              <li>Windows installer channel</li>
+              <li>Android APK channel</li>
+              <li>Browser access for iPhone and desktop web</li>
+            </ul>
+          </div>
+          <div class="hero__panel reveal" data-delay="120">
+            <div class="hero-card">
+              <div class="hero-card__top">
+                <span class="status-pill status-pill--ok">Official build</span>
+                <span class="status-pill">First version</span>
+              </div>
+              <div class="hero-card__body">
+                <div class="hero-card__stat">
+                  <span>Current version</span>
+                  <strong data-release-version>1.0.0</strong>
+                </div>
+                <div class="hero-card__stat">
+                  <span>Release channel</span>
+                  <strong data-release-channel>Initial Release</strong>
+                </div>
+                <div class="hero-card__stat">
+                  <span>Distribution</span>
+                  <strong>Windows, Android, Web</strong>
+                </div>
+              </div>
+              <div class="hero-card__footer">
+                <p>Built with a Flet frontend, FastAPI backend, user accounts, feedback collection, and provider-flexible AI support.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section trust-strip">
+        <div class="container trust-strip__inner reveal">
+          <div>
+            <span class="trust-strip__label">Built for</span>
+            <strong>Windows desktop, Android devices, iPhone web access, and modern desktop browsers</strong>
+          </div>
+          <div>
+            <span class="trust-strip__label">Core stack</span>
+            <strong>FastAPI, Flet, provider-flexible AI, session-aware history</strong>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="features">
+        <div class="container">
+          <div class="section-head reveal">
+            <p class="eyebrow">What Nemorax provides</p>
+            <h2>A release portal backed by a <span class="shimmer-text">real application</span>, not a brochure page.</h2>
+            <p>
+              The product behind this website already includes account handling, conversation history, feedback capture,
+              responsive layouts, and configurable AI providers such as Groq and other OpenAI-compatible services.
+            </p>
+          </div>
+          <div class="feature-grid">
+            <article class="feature-card reveal">
+              <h3>Cross-platform assistant</h3>
+              <p>One application experience across desktop, Android, and browser-based access for iPhone and desktop users.</p>
+            </article>
+            <article class="feature-card reveal" data-delay="80">
+              <h3>Guest and signed-in flows</h3>
+              <p>Guests can start immediately while signed-in users keep settings and persistent history where enabled.</p>
+            </article>
+            <article class="feature-card reveal" data-delay="120">
+              <h3>Session-aware history</h3>
+              <p>Current-session conversations remain visible while using the app, with guest history cleared after a fresh restart.</p>
+            </article>
+            <article class="feature-card reveal">
+              <h3>Flexible AI backend</h3>
+              <p>Runs on Groq by default and can still switch to other supported providers through environment settings.</p>
+            </article>
+            <article class="feature-card reveal" data-delay="80">
+              <h3>Operational feedback loop</h3>
+              <p>In-app feedback submission is built in, making beta collection and issue reporting part of the product workflow.</p>
+            </article>
+            <article class="feature-card reveal" data-delay="120">
+              <h3>Deployment-oriented structure</h3>
+              <p>FastAPI service boundaries, repository-backed persistence, and a maintainable release path for future platform growth.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section preview" id="preview">
+        <div class="container">
+          <div class="section-head reveal">
+            <p class="eyebrow">Product preview</p>
+            <h2>Designed as a <span class="shimmer-text">dependable</span> access point for campus assistance.</h2>
+            <p>These previews summarize the product experience users can expect across the app shell, release flow, and mobile navigation.</p>
+          </div>
+          <div class="preview-grid">
+            <figure class="preview-card reveal">
+              <figcaption>Responsive chat workspace</figcaption>
+              <div class="ui-frame">
+                <div class="ui-frame__bar"></div>
+                <div class="ui-frame__content">
+                  <div class="ui-bubble ui-bubble--assistant">How can I help with your campus questions today?</div>
+                  <div class="ui-bubble ui-bubble--user">Show me enrollment details and updated release notes.</div>
+                  <div class="ui-bubble ui-bubble--assistant">History, account settings, and release guidance are available in one place.</div>
+                </div>
+              </div>
+            </figure>
+            <figure class="preview-card reveal" data-delay="80">
+              <figcaption>Release-ready settings and history</figcaption>
+              <div class="ui-frame ui-frame--panel">
+                <div class="ui-list">
+                  <div class="ui-list__item">
+                    <strong>Theme</strong>
+                    <span>Adjust appearance per user</span>
+                  </div>
+                  <div class="ui-list__item">
+                    <strong>Show welcome screen</strong>
+                    <span>Launch behavior configurable</span>
+                  </div>
+                  <div class="ui-list__item">
+                    <strong>Recent chats</strong>
+                    <span>Session-aware guest behavior</span>
+                  </div>
+                </div>
+              </div>
+            </figure>
+            <figure class="preview-card reveal" data-delay="120">
+              <figcaption>Mobile-first navigation flow</figcaption>
+              <div class="phone-frame">
+                <div class="phone-frame__notch"></div>
+                <div class="phone-frame__screen">
+                  <div class="phone-frame__drawer"></div>
+                  <div class="phone-frame__tiles">
+                    <span>New chat</span>
+                    <span>Settings</span>
+                    <span>Support</span>
+                    <span>Feedback</span>
+                  </div>
+                </div>
+              </div>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="section release" id="release">
+        <div class="container release__grid">
+          <div class="release__main reveal">
+            <div class="section-head section-head--left">
+              <p class="eyebrow">Release information</p>
+              <h2>Current public website content for the <span class="shimmer-text">Nemorax</span> distribution line.</h2>
+            </div>
+            <div class="release-card">
+              <dl class="release-stats">
+                <div>
+                  <dt>App version</dt>
+                  <dd data-release-version>1.0.0</dd>
+                </div>
+                <div>
+                  <dt>Channel</dt>
+                  <dd data-release-channel>Initial Release</dd>
+                </div>
+                <div>
+                  <dt>Last updated</dt>
+                  <dd data-release-updated>April 12, 2026</dd>
+                </div>
+                <div>
+                  <dt>Supported release paths</dt>
+                  <dd>Windows installer, Android APK, browser access</dd>
+                </div>
+              </dl>
+            </div>
+          </div>
+          <aside class="release__aside reveal" data-delay="100">
+            <div class="release-note">
+              <h3>Release notes</h3>
+              <ul>
+                <li>Responsive mobile spacing and safe top margins improved.</li>
+                <li>Mobile guest-session sidebar behavior aligned with desktop expectations.</li>
+                <li>First public release of the Nemorax distribution website and app channel structure.</li>
+                <li>Mobile spacing, sidebar session handling, and chat callback flow refined before launch.</li>
+              </ul>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="section downloads" id="downloads">
+        <div class="container">
+          <div class="section-head reveal">
+            <p class="eyebrow">Official download channels</p>
+            <h2>Choose the <span class="shimmer-text">correct build</span> for the device you actually plan to use.</h2>
+            <p>Windows and Android are listed separately below. Browser access remains the correct path for iPhone users because there is no installed iOS app distribution in this project.</p>
+          </div>
+          <div class="download-grid">
+            <article class="download-card reveal" data-platform="windows">
+              <header>
+                <p class="download-card__platform">Windows</p>
+                <h3>Windows installer (.exe)</h3>
+                <span class="download-card__meta">Windows 10 and Windows 11, 64-bit</span>
+              </header>
+              <p>Recommended for desktop and laptop users who want the standalone Nemorax application.</p>
+              <ul class="download-card__list">
+                <li>Native desktop release path</li>
+                <li>Best fit for office and campus workstation use</li>
+                <li>Same core assistant and account features as other builds</li>
+              </ul>
+              <div class="download-card__actions" data-download-windows></div>
+            </article>
+
+            <article class="download-card reveal" data-delay="80" data-platform="android">
+              <header>
+                <p class="download-card__platform">Android</p>
+                <h3>Android package (.apk)</h3>
+                <span class="download-card__meta">Android 8.0 and later</span>
+              </header>
+              <p>Optimized for touch input, drawer navigation, and mobile-safe layout spacing for day-to-day use on Android devices.</p>
+              <ul class="download-card__list">
+                <li>Direct APK distribution</li>
+                <li>Supports current mobile navigation and settings flow</li>
+                <li>Recommended for first-release distribution and controlled rollout</li>
+              </ul>
+              <div class="download-card__actions" data-download-android></div>
+            </article>
+
+            <article class="download-card reveal" data-delay="120">
+              <header>
+                <p class="download-card__platform">Browser access</p>
+                <h3>Web access for iPhone and desktop web</h3>
+                <span class="download-card__meta">No installed iOS app required</span>
+              </header>
+              <p>Use the web deployment for iPhone testing and browser-based access. This is also the correct path for desktop web when a local installer is not required.</p>
+              <ul class="download-card__list">
+                <li>Intended path for iPhone users</li>
+                <li>Useful for first-release validation before native store packaging</li>
+                <li>Google Play and AAB packaging can be added in a future release cycle</li>
+              </ul>
+              <div class="download-card__note">
+                <strong>Future platform notes</strong>
+                <p>Google Play, Android App Bundle packaging, and any future iOS distribution should be announced only after release signing and store readiness are complete.</p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section install" id="install">
+        <div class="container">
+          <div class="section-head reveal">
+            <p class="eyebrow">Installation steps</p>
+            <h2>Keep the rollout <span class="shimmer-text">predictable</span>.</h2>
+          </div>
+          <div class="install-grid">
+            <article class="install-card reveal">
+              <h3>Windows</h3>
+              <ol>
+                <li>Download the official `.exe` installer from the Windows release card.</li>
+                <li>Run the installer and approve any standard Windows security prompts.</li>
+                <li>Launch Nemorax from the desktop shortcut or Start menu.</li>
+                <li>Use guest mode for quick access or sign in if persistent history is enabled for your rollout.</li>
+              </ol>
+            </article>
+            <article class="install-card reveal" data-delay="80">
+              <h3>Android</h3>
+              <ol>
+                <li>Download the official `.apk` from the Android release card.</li>
+                <li>Allow installation from the approved source if your device asks for permission.</li>
+                <li>Open the installed app and verify the welcome screen, safe top area, and drawer navigation.</li>
+                <li>Confirm session behavior if you are testing guest mode.</li>
+              </ol>
+            </article>
+            <article class="install-card reveal" data-delay="120">
+              <h3>iPhone and web</h3>
+              <ol>
+                <li>Open the official Nemorax web deployment URL in Safari or another supported browser.</li>
+                <li>Confirm that the mobile layout, safe top spacing, and drawer behavior render correctly.</li>
+                <li>Use the site directly in-browser; no installed iOS build is currently part of this release path.</li>
+                <li>Report layout or interaction issues through the feedback workflow.</li>
+              </ol>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section support" id="support">
+        <div class="container support__grid">
+          <div class="support__copy reveal">
+            <div class="section-head section-head--left">
+              <p class="eyebrow">Support and contact</p>
+              <h2><span class="shimmer-text">Launch feedback</span> is part of the product workflow.</h2>
+              <p>Use the in-app feedback feature for product issues, UI problems, and rollout observations. When reporting a problem, include the device, platform, browser or app build, and the exact steps that caused it.</p>
+            </div>
+            <div class="support-callout">
+              <strong>Recommended report details</strong>
+              <p>Device model, operating system, browser or installed build, guest or signed-in mode, reproduction steps, expected result, and actual result.</p>
+            </div>
+          </div>
+          <div class="support__panel reveal" data-delay="80">
+            <div class="support-card">
+              <h3>Operational guidance</h3>
+              <ul>
+                <li>Use the in-app Feedback action for the fastest product reporting path.</li>
+                <li>Use the Windows installer for managed desktop rollout.</li>
+                <li>Use the Android APK for direct device testing.</li>
+                <li>Use browser deployment for iPhone access and web QA.</li>
+              </ul>
+              <div class="support-card__links">
+                <a href="privacy.html">Privacy Policy</a>
+                <a href="terms.html">Terms of Use</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section policy-brief">
+        <div class="container policy-brief__inner reveal">
+          <h2><span class="shimmer-text">Privacy</span> and terms</h2>
+          <p>Nemorax includes account, conversation history, and feedback capabilities. Review the legal pages before public rollout so your deployment team, testers, and users understand the current data handling expectations.</p>
+          <div class="policy-brief__actions">
+            <a class="button button--secondary" href="privacy.html">Read Privacy Policy</a>
+            <a class="button button--secondary" href="terms.html">Read Terms of Use</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container site-footer__inner">
+        <div class="site-footer__brand">
+          <img src="assets/Nemorax.png" alt="Nemorax logo">
+          <div>
+            <strong>Nemorax</strong>
+            <p>Official public website for downloads, release details, and support guidance.</p>
+          </div>
+        </div>
+        <nav class="site-footer__links" aria-label="Footer">
+          <a href="#downloads">Downloads</a>
+          <a href="#release">Release info</a>
+          <a href="#install">Installation</a>
+          <a href="#support">Support</a>
+          <a href="privacy.html">Privacy</a>
+          <a href="terms.html">Terms</a>
+        </nav>
+      </div>
+    </footer>
+  </div>
+  <script src="assets/js/site-config.js"></script>
+  <script src="assets/js/main.js"></script>
+</body>
+</html>

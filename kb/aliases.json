@@ -1,0 +1,218 @@
+[
+  {
+    "canonical_name": "Bukidnon External Studies Center",
+    "aliases": [
+      "BESC"
+    ],
+    "entity_id": "entity_ad753d141514efdc",
+    "notes": null
+  },
+  {
+    "canonical_name": "Surigao del Sur Polytechnic College",
+    "aliases": [
+      "SSPC"
+    ],
+    "entity_id": "entity_0854fa751bd95eb0",
+    "notes": null
+  },
+  {
+    "canonical_name": "Surigao del Sur Polytechnic State College",
+    "aliases": [
+      "SSPSC"
+    ],
+    "entity_id": "entity_6f2c444ac70d6211",
+    "notes": null
+  },
+  {
+    "canonical_name": "Surigao del Sur State University",
+    "aliases": [
+      "SDSSU"
+    ],
+    "entity_id": "entity_a111656cd57cd645",
+    "notes": null
+  },
+  {
+    "canonical_name": "North Eastern Mindanao State University",
+    "aliases": [
+      "NEMSU"
+    ],
+    "entity_id": "entity_e3fd2d5e27d053d1",
+    "notes": null
+  },
+  {
+    "canonical_name": "Bukidnon External Studies Center",
+    "aliases": [
+      "BESC"
+    ],
+    "entity_id": "entity_ad753d141514efdc",
+    "notes": null
+  },
+  {
+    "canonical_name": "Surigao del Sur Polytechnic College",
+    "aliases": [
+      "SSPC"
+    ],
+    "entity_id": "entity_0854fa751bd95eb0",
+    "notes": null
+  },
+  {
+    "canonical_name": "Surigao del Sur Polytechnic State College",
+    "aliases": [
+      "SSPSC"
+    ],
+    "entity_id": "entity_6f2c444ac70d6211",
+    "notes": null
+  },
+  {
+    "canonical_name": "Surigao del Sur State University",
+    "aliases": [
+      "SDSSU"
+    ],
+    "entity_id": "entity_a111656cd57cd645",
+    "notes": null
+  },
+  {
+    "canonical_name": "North Eastern Mindanao State University",
+    "aliases": [
+      "NEMSU",
+      "North Eastern Mindanao State University"
+    ],
+    "entity_id": "entity_e3fd2d5e27d053d1",
+    "notes": null
+  },
+  {
+    "canonical_name": "Tandag Campus",
+    "aliases": [
+      "NEMSU Tandag Campus",
+      "Tandag Campus"
+    ],
+    "entity_id": "entity_173f4428ac3d7f33",
+    "notes": null
+  },
+  {
+    "canonical_name": "Cantilan Campus",
+    "aliases": [
+      "NEMSU Cantilan Campus",
+      "Cantilan Campus"
+    ],
+    "entity_id": "entity_353d5d1bdeae80b3",
+    "notes": null
+  },
+  {
+    "canonical_name": "San Miguel Campus",
+    "aliases": [
+      "NEMSU San Miguel Campus",
+      "San Miguel Campus"
+    ],
+    "entity_id": "entity_b30bd995526140eb",
+    "notes": null
+  },
+  {
+    "canonical_name": "Cagwait Campus",
+    "aliases": [
+      "NEMSU Cagwait Campus",
+      "Cagwait Campus"
+    ],
+    "entity_id": "entity_2d763282313be843",
+    "notes": null
+  },
+  {
+    "canonical_name": "Lianga Campus",
+    "aliases": [
+      "NEMSU Lianga Campus",
+      "Lianga Campus"
+    ],
+    "entity_id": "entity_91c68f3529f7dd94",
+    "notes": null
+  },
+  {
+    "canonical_name": "Tagbina Campus",
+    "aliases": [
+      "NEMSU Tagbina Campus",
+      "Tagbina Campus"
+    ],
+    "entity_id": "entity_77e53c0698866b81",
+    "notes": null
+  },
+  {
+    "canonical_name": "Bislig Campus",
+    "aliases": [
+      "NEMSU Bislig Campus",
+      "Bislig Campus"
+    ],
+    "entity_id": "entity_d9fd2a96d0146006",
+    "notes": null
+  },
+  {
+    "canonical_name": "MyPortal",
+    "aliases": [
+      "MyPortal"
+    ],
+    "entity_id": "entity_033e45108c1ff312",
+    "notes": null
+  },
+  {
+    "canonical_name": "LMS",
+    "aliases": [
+      "LMS"
+    ],
+    "entity_id": "entity_8c7ba4ba6fe81046",
+    "notes": null
+  },
+  {
+    "canonical_name": "ERMS",
+    "aliases": [
+      "ERMS"
+    ],
+    "entity_id": "entity_96444d344c1aeaa2",
+    "notes": null
+  },
+  {
+    "canonical_name": "CSMS",
+    "aliases": [
+      "CSMS"
+    ],
+    "entity_id": "entity_4bc139d0da1116b8",
+    "notes": null
+  },
+  {
+    "canonical_name": "DTS",
+    "aliases": [
+      "DTS"
+    ],
+    "entity_id": "entity_4dbf9b5209f8cc9e",
+    "notes": null
+  },
+  {
+    "canonical_name": "Itinero",
+    "aliases": [
+      "Itinero"
+    ],
+    "entity_id": "entity_c500b8bb91880bfa",
+    "notes": null
+  },
+  {
+    "canonical_name": "ePass",
+    "aliases": [
+      "ePass"
+    ],
+    "entity_id": "entity_ccc0e69aef123846",
+    "notes": null
+  },
+  {
+    "canonical_name": "Journal",
+    "aliases": [
+      "Journal"
+    ],
+    "entity_id": "entity_81dd6b775afcccb6",
+    "notes": null
+  },
+  {
+    "canonical_name": "Memo",
+    "aliases": [
+      "Memo"
+    ],
+    "entity_id": "entity_9c225a950b92172f",
+    "notes": null
+  }
+]

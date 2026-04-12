@@ -1,0 +1,2537 @@
+[
+  {
+    "entity_id": "entity_ad753d141514efdc",
+    "canonical_name": "Bukidnon External Studies Center",
+    "entity_type": "institution_name",
+    "aliases": [
+      "BESC"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "metadata": {
+      "status": "predecessor",
+      "valid_from": "1982",
+      "valid_to": "1992-04-09"
+    }
+  },
+  {
+    "entity_id": "entity_0854fa751bd95eb0",
+    "canonical_name": "Surigao del Sur Polytechnic College",
+    "entity_type": "institution_name",
+    "aliases": [
+      "SSPC"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "metadata": {
+      "status": "former_official_name",
+      "valid_from": "1992-04-10",
+      "valid_to": "1998-04-22"
+    }
+  },
+  {
+    "entity_id": "entity_6f2c444ac70d6211",
+    "canonical_name": "Surigao del Sur Polytechnic State College",
+    "entity_type": "institution_name",
+    "aliases": [
+      "SSPSC"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "metadata": {
+      "status": "former_official_name",
+      "valid_from": "1998-04-23",
+      "valid_to": "2010-02-21"
+    }
+  },
+  {
+    "entity_id": "entity_a111656cd57cd645",
+    "canonical_name": "Surigao del Sur State University",
+    "entity_type": "institution_name",
+    "aliases": [
+      "SDSSU"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "metadata": {
+      "status": "former_official_name",
+      "valid_from": "2010-02-22",
+      "valid_to": "2021-07-29"
+    }
+  },
+  {
+    "entity_id": "entity_e3fd2d5e27d053d1",
+    "canonical_name": "North Eastern Mindanao State University",
+    "entity_type": "institution_name",
+    "aliases": [
+      "NEMSU",
+      "North Eastern Mindanao State University"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "metadata": {
+      "status": "current_official_name",
+      "valid_from": "2021-07-30",
+      "valid_to": null,
+      "current_name_valid_from": "2021-07-30"
+    }
+  },
+  {
+    "entity_id": "entity_173f4428ac3d7f33",
+    "canonical_name": "Tandag Campus",
+    "entity_type": "campus",
+    "aliases": [
+      "NEMSU Tandag Campus",
+      "Tandag Campus"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_353d5d1bdeae80b3",
+    "canonical_name": "Cantilan Campus",
+    "entity_type": "campus",
+    "aliases": [
+      "NEMSU Cantilan Campus",
+      "Cantilan Campus"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_b30bd995526140eb",
+    "canonical_name": "San Miguel Campus",
+    "entity_type": "campus",
+    "aliases": [
+      "NEMSU San Miguel Campus",
+      "San Miguel Campus"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_2d763282313be843",
+    "canonical_name": "Cagwait Campus",
+    "entity_type": "campus",
+    "aliases": [
+      "NEMSU Cagwait Campus",
+      "Cagwait Campus"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_91c68f3529f7dd94",
+    "canonical_name": "Lianga Campus",
+    "entity_type": "campus",
+    "aliases": [
+      "NEMSU Lianga Campus",
+      "Lianga Campus"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_77e53c0698866b81",
+    "canonical_name": "Tagbina Campus",
+    "entity_type": "campus",
+    "aliases": [
+      "NEMSU Tagbina Campus",
+      "Tagbina Campus"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_d9fd2a96d0146006",
+    "canonical_name": "Bislig Campus",
+    "entity_type": "campus",
+    "aliases": [
+      "NEMSU Bislig Campus",
+      "Bislig Campus"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_32bf0f4bf0bcb7f6",
+    "canonical_name": "Dr. Erwin B. Berry",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/",
+      "https://www.nemsu.edu.ph/directory",
+      "https://www.nemsu.edu.ph/news/Training-on-Thesis-Dissertation-Advising"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_9c73bd05e72692ee",
+    "canonical_name": "Dr. Jennifer Montero",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/",
+      "https://www.nemsu.edu.ph/news/Training-on-Thesis-Dissertation-Advising"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_de8eee69808f7ab4",
+    "canonical_name": "Dr. Abundio C. Miralles",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_1c0f7239fb984f2c",
+    "canonical_name": "Dr. Florife O. Urbiztondo",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_c649fa12ad2896eb",
+    "canonical_name": "Dr. Camilo D. Malong",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_5b0ed29891d395a0",
+    "canonical_name": "Engr. Christopher D. Badayos",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_e54265fd412297d4",
+    "canonical_name": "Dr. Ermie Lux L. Matildo",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_f17d8eff4e93b0e4",
+    "canonical_name": "Dr. Karla Jean Roz",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_67935a21ec9b9942",
+    "canonical_name": "Engr. McDonald G. Amparo",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_5e72596e0fbc5cd1",
+    "canonical_name": "Engr. Lea G. Gurimbao",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_bc2d139944908bd7",
+    "canonical_name": "Engr. Kennie F. Montenegro",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_7afe5abbee25191a",
+    "canonical_name": "Atty. Michiko N. Donaire-Maglinte",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_5e794ca5c6147b6d",
+    "canonical_name": "Dr. Floresito D. Calub",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory",
+      "https://www.nemsu.edu.ph/news/%F0%9D%97%A1%F0%9D%97%98%F0%9D%97%A0%F0%9D%97%A6%F0%9D%97%A8-%F0%9D%97%A7%F0%9D%97%AE%F0%9D%97%BB%F0%9D%97%B1%F0%9D%97%AE%F0%9D%97%B4-%F0%9D%97%9A%F0%9D%97%BF%F0%9D%97%AE%F0%9D%97%B1-%F0%9D%97%A6%F0%9D%97%B0%F0%9D%97%B5%F0%9D%97%BC%F0%9D%97%BC%F0%9D%97%B9-%F0%9D%97%A2%F0%9D%97%BF%F0%9D%97%B6%F0%9D%97%B2%F0%9D%97%BB%F0%9D%98%81%F0%9D%97%AE%F0%9D%98%81%F0%9D%97%B6%F0%9D%97%BC%F0%9D%97%BB-%F0%9D%97%A3%F0%9D%97%BF%F0%9D%97%BC%F0%9D%97%B4%F0%9D%97%BF%F0%9D%97%AE%F0%9D%97%BA"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_10bc8a4428425760",
+    "canonical_name": "Dr. Marvie V. Gonzaga",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_8e445ddb8f9f1014",
+    "canonical_name": "Atty. Daniel L. Diaz",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_0127be7356d8ac27",
+    "canonical_name": "Dr. Laurence P. Bazan",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_0adaca891741753b",
+    "canonical_name": "Dr. Fabio C. Ruaza Jr.",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_3d9223d80474757a",
+    "canonical_name": "Dr. Ma. Cecillia C. Cruz",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_52db184a80610bf3",
+    "canonical_name": "Engr. Luzminda S. Bacquial",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_4c757525892d4272",
+    "canonical_name": "Dr. Roxan E. Caray",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_299af8666e78ca00",
+    "canonical_name": "op@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_6eae84143dc9393f",
+    "canonical_name": "vpaa@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_98e614022f4660be",
+    "canonical_name": "rgsalvaleon@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_c78db536491135c5",
+    "canonical_name": "acmiralles@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_dcb59cfe198b16b5",
+    "canonical_name": "chiefAO_FinanceDivision@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_aecee6e889f4b463",
+    "canonical_name": "lkcdahan@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_c26a67c18211ff4f",
+    "canonical_name": "cpbadayos@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_b9329b558835e018",
+    "canonical_name": "mcsdelacerna@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_3d8e7ff7710b34fb",
+    "canonical_name": "ebberry@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_0df77622319ae493",
+    "canonical_name": "library.tandag@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_18447fa9f525f69b",
+    "canonical_name": "somoreno@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_e555c3c09fc02bdf",
+    "canonical_name": "rtlim@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_a4adc512dc8ca34e",
+    "canonical_name": "hmalawi@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_5b04b4632a64d1c6",
+    "canonical_name": "cashier.tandag@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_33af80d262c0675d",
+    "canonical_name": "registrarmain@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_b3dadd3c749c34c9",
+    "canonical_name": "abyanto@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_6a327d47696ee487",
+    "canonical_name": "kfmontenegro@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_52307006853c6191",
+    "canonical_name": "fmmendez@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_3fbdba31cdace7ed",
+    "canonical_name": "sdssubudgetoffice@gmail.com",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_5acf304bd52362ed",
+    "canonical_name": "mndonaire-maglinte@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_8fd6c6494e26f5f0",
+    "canonical_name": "jaintano@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_21d72fee2c431652",
+    "canonical_name": "remercado@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_1902ede7d1e67f72",
+    "canonical_name": "cfsalomon@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_b03b909b957ac462",
+    "canonical_name": "aoronquillo@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_a8a78e071a9adc13",
+    "canonical_name": "wcpasos@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_b0de07705d1a8362",
+    "canonical_name": "asladaga@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_41561ed3aa4187da",
+    "canonical_name": "aysamarca@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_832b4da3a2744dbe",
+    "canonical_name": "rapatan@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_da5b4cac89084480",
+    "canonical_name": "rdtomaquin@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_42fa112d43d80228",
+    "canonical_name": "SDSSUlawschool@yahoo.com",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_04bc904a3123d38d",
+    "canonical_name": "jmmontero@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_0610fa3923674bc8",
+    "canonical_name": "clsumagaysay@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_251dbd78336e3fad",
+    "canonical_name": "bcaisip@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_570d4ec9888fbfab",
+    "canonical_name": "lpbazan@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_3d0da73d5febdd78",
+    "canonical_name": "lsbacquial@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_0938538ebf5c660b",
+    "canonical_name": "cjcavila@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_df0a236f9fa320eb",
+    "canonical_name": "rgeupena@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/directory"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_9b16b44d0e0a5cac",
+    "canonical_name": "Documents",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/documents"
+    ],
+    "metadata": {
+      "page_type": "policy/manual"
+    }
+  },
+  {
+    "entity_id": "entity_837550332c9816a4",
+    "canonical_name": "Dr. Antonio S. Ang",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_93a349ea1dc4b494",
+    "canonical_name": "Dr. Remegita C. Olvida",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_ac4291adbccf3f72",
+    "canonical_name": "Dr. Baceledes R. Estal",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus",
+      "https://www.nemsu.edu.ph/news/mr-ronie-a-sajelan-extend-his-services-to-sdssu-bislig-campus"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_667fc65e033ca99c",
+    "canonical_name": "Dr. Estal. On July",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/aboutus"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_261278aa18a250c6",
+    "canonical_name": "Graduate Studies",
+    "entity_type": "college",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs",
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_8483131bd50dd783",
+    "canonical_name": "Master of Science in Teaching Social Sciences",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level III-Phase II"
+    }
+  },
+  {
+    "entity_id": "entity_e17480eba2d514b6",
+    "canonical_name": "Master of Science in Teaching Science Education",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level III-Phase II"
+    }
+  },
+  {
+    "entity_id": "entity_fa6b4fa739769588",
+    "canonical_name": "Master of Science in Teaching Mathematics",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level III-Phase II"
+    }
+  },
+  {
+    "entity_id": "entity_a3b74c47d3f1eaa8",
+    "canonical_name": "Master of Science in Teaching Home Economics",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level III-Phase II"
+    }
+  },
+  {
+    "entity_id": "entity_9cb3c81eae144b7f",
+    "canonical_name": "Master of Science in Computer Science",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level II"
+    }
+  },
+  {
+    "entity_id": "entity_ea5fb6d361886470",
+    "canonical_name": "Master of Legal Studies",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": ""
+    }
+  },
+  {
+    "entity_id": "entity_57f7309ce3b41805",
+    "canonical_name": "Master of Arts in Filipino Language Teaching",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level III-Phase II"
+    }
+  },
+  {
+    "entity_id": "entity_05c44a7e342f64ce",
+    "canonical_name": "Master of Arts in English Language Teaching",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level III-Phase II"
+    }
+  },
+  {
+    "entity_id": "entity_84978af74a5d0f6b",
+    "canonical_name": "Master of Arts in Education",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level III-Phase II"
+    }
+  },
+  {
+    "entity_id": "entity_7f8f09cd8735fa16",
+    "canonical_name": "Master in Public Administration",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level III-Phase II"
+    }
+  },
+  {
+    "entity_id": "entity_f67bf035d010850d",
+    "canonical_name": "Master in Business Administration",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level I"
+    }
+  },
+  {
+    "entity_id": "entity_f3dec67141b4dc82",
+    "canonical_name": "Doctor of Philosophy - Science",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level I"
+    }
+  },
+  {
+    "entity_id": "entity_7250a60820f7493c",
+    "canonical_name": "Doctor of Philosophy - Mathematics",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level I"
+    }
+  },
+  {
+    "entity_id": "entity_c49204b4f2802bda",
+    "canonical_name": "Doctor of Education major in English Language Teaching",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": ""
+    }
+  },
+  {
+    "entity_id": "entity_0d9aeef66a263844",
+    "canonical_name": "Doctor of Education major in Educational Management",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level II"
+    }
+  },
+  {
+    "entity_id": "entity_a2bca9949a551696",
+    "canonical_name": "Undergraduate",
+    "entity_type": "college",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs",
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_5bb8c75ed3122142",
+    "canonical_name": "Juris Doctor Program",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": ""
+    }
+  },
+  {
+    "entity_id": "entity_db15e57d0768d525",
+    "canonical_name": "Bachelor of Laws",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Preliminary Visit"
+    }
+  },
+  {
+    "entity_id": "entity_f5c6afd5cdc90928",
+    "canonical_name": "Diploma in Teaching",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": ""
+    }
+  },
+  {
+    "entity_id": "entity_b8ee9e30c106259a",
+    "canonical_name": "Bachelor of Secondary Education major in Science",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs",
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": "Level III Phase II"
+    }
+  },
+  {
+    "entity_id": "entity_dd24dccd8a3708a0",
+    "canonical_name": "Bachelor of Secondary Education major in Filipino",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level III-Phase II"
+    }
+  },
+  {
+    "entity_id": "entity_856448c83f187ee3",
+    "canonical_name": "Bachelor of Secondary Education major in English",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs",
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": ""
+    }
+  },
+  {
+    "entity_id": "entity_be4c9d5fa85c1755",
+    "canonical_name": "Bachelor of Physical Education",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level III"
+    }
+  },
+  {
+    "entity_id": "entity_8ba8544d68b50928",
+    "canonical_name": "Bachelor of Elementary Education",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": ""
+    }
+  },
+  {
+    "entity_id": "entity_06f0ee5e0061942e",
+    "canonical_name": "Bachelor of Early Childhood Education",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level I"
+    }
+  },
+  {
+    "entity_id": "entity_6fb954714b4c0de8",
+    "canonical_name": "Batsilyer sa Sining ng Filipino",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level I"
+    }
+  },
+  {
+    "entity_id": "entity_e520d88e7dcae670",
+    "canonical_name": "Bachelor of Science in Midwifery",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Preliminary Visit"
+    }
+  },
+  {
+    "entity_id": "entity_f40f5c37fe285307",
+    "canonical_name": "Bachelor of Science in Mathematics",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level IV Re-accredited"
+    }
+  },
+  {
+    "entity_id": "entity_51524ebdc15c14cb",
+    "canonical_name": "Bachelor of Science in Environmental Science",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level I"
+    }
+  },
+  {
+    "entity_id": "entity_35837dabd0d52f16",
+    "canonical_name": "Bachelor of Science in Biology",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level I"
+    }
+  },
+  {
+    "entity_id": "entity_c876ad5180d8a072",
+    "canonical_name": "Bachelor of Public Administration",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level III"
+    }
+  },
+  {
+    "entity_id": "entity_b29711770d6dd72e",
+    "canonical_name": "Bachelor of Arts in Political Science",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level II"
+    }
+  },
+  {
+    "entity_id": "entity_67684f9c6f225489",
+    "canonical_name": "Bachelor of Arts in English",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level II"
+    }
+  },
+  {
+    "entity_id": "entity_a682b50e6bd8b1f4",
+    "canonical_name": "Bachelor of Arts in Economics",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level II"
+    }
+  },
+  {
+    "entity_id": "entity_269d9ccf23a0e10d",
+    "canonical_name": "Bachelor of Science in Hospitality Management",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs",
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": ""
+    }
+  },
+  {
+    "entity_id": "entity_fe0923c19691d158",
+    "canonical_name": "Bachelor of Science in Business Administration major in Marketing Management",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level II"
+    }
+  },
+  {
+    "entity_id": "entity_f78b1587b8c8d780",
+    "canonical_name": "Bachelor of Science in Business Administration major in Human Resource Management",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level II"
+    }
+  },
+  {
+    "entity_id": "entity_d5b3d1ca6a9254e9",
+    "canonical_name": "Bachelor of Science in Business Administration major in Financial Management",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs",
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": "Candidate Status"
+    }
+  },
+  {
+    "entity_id": "entity_d9faadf1260c6c03",
+    "canonical_name": "Bachelor of Science in Computer Science",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs",
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": "Level III-Phase I"
+    }
+  },
+  {
+    "entity_id": "entity_408ecfd2f50430fe",
+    "canonical_name": "Bachelor of Science in Civil Engineering",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs"
+    ],
+    "metadata": {
+      "accreditation": "Level III"
+    }
+  },
+  {
+    "entity_id": "entity_8ffd5c27fb3f6afe",
+    "canonical_name": "Office of the University Registrar | North Eastern Mindanao State University",
+    "entity_type": "office",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/registrar"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_d25524e921b73eed",
+    "canonical_name": "University Library | North Eastern Mindanao State University",
+    "entity_type": "office",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/library",
+      "https://www.nemsu.edu.ph/academics/library/acquisitions/periodicals/main-campus",
+      "https://www.nemsu.edu.ph/academics/library/electronic-resources"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_5ff2d85a2ae65717",
+    "canonical_name": "College of Business and Management | North Eastern Mindanao State University",
+    "entity_type": "college",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/colleges/college-of-business-and-management"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_f819f964f1fc0483",
+    "canonical_name": "Dr. Nemesio G. Loayon",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/news/%F0%9D%90%8D%F0%9D%90%84%F0%9D%90%8C%F0%9D%90%92%F0%9D%90%94-%F0%9D%90%92%F0%9D%90%9E%F0%9D%90%9A%F0%9D%90%A5%F0%9D%90%AC-%F0%9D%90%8F%F0%9D%90%9A%F0%9D%90%AB%F0%9D%90%AD%F0%9D%90%A7%F0%9D%90%9E%F0%9D%90%AB%F0%9D%90%AC%F0%9D%90%A1%F0%9D%90%A2%F0%9D%90%A9-%F0%9D%90%B0%F0%9D%90%A2%F0%9D%90%AD%F0%9D%90%A1-%F0%9D%90%85%F0%9D%90%A2%F0%9D%90%A7%F0%9D%90%9E-%F0%9D%90%95%F0%9D%90%A2%F0%9D%90%A7%F0%9D%90%AD%F0%9D%90%9A%F0%9D%90%A0%F0%9D%90%9E-%F0%9D%90%8B%F0%9D%90%AD%F0%9D%90%9D",
+      "https://www.nemsu.edu.ph/news/Training-on-Thesis-Dissertation-Advising",
+      "https://www.nemsu.edu.ph/news/%F0%9D%97%A1%F0%9D%97%98%F0%9D%97%A0%F0%9D%97%A6%F0%9D%97%A8-%F0%9D%97%A7%F0%9D%97%AE%F0%9D%97%BB%F0%9D%97%B1%F0%9D%97%AE%F0%9D%97%B4-%F0%9D%97%9A%F0%9D%97%BF%F0%9D%97%AE%F0%9D%97%B1-%F0%9D%97%A6%F0%9D%97%B0%F0%9D%97%B5%F0%9D%97%BC%F0%9D%97%BC%F0%9D%97%B9-%F0%9D%97%A2%F0%9D%97%BF%F0%9D%97%B6%F0%9D%97%B2%F0%9D%97%BB%F0%9D%98%81%F0%9D%97%AE%F0%9D%98%81%F0%9D%97%B6%F0%9D%97%BC%F0%9D%97%BB-%F0%9D%97%A3%F0%9D%97%BF%F0%9D%97%BC%F0%9D%97%B4%F0%9D%97%BF%F0%9D%97%AE%F0%9D%97%BA"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_d521b01ac8bcec51",
+    "canonical_name": "Dr. Arnold C. Alguno",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/news/Training-on-Thesis-Dissertation-Advising"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_b466cccda8aaacdd",
+    "canonical_name": "icmar@nemsu.edu.ph",
+    "entity_type": "contact_channel",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/events/ICMARs-2024"
+    ],
+    "metadata": {
+      "kind": "email"
+    }
+  },
+  {
+    "entity_id": "entity_83460d6c2ddacdad",
+    "canonical_name": "Dr. Clemencia Sumagaysay",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/events/Product-Expo-2024"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_a81a0521e77a61e4",
+    "canonical_name": "Dr. Ivy Orcullo",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/events/Product-Expo-2024"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_291e9c1c2e5dfd59",
+    "canonical_name": "Dr. Fabio Ruaza",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/events/Product-Expo-2024"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_2cff3447d63f7aa6",
+    "canonical_name": "Transparency Seal",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/transparency-seal"
+    ],
+    "metadata": {
+      "page_type": "transparency"
+    }
+  },
+  {
+    "entity_id": "entity_01b59b85de65de4f",
+    "canonical_name": "Master in Teaching Technology Education",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": ""
+    }
+  },
+  {
+    "entity_id": "entity_19343e7d3943a174",
+    "canonical_name": "Bachelor of Technology and Livelihood Education major in Home Economics",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": ""
+    }
+  },
+  {
+    "entity_id": "entity_dbefb40fc83384f6",
+    "canonical_name": "Bachelor of Technical-Vocational Teacher Education Major in Mechanical Technology",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": ""
+    }
+  },
+  {
+    "entity_id": "entity_7b5ba27a1b6f77b7",
+    "canonical_name": "Bachelor of Technical Teacher Education major in Garments Technology",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": "Level III Phase II"
+    }
+  },
+  {
+    "entity_id": "entity_28f724837a3fb923",
+    "canonical_name": "Bachelor of Technical Teacher Education major in Food & Services Management",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": "Level III Phase II"
+    }
+  },
+  {
+    "entity_id": "entity_2c8b93ff1e27bad2",
+    "canonical_name": "Bachelor of Technical Teacher Education major in Electrical Technology",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": "Level III Phase II"
+    }
+  },
+  {
+    "entity_id": "entity_79d91e2f2c0b3bf9",
+    "canonical_name": "Bachelor of Technical Teacher Education major in Civil Technology",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": "Level III Phase II"
+    }
+  },
+  {
+    "entity_id": "entity_ad745a671f7012b5",
+    "canonical_name": "Bachelor of Technical Teacher Education major in Automotive",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": "Level III Phase II"
+    }
+  },
+  {
+    "entity_id": "entity_1a8430cd4e0993b4",
+    "canonical_name": "Bachelor of Secondary Education major in Mathematics",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": "Level III Phase II"
+    }
+  },
+  {
+    "entity_id": "entity_0eabef4354f919e2",
+    "canonical_name": "Bachelor of Secondary Education major Filipino",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": ""
+    }
+  },
+  {
+    "entity_id": "entity_4ba13a855c0fc900",
+    "canonical_name": "Bachelor of Science in Tourism Management",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": ""
+    }
+  },
+  {
+    "entity_id": "entity_b9cb409791972326",
+    "canonical_name": "Bachelor of Science in Information Technology",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": "Level III-Phase I"
+    }
+  },
+  {
+    "entity_id": "entity_58c5a2b5ead7979f",
+    "canonical_name": "Bachelor of Science in Industrial Technology major in Mechanical Technology",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": ""
+    }
+  },
+  {
+    "entity_id": "entity_3f86346c17d4a7ce",
+    "canonical_name": "Bachelor of Science in Industrial Technology major in Garments Technology",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": "Level III-Phase I"
+    }
+  },
+  {
+    "entity_id": "entity_ea66f30413350d7f",
+    "canonical_name": "Bachelor of Science in Industrial Technology major in Foods Technology",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": "Level III-Phase I"
+    }
+  },
+  {
+    "entity_id": "entity_cd2b1e6539ebee96",
+    "canonical_name": "Bachelor of Science in Industrial Technology major in Electronics Technology",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": "Level III-Phase I"
+    }
+  },
+  {
+    "entity_id": "entity_f9df39dce70b9b34",
+    "canonical_name": "Bachelor of Science in Industrial Technology major in Electrical Technology",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": "Level III-Phase I"
+    }
+  },
+  {
+    "entity_id": "entity_fef0b3a86738387c",
+    "canonical_name": "Bachelor of Science in Industrial Technology major in Automotive Technology",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": ""
+    }
+  },
+  {
+    "entity_id": "entity_1796d22c06c2e89a",
+    "canonical_name": "Bachelor of Science in Industrial Technology major in Achitectural Drafting",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": "Level III-Phase I"
+    }
+  },
+  {
+    "entity_id": "entity_210941666b652870",
+    "canonical_name": "Bachelor of Science in Criminology",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": ""
+    }
+  },
+  {
+    "entity_id": "entity_98c91d4e1b4fd91d",
+    "canonical_name": "Bachelor of Science in Computer Engineering",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": "Candidate Status"
+    }
+  },
+  {
+    "entity_id": "entity_92a359fc32e8fa48",
+    "canonical_name": "Bachelor of Science in Business Administration major in Human Resource Development Management",
+    "entity_type": "program",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/academics/programs/cantilan-campus"
+    ],
+    "metadata": {
+      "accreditation": ""
+    }
+  },
+  {
+    "entity_id": "entity_6a154abdd895d0f5",
+    "canonical_name": "Dr. Baceledes R. Estal. The",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/news/Librarian-Meeting"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_e053983fa102f277",
+    "canonical_name": "Dr. Elyssa Kay V. Martinez",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/news?page=2"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_cabf3e8da5e91356",
+    "canonical_name": "Dr. Nemesio Loayon",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/news/House-Panel-to-Tackle-Bill"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_caeb5005a06b47ec",
+    "canonical_name": "Dr. Jennifer M. Montero",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/news/%F0%9D%97%A1%F0%9D%97%98%F0%9D%97%A0%F0%9D%97%A6%F0%9D%97%A8-%F0%9D%97%A7%F0%9D%97%AE%F0%9D%97%BB%F0%9D%97%B1%F0%9D%97%AE%F0%9D%97%B4-%F0%9D%97%9A%F0%9D%97%BF%F0%9D%97%AE%F0%9D%97%B1-%F0%9D%97%A6%F0%9D%97%B0%F0%9D%97%B5%F0%9D%97%BC%F0%9D%97%BC%F0%9D%97%B9-%F0%9D%97%A2%F0%9D%97%BF%F0%9D%97%B6%F0%9D%97%B2%F0%9D%97%BB%F0%9D%98%81%F0%9D%97%AE%F0%9D%98%81%F0%9D%97%B6%F0%9D%97%BC%F0%9D%97%BB-%F0%9D%97%A3%F0%9D%97%BF%F0%9D%97%BC%F0%9D%97%B4%F0%9D%97%BF%F0%9D%97%AE%F0%9D%97%BA"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_0db0e7526c15b729",
+    "canonical_name": "Dr. Maria Lady Sol A.",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/news/%F0%9D%97%A1%F0%9D%97%98%F0%9D%97%A0%F0%9D%97%A6%F0%9D%97%A8-%F0%9D%97%A7%F0%9D%97%AE%F0%9D%97%BB%F0%9D%97%B1%F0%9D%97%AE%F0%9D%97%B4-%F0%9D%97%9A%F0%9D%97%BF%F0%9D%97%AE%F0%9D%97%B1-%F0%9D%97%A6%F0%9D%97%B0%F0%9D%97%B5%F0%9D%97%BC%F0%9D%97%BC%F0%9D%97%B9-%F0%9D%97%A2%F0%9D%97%BF%F0%9D%97%B6%F0%9D%97%B2%F0%9D%97%BB%F0%9D%98%81%F0%9D%97%AE%F0%9D%98%81%F0%9D%97%B6%F0%9D%97%BC%F0%9D%97%BB-%F0%9D%97%A3%F0%9D%97%BF%F0%9D%97%BC%F0%9D%97%B4%F0%9D%97%BF%F0%9D%97%AE%F0%9D%97%BA",
+      "https://www.nemsu.edu.ph/news/%F0%9D%97%A1%F0%9D%97%98%F0%9D%97%A0%F0%9D%97%A6%F0%9D%97%A8-%F0%9D%97%9F%F0%9D%97%AE%F0%9D%98%82%F0%9D%97%BB%F0%9D%97%B0%F0%9D%97%B5%F0%9D%97%B2%F0%9D%98%80-%F0%9D%97%9C%F0%9D%97%95%F0%9D%97%A2%F0%9D%97%9A"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_4189d325da617426",
+    "canonical_name": "Dr. Rolly G. Salvaleon",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/news/%F0%9D%97%A1%F0%9D%97%98%F0%9D%97%A0%F0%9D%97%A6%F0%9D%97%A8-%F0%9D%97%A7%F0%9D%97%AE%F0%9D%97%BB%F0%9D%97%B1%F0%9D%97%AE%F0%9D%97%B4-%F0%9D%97%9A%F0%9D%97%BF%F0%9D%97%AE%F0%9D%97%B1-%F0%9D%97%A6%F0%9D%97%B0%F0%9D%97%B5%F0%9D%97%BC%F0%9D%97%BC%F0%9D%97%B9-%F0%9D%97%A2%F0%9D%97%BF%F0%9D%97%B6%F0%9D%97%B2%F0%9D%97%BB%F0%9D%98%81%F0%9D%97%AE%F0%9D%98%81%F0%9D%97%B6%F0%9D%97%BC%F0%9D%97%BB-%F0%9D%97%A3%F0%9D%97%BF%F0%9D%97%BC%F0%9D%97%B4%F0%9D%97%BF%F0%9D%97%AE%F0%9D%97%BA",
+      "https://www.nemsu.edu.ph/news/%F0%9D%97%A1%F0%9D%97%98%F0%9D%97%A0%F0%9D%97%A6%F0%9D%97%A8-%F0%9D%97%9F%F0%9D%97%AE%F0%9D%98%82%F0%9D%97%BB%F0%9D%97%B0%F0%9D%97%B5%F0%9D%97%B2%F0%9D%98%80-%F0%9D%97%9C%F0%9D%97%95%F0%9D%97%A2%F0%9D%97%9A"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_5f11971b1f9cd923",
+    "canonical_name": "Dr. Cynthia P. Sajot",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/news/NEMSU-LIANGA-BOOK"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_3a0f8cbb9143b588",
+    "canonical_name": "Dr. Bernardita G. Quevedo",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/news/NEMSU-LIANGA-BOOK"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_73b85b0b81b90195",
+    "canonical_name": "Dr. Whelson Pasos",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/news/mr-ronie-a-sajelan-extend-his-services-to-sdssu-bislig-campus"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_1bfac96d4f2e5ec7",
+    "canonical_name": "Dr. Ariston O. Ronquillo",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/news/mr-ronie-a-sajelan-extend-his-services-to-sdssu-bislig-campus"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_018f37efeb84c1c5",
+    "canonical_name": "Dr. Ramel Tomaquin",
+    "entity_type": "official",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/news/mr-ronie-a-sajelan-extend-his-services-to-sdssu-bislig-campus"
+    ],
+    "metadata": {}
+  },
+  {
+    "entity_id": "entity_68ff63fb82e0e5df",
+    "canonical_name": "download",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1LI4qP_Ge4NfFhDhZ5mlXR5dY5YP3laX4&export=download",
+      "https://drive.usercontent.google.com/download?id=1ss0zQUX9dwbisyLhgS-i29GOo52xO_IV&export=download",
+      "https://drive.usercontent.google.com/download?id=1dz0-SY6JK4P8U5ZYG-VMdYaC_503uaFy&export=download",
+      "https://drive.usercontent.google.com/download?id=1REip2gziolPOMbtpYXDDA-boeEtRU8A5&export=download"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_688c62b2c1e6ae38",
+    "canonical_name": "Final-R,CW,I,E Manual-11-11-25-FOR DISSEMINATION.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1HhapHPsYOdC_Tn2Zicee1-CsOLV_y77R&export=download"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_380ee99b0f577ce8",
+    "canonical_name": "ARTA-MC-2022-05_Annex-A.-CSM-Questionnaire.docx.txt",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://doc-0s-9o-docstext.googleusercontent.com/export/e6hpso97lrhpva19l3uocm525o/tr90hsud4bsg40geasa46ie120/1775947910000/118069644834388500470/*/18L4kCKwGKZeEuLdTde6w38w5SXorMOh6?format=txt"
+    ],
+    "metadata": {
+      "page_type": "transparency"
+    }
+  },
+  {
+    "entity_id": "entity_b06f0a24a0f89961",
+    "canonical_name": "FAR1A.Q2(signed).pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1Iicz_ulVzW-f2-i0poP4kHDozYPGyJkz&export=download"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_1c5e025c8d33f347",
+    "canonical_name": "FAR 1-A.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=17lb4Pgd3YBo-bexW_5W346-FisBD7eId&export=download"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_44b4beeb9a931d04",
+    "canonical_name": "FAR5-2nd-Quarter-2021.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1r8BW8v8W4oNvejSrkeMBJJPln372Abib&export=download"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_beafb9967e0b53b6",
+    "canonical_name": "NEMSU-Budget-FY2024.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1hC4kcD4wdQh6Xp5MkuCzWntgFogJdHij&export=download"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_4adf8e9d87e676e8",
+    "canonical_name": "NEMSU-Physical-Targets-FY2024.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1H0DHIocwVFAHCqTJSgPLaf91qUJSjLUQ&export=download"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_9b7b70cb4a60b9a0",
+    "canonical_name": "A-GAA-FY2023-NEMSU-Budget.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1mEqkAXUJOisWTERNTTWanb-2ILyNY4aL&export=download"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_d2a399272f1d8e69",
+    "canonical_name": "B-GAA-FY2023-NEMSU-Physical-Targets.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=12iKnLBCGB8GREbBxKh9RvVOHWW1PtfCP&export=download"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_80175643626e79e7",
+    "canonical_name": "Budget for FY2022.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1aMaFhMpNtJGP2b2_7sNyjfDKtMjCf07h&export=download"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_d39e47ba172dfd12",
+    "canonical_name": "Performance Targets 2022.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1nYvXdOlYAB_4zyb0ACtlvFV4-FxvNcal&export=download"
+    ],
+    "metadata": {
+      "page_type": "forms"
+    }
+  },
+  {
+    "entity_id": "entity_1da7ea5402c92569",
+    "canonical_name": "Budget for FY2021.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1FxQA9Bf-oiyx75uBisI9UThrVL0G_0lp&export=download"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_1cf952ff78d4b5b7",
+    "canonical_name": "SDSSU%20Budget%20for%20FY%202020.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/public_files/files/SDSSU%20Budget%20for%20FY%202020.pdf"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_94da1a0af5073ce0",
+    "canonical_name": "SDSSU%20Perfomance%20Targets%20FY%202020.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/public_files/files/SDSSU%20Perfomance%20Targets%20FY%202020.pdf"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_9942f7a4e2cc384c",
+    "canonical_name": "Budget%20for%20FY%202019_compressed.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/public_files/files/Budget%20for%20FY%202019_compressed.pdf"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_ae8a6164eb94cf2d",
+    "canonical_name": "GAA 2025 Indicative for 2025 FINAL.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1olP2nxqg1WIaOT-lt0v5u1vcLckwP0mq&export=download"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_4b518e95ccfb1157",
+    "canonical_name": "STF 2025 Indicative for 2025 FINAL.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1jcnPmd3oXd0IoSh1tBVzdeGR0gYZ2o1t&export=download"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_43e7f9e84e9b1435",
+    "canonical_name": "Annual Procuremnt Plan-Common-Use Supplies and Equipment (APP-CSE) 2024 Form.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1f1GdBceXApZ3_RHKcf3MK88-EgINcMzT&export=download"
+    ],
+    "metadata": {
+      "page_type": "forms"
+    }
+  },
+  {
+    "entity_id": "entity_ccda2351cb2270d3",
+    "canonical_name": "APP%20for%202019%20%28Income%29%20of%20Surigao%20del%20Sur%20Satet%20University-Caraga%20Region.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/public_files/files/APP%20for%202019%20%28Income%29%20of%20Surigao%20del%20Sur%20Satet%20University-Caraga%20Region.pdf"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_4be895fffcafee7b",
+    "canonical_name": "APP%20for%202019%20%28GOP%29%20of%20Surigao%20del%20Sur%20State%20University-Caraga%20Rrgion.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/public_files/files/APP%20for%202019%20%28GOP%29%20of%20Surigao%20del%20Sur%20State%20University-Caraga%20Rrgion.pdf"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_e8ec25eb63e24110",
+    "canonical_name": "APP-for-2020-GOP-of-Surigao-del-Sur-Satet-University.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/public_files/files/APP-for-2020-GOP-of-Surigao-del-Sur-Satet-University.pdf"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_4d1a62bb12285c43",
+    "canonical_name": "Surigao%20del%20Sur%20State%20University%20%28SDSSU%29%20Procurement%20Monitoring%20Report%20as%20of%20Jan.-June%202019.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/public_files/files/Surigao%20del%20Sur%20State%20University%20%28SDSSU%29%20Procurement%20Monitoring%20Report%20as%20of%20Jan.-June%202019.pdf"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_6d40f1696c3b2bb8",
+    "canonical_name": "Surigao%20del%20Sur%20State%20University%20Procurement%20Monitoring%20Report%20as%20of%20January-June%202018.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/public_files/files/Surigao%20del%20Sur%20State%20University%20Procurement%20Monitoring%20Report%20as%20of%20January-June%202018.pdf"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_8fa67446164392df",
+    "canonical_name": "Surigao%20del%20Sur%20State%20University%20SDSSU%20Procurement%20Monitoring%20Report%20as%20of%20July-December%202018.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/public_files/files/Surigao%20del%20Sur%20State%20University%20SDSSU%20Procurement%20Monitoring%20Report%20as%20of%20July-December%202018.pdf"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_38b8ca66f8c15642",
+    "canonical_name": "05-Consultancy Services for Structural Analysis with Plans and Cost Estimates for the Construction of Buildings of NEMSU LIanga Campus.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1VkSCYqy0wuYGzQwhUlujRFfAI8rcvq38&export=download"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_0987efb03a7270c6",
+    "canonical_name": "10-Supply and Delivery of Plastic Monoblock Chair and Stackable Chair for the Center for Culture and Arts Building (Gymnasium) of NEMSU Cantilan Campus.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=107b65W8Q1ZkabT5hJnn1QEvrPWv_-u7Z&export=download"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_109067ba3c56daa7",
+    "canonical_name": "GAA-036-Production and Printing of the 2025 Annual Accomplishment Report of NEMSU.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1WsPyCgNxHWxEQ1LyZQf-WMOuEkrL8vc8&export=download"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_d30274fc013e1c91",
+    "canonical_name": "01-Supply and Delivery of Portable Lapel Microphone with Speaker of NEMSU Cantilan Campus.pdf",
+    "entity_type": "document",
+    "aliases": [],
+    "description": null,
+    "source_urls": [
+      "https://drive.usercontent.google.com/download?id=1sHmDxdJBIOqeKCPwNB4aV3jtP82jqRaf&export=download"
+    ],
+    "metadata": {
+      "page_type": "external_document"
+    }
+  },
+  {
+    "entity_id": "entity_033e45108c1ff312",
+    "canonical_name": "MyPortal",
+    "entity_type": "service/portal",
+    "aliases": [
+      "MyPortal"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/"
+    ],
+    "metadata": {
+      "url": "https://preenrollment.nemsu.edu.ph",
+      "public_listing_only": true
+    }
+  },
+  {
+    "entity_id": "entity_8c7ba4ba6fe81046",
+    "canonical_name": "LMS",
+    "entity_type": "service/portal",
+    "aliases": [
+      "LMS"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/"
+    ],
+    "metadata": {
+      "url": "https://lms.nemsu.edu.ph",
+      "public_listing_only": true
+    }
+  },
+  {
+    "entity_id": "entity_96444d344c1aeaa2",
+    "canonical_name": "ERMS",
+    "entity_type": "service/portal",
+    "aliases": [
+      "ERMS"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/"
+    ],
+    "metadata": {
+      "url": "https://erms.nemsu.edu.ph",
+      "public_listing_only": true
+    }
+  },
+  {
+    "entity_id": "entity_4bc139d0da1116b8",
+    "canonical_name": "CSMS",
+    "entity_type": "service/portal",
+    "aliases": [
+      "CSMS"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/"
+    ],
+    "metadata": {
+      "url": "https://csms.nemsu.edu.ph",
+      "public_listing_only": true
+    }
+  },
+  {
+    "entity_id": "entity_4dbf9b5209f8cc9e",
+    "canonical_name": "DTS",
+    "entity_type": "service/portal",
+    "aliases": [
+      "DTS"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/"
+    ],
+    "metadata": {
+      "url": "https://dts.nemsu.edu.ph",
+      "public_listing_only": true
+    }
+  },
+  {
+    "entity_id": "entity_c500b8bb91880bfa",
+    "canonical_name": "Itinero",
+    "entity_type": "service/portal",
+    "aliases": [
+      "Itinero"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/"
+    ],
+    "metadata": {
+      "url": "https://itinero.nemsu.edu.ph/",
+      "public_listing_only": true
+    }
+  },
+  {
+    "entity_id": "entity_ccc0e69aef123846",
+    "canonical_name": "ePass",
+    "entity_type": "service/portal",
+    "aliases": [
+      "ePass"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/"
+    ],
+    "metadata": {
+      "url": "https://epass.nemsu.edu.ph/login",
+      "public_listing_only": true
+    }
+  },
+  {
+    "entity_id": "entity_81dd6b775afcccb6",
+    "canonical_name": "Journal",
+    "entity_type": "service/portal",
+    "aliases": [
+      "Journal"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/"
+    ],
+    "metadata": {
+      "url": "https://smrj.nemsu.edu.ph/",
+      "public_listing_only": true
+    }
+  },
+  {
+    "entity_id": "entity_9c225a950b92172f",
+    "canonical_name": "Memo",
+    "entity_type": "service/portal",
+    "aliases": [
+      "Memo"
+    ],
+    "description": null,
+    "source_urls": [
+      "https://www.nemsu.edu.ph/"
+    ],
+    "metadata": {
+      "url": "https://memo.nemsu.edu.ph/",
+      "public_listing_only": true
+    }
+  }
+]

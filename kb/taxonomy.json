@@ -1,0 +1,247 @@
+{
+  "root": "North Eastern Mindanao State University",
+  "generated_at": "2026-04-11T23:07:33.782671+00:00",
+  "page_type_counts": {
+    "other": 5,
+    "policy/manual": 1,
+    "about": 1,
+    "governance": 1,
+    "program_catalog": 15,
+    "academics": 8,
+    "admissions": 1,
+    "news": 20,
+    "announcement": 7,
+    "event": 4,
+    "transparency": 2,
+    "procurement": 12,
+    "jobs": 7,
+    "external_document": 29,
+    "forms": 2
+  },
+  "top_topics": [
+    {
+      "topic": "List of Bidding Invitation",
+      "count": 11
+    },
+    {
+      "topic": "Jobs & Career",
+      "count": 5
+    },
+    {
+      "topic": "event",
+      "count": 4
+    },
+    {
+      "topic": "download",
+      "count": 4
+    },
+    {
+      "topic": "Graduate Studies",
+      "count": 3
+    },
+    {
+      "topic": "Overview",
+      "count": 3
+    },
+    {
+      "topic": "𝐍𝐄𝐌𝐒𝐔-𝐓𝐂 𝐭𝐨𝐩𝐬 𝐇𝐮𝐦𝐚𝐧 𝐑𝐞𝐬𝐨𝐮𝐫𝐜𝐞 𝐄𝐱𝐚𝐦𝐢𝐧𝐚𝐭𝐢𝐨𝐧",
+      "count": 2
+    },
+    {
+      "topic": "History",
+      "count": 2
+    },
+    {
+      "topic": "THEY HAVE CONQUERED THE BAR EXAMS!",
+      "count": 2
+    },
+    {
+      "topic": "other",
+      "count": 1
+    },
+    {
+      "topic": "San Miguel Campus",
+      "count": 1
+    },
+    {
+      "topic": "Directory",
+      "count": 1
+    },
+    {
+      "topic": "policy/manual",
+      "count": 1
+    },
+    {
+      "topic": "Mandate",
+      "count": 1
+    },
+    {
+      "topic": "University Seal",
+      "count": 1
+    },
+    {
+      "topic": "Board of Regents",
+      "count": 1
+    },
+    {
+      "topic": "Introduction",
+      "count": 1
+    },
+    {
+      "topic": "Philosophy",
+      "count": 1
+    },
+    {
+      "topic": "Rules and Regulations",
+      "count": 1
+    },
+    {
+      "topic": "The following general rules are to be observed when entering the library.",
+      "count": 1
+    }
+  ],
+  "tree": [
+    {
+      "name": "external_document",
+      "count": 29,
+      "sample_urls": [
+        "https://drive.usercontent.google.com/download?id=1LI4qP_Ge4NfFhDhZ5mlXR5dY5YP3laX4&export=download",
+        "https://drive.usercontent.google.com/download?id=1HhapHPsYOdC_Tn2Zicee1-CsOLV_y77R&export=download",
+        "https://drive.usercontent.google.com/download?id=1ss0zQUX9dwbisyLhgS-i29GOo52xO_IV&export=download",
+        "https://drive.usercontent.google.com/download?id=1dz0-SY6JK4P8U5ZYG-VMdYaC_503uaFy&export=download",
+        "https://drive.usercontent.google.com/download?id=1REip2gziolPOMbtpYXDDA-boeEtRU8A5&export=download"
+      ]
+    },
+    {
+      "name": "news",
+      "count": 20,
+      "sample_urls": [
+        "https://www.nemsu.edu.ph/news/THEY-HAVE-CONQUERED-THE-BAR-EXAMS",
+        "https://www.nemsu.edu.ph/news/%F0%9D%90%8D%F0%9D%90%84%F0%9D%90%8C%F0%9D%90%92%F0%9D%90%94-%F0%9D%90%92%F0%9D%90%9E%F0%9D%90%9A%F0%9D%90%A5%F0%9D%90%AC-%F0%9D%90%8F%F0%9D%90%9A%F0%9D%90%AB%F0%9D%90%AD%F0%9D%90%A7%F0%9D%90%9E%F0%9D%90%AB%F0%9D%90%AC%F0%9D%90%A1%F0%9D%90%A2%F0%9D%90%A9-%F0%9D%90%B0%F0%9D%90%A2%F0%9D%90%AD%F0%9D%90%A1-%F0%9D%90%85%F0%9D%90%A2%F0%9D%90%A7%F0%9D%90%9E-%F0%9D%90%95%F0%9D%90%A2%F0%9D%90%A7%F0%9D%90%AD%F0%9D%90%9A%F0%9D%90%A0%F0%9D%90%9E-%F0%9D%90%8B%F0%9D%90%AD%F0%9D%90%9D",
+        "https://www.nemsu.edu.ph/news/Training-on-Thesis-Dissertation-Advising",
+        "https://www.nemsu.edu.ph/news/%F0%9D%90%8D%F0%9D%90%84%F0%9D%90%8C%F0%9D%90%92%F0%9D%90%94-%F0%9D%90%93%F0%9D%90%82-%F0%9D%90%AD%F0%9D%90%A8%F0%9D%90%A9%F0%9D%90%AC-%F0%9D%90%87%F0%9D%90%AE%F0%9D%90%A6%F0%9D%90%9A%F0%9D%90%A7-%F0%9D%90%91%F0%9D%90%9E%F0%9D%90%AC%F0%9D%90%A8%F0%9D%90%AE%F0%9D%90%AB%F0%9D%90%9C%F0%9D%90%9E-%F0%9D%90%84%F0%9D%90%B1%F0%9D%90%9A%F0%9D%90%A6%F0%9D%90%A2%F0%9D%90%A7%F0%9D%90%9A%F0%9D%90%AD%F0%9D%90%A2%F0%9D%90%A8%F0%9D%90%A7",
+        "https://www.nemsu.edu.ph/news"
+      ]
+    },
+    {
+      "name": "program_catalog",
+      "count": 15,
+      "sample_urls": [
+        "https://www.nemsu.edu.ph/academics/programs",
+        "https://www.nemsu.edu.ph/academics/programs/cantilan-campus",
+        "https://www.nemsu.edu.ph/files/Prospectus/MST-SS.pdf",
+        "https://www.nemsu.edu.ph/files/Prospectus/MSSCIED.pdf",
+        "https://www.nemsu.edu.ph/files/Prospectus/MST-MATH.pdf"
+      ]
+    },
+    {
+      "name": "procurement",
+      "count": 12,
+      "sample_urls": [
+        "https://www.nemsu.edu.ph/bac-matters",
+        "https://www.nemsu.edu.ph/bac-matters?page=2",
+        "https://www.nemsu.edu.ph/bac-matters?page=3",
+        "https://www.nemsu.edu.ph/bac-matters?page=4",
+        "https://www.nemsu.edu.ph/bac-matters?page=5"
+      ]
+    },
+    {
+      "name": "academics",
+      "count": 8,
+      "sample_urls": [
+        "https://www.nemsu.edu.ph/academics/guidance",
+        "https://www.nemsu.edu.ph/academics/registrar",
+        "https://www.nemsu.edu.ph/academics/library",
+        "https://www.nemsu.edu.ph/academics/colleges/college-of-business-and-management",
+        "https://www.nemsu.edu.ph/academics/colleges/collge-of-arts-and-sciences"
+      ]
+    },
+    {
+      "name": "announcement",
+      "count": 7,
+      "sample_urls": [
+        "https://www.nemsu.edu.ph/announcements/Baccalaureate-Mass-2024",
+        "https://www.nemsu.edu.ph/announcements/wear-your-colors-2023",
+        "https://www.nemsu.edu.ph/announcements/graduating-students-as-of-october-2017",
+        "https://www.nemsu.edu.ph/announcements/all-graduating-students",
+        "https://www.nemsu.edu.ph/announcements/all-first-year-students-1st-sem"
+      ]
+    },
+    {
+      "name": "jobs",
+      "count": 7,
+      "sample_urls": [
+        "https://www.nemsu.edu.ph/jobs/administrative-position/987727bb-5a54-42d6-beca-d54a49972daa",
+        "https://www.nemsu.edu.ph/jobs/Publication-Oct.-20-2023_0001/987727bb-5a54-42d6-beca-d54a49972daw",
+        "https://www.nemsu.edu.ph/jobs",
+        "https://www.nemsu.edu.ph/jobs?page=2",
+        "https://www.nemsu.edu.ph/jobs?page=3"
+      ]
+    },
+    {
+      "name": "other",
+      "count": 5,
+      "sample_urls": [
+        "https://www.nemsu.edu.ph/",
+        "https://www.nemsu.edu.ph/directory",
+        "https://www.nemsu.edu.ph/extension-services",
+        "https://www.nemsu.edu.ph/extension-services?page=2",
+        "https://www.nemsu.edu.ph/news?page=2"
+      ]
+    },
+    {
+      "name": "event",
+      "count": 4,
+      "sample_urls": [
+        "https://www.nemsu.edu.ph/events/ICMARs-2024",
+        "https://www.nemsu.edu.ph/events/Enrollment-Announcement-2024",
+        "https://www.nemsu.edu.ph/events/Students-business-congress-2024",
+        "https://www.nemsu.edu.ph/events/Product-Expo-2024"
+      ]
+    },
+    {
+      "name": "transparency",
+      "count": 2,
+      "sample_urls": [
+        "https://www.nemsu.edu.ph/transparency-seal",
+        "https://doc-0s-9o-docstext.googleusercontent.com/export/e6hpso97lrhpva19l3uocm525o/tr90hsud4bsg40geasa46ie120/1775947910000/118069644834388500470/*/18L4kCKwGKZeEuLdTde6w38w5SXorMOh6?format=txt"
+      ]
+    },
+    {
+      "name": "forms",
+      "count": 2,
+      "sample_urls": [
+        "https://drive.usercontent.google.com/download?id=1nYvXdOlYAB_4zyb0ACtlvFV4-FxvNcal&export=download",
+        "https://drive.usercontent.google.com/download?id=1f1GdBceXApZ3_RHKcf3MK88-EgINcMzT&export=download"
+      ]
+    },
+    {
+      "name": "policy/manual",
+      "count": 1,
+      "sample_urls": [
+        "https://www.nemsu.edu.ph/documents"
+      ]
+    },
+    {
+      "name": "about",
+      "count": 1,
+      "sample_urls": [
+        "https://www.nemsu.edu.ph/aboutus"
+      ]
+    },
+    {
+      "name": "governance",
+      "count": 1,
+      "sample_urls": [
+        "https://www.nemsu.edu.ph/administration"
+      ]
+    },
+    {
+      "name": "admissions",
+      "count": 1,
+      "sample_urls": [
+        "https://www.nemsu.edu.ph/students/admission"
+      ]
+    }
+  ]
+}

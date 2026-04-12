@@ -1,0 +1,579 @@
+{
+  "institution": {
+    "name": "North Eastern Mindanao State University",
+    "abbreviation": "NEMSU",
+    "formerly_known_as": [
+      "Surigao del Sur State University (SDSSU)",
+      "Surigao del Sur Polytechnic State College (SSPSC)",
+      "Surigao del Sur Polytechnic College (SSPC)",
+      "Bukidnon External Studies Center (BESC)"
+    ],
+    "address": "Rosario, Tandag City, 8300 Surigao del Sur, Philippines",
+    "contact": {
+      "phone": "086-214-4221",
+      "registrar_phone": "+63 (086) 214-5069",
+      "email_general": "information@nemsu.edu.ph",
+      "email_registrar": "registrarmain@nemsu.edu.ph",
+      "email_scholarship": "scholarshipmain@nemsu.edu.ph"
+    },
+    "website": "https://www.nemsu.edu.ph",
+    "iso_certified": true
+  },
+
+  "history": {
+    "summary": "NEMSU traces its roots to 1982 when Bukidnon State College opened the Bukidnon External Studies Center (BESC) in Tandag City with 153 pioneering students. After several legislative conversions, it became North Eastern Mindanao State University (NEMSU) on July 30, 2021 through Republic Act 11584.",
+    "key_milestones": [
+      { "year": 1982, "event": "Bukidnon External Studies Center (BESC) opened in Tandag City; 153 pioneering students; supervised by the late Rufina G. Luna, first College Coordinator." },
+      { "year": 1992, "event": "Surigao del Sur Polytechnic College (SSPC) established via Republic Act No. 7377 signed by President Corazon C. Aquino on April 10, 1992. Merged BESC with schools in Cagwait, Tagbina, Lianga, and San Miguel." },
+      { "year": 1998, "event": "Converted to Surigao del Sur Polytechnic State College (SSPSC) through Republic Act 8628 (April 23, 1998). Surigao del Sur Institute of Technology (SSIT) in Cantilan integrated. Dr. Antonio S. Ang became first President." },
+      { "year": 2001, "event": "Dr. Remegita C. Olvida appointed as second President; renewed in 2003 and 2007." },
+      { "year": 2010, "event": "Converted to Surigao del Sur State University (SDSSU) via Republic Act No. 9998 signed February 22, 2010. Dr. Olvida became first University President." },
+      { "year": 2014, "event": "Dr. Baceledes R. Estal appointed University President by the Board of Regents; served two terms until retirement in 2022." },
+      { "year": 2018, "event": "MOA with University of Southeastern Philippines (USEP) led to turnover of USEP Bislig Campus, becoming SDSSU's 7th campus." },
+      { "year": 2021, "event": "Republic Act 11584 signed on July 30, 2021, renaming SDSSU to North Eastern Mindanao State University (NEMSU)." }
+    ],
+    "current_president": "Dr. Nemesio G. Loayon"
+  },
+
+  "mandate_vision_mission": {
+    "mandate": "The university shall primarily provide advanced education, higher technological, professional instruction and training in trade, fishery, agriculture, science, education, commerce, engineering, forestry, nautical courses and other related fields. It shall also undertake research and extension services and provide progressive leadership in its areas of specialization (RA 9998, Section 2).",
+    "vision": "A Research University advancing technology and innovation for sustainable development.",
+    "mission": "We drive sustainable development through quality instruction, innovative research, community collaboration, and technological advancement."
+  },
+
+  "core_values": [
+    { "value": "Compassion", "description": "Promoting empathy, sincerity, and authenticity within the academic community to foster a caring and supportive environment." },
+    { "value": "Accountability", "description": "Unwavering commitment to integrity, honesty, and transparent practices ensuring ethical, efficient, and cost-effective stewardship of resources." },
+    { "value": "Responsiveness", "description": "Prompt action and consistent quality communication focused on providing correct and complete action/information to clients and stakeholders." },
+    { "value": "Excellence", "description": "Consistent pursuit of the highest standards of performance characterized by innovation, dedication, and impactful contributions." },
+    { "value": "Service", "description": "Embodiment of professionalism, dedication, and service-oriented mindset committed to fulfilling the university mission with excellence and integrity." }
+  ],
+
+  "goals": {
+    "instruction": "To develop competitive, resilient and transformative academic community.",
+    "research": "To produce high impact research and development for the advancement of knowledge, instructional innovation, institutional development, policy formulation, and commercialization.",
+    "extension": "To improve the lives of the rural and urban poor through transfer of technology and knowledge.",
+    "production": "To develop and improve resource generation to sustain University operations.",
+    "governance": "To deliver transparent, responsive and excellent governance for client satisfaction."
+  },
+
+  "directory": {
+    "university_officials": [
+      { "name": "Nemesio G. Loayon, Ph.D.", "designation": "University President", "contact": "(086) 214-4221", "email": "op@nemsu.edu.ph" },
+      { "name": "Prof. Ma. Lady Sol A. Suazo", "designation": "Vice President for Academic Affairs", "email": "vpaa@nemsu.edu.ph" },
+      { "name": "Prof. Rolly G. Salvaleon", "designation": "Vice President for Research and Extension", "email": "rgsalvaleon@nemsu.edu.ph" },
+      { "name": "Dr. Abundio C. Miralles", "designation": "Vice President for Administration and Finance", "email": "acmiralles@nemsu.edu.ph" },
+      { "name": "Dr. Florife O. Urbiztondo", "designation": "Vice President for Planning and Strategic Initiatives / CAO-Admin" },
+      { "name": "Dr. Camilo D. Malong, Jr. CPA", "designation": "CAO - Finance", "email": "chiefAO_FinanceDivision@nemsu.edu.ph" }
+    ],
+    "administrative_officers": [
+      { "name": "Ms. Leorelie Kim D. Estrada, CPA", "designation": "Supervising Administrative Officer - Financial Management", "contact": "(086) 214-6317", "email": "lkcdahan@nemsu.edu.ph" },
+      { "name": "Engr. Christopher D. Badayos", "designation": "Supervising Administrative Officer - Administrative Officer IV", "email": "cpbadayos@nemsu.edu.ph" },
+      { "name": "Ms. Lynnet A. Sarvida", "designation": "AO V / Registrar III", "contact": "(086) 214-5069", "email": "registrarmain@nemsu.edu.ph" },
+      { "name": "Ms. Glesilda L. Canda", "designation": "AOV / Cashier III", "contact": "(086) 214-5170", "email": "cashier.tandag@nemsu.edu.ph" },
+      { "name": "Ms. Sandra Jessa S. Trajano", "designation": "Budget Officer III", "contact": "(086) 214-6317", "email": "sdssubudgetoffice@gmail.com" },
+      { "name": "Mr. Floyd M. Mendez, CPA", "designation": "Accountant III", "email": "fmmendez@nemsu.edu.ph" },
+      { "name": "Mr. Hussein M. Alawi, MPA", "designation": "AO V / Records Officer III", "email": "hmalawi@nemsu.edu.ph" },
+      { "name": "Ms. Ma. Reina S. Acevedo", "designation": "AO V / Procurement Officer III" },
+      { "name": "Engr. Kennie F. Montenegro, PEE", "designation": "AO V / Planning Officer III", "email": "kfmontenegro@nemsu.edu.ph" },
+      { "name": "Engr. McDonald G. Amparo", "designation": "AO V (General Services Unit)" },
+      { "name": "Engr. Lea G. Gurimbao", "designation": "AO V (Quality Assurance Unit)" },
+      { "name": "Mr. Anthony B. Yanto, EDPSE", "designation": "IT Officer I", "email": "abyanto@nemsu.edu.ph" },
+      { "name": "Arch. Vingie A. Maitom", "designation": "Project Development Officer III" },
+      { "name": "Mr. Joseph B. Cabadonga", "designation": "Information Officer III" },
+      { "name": "Ms. Coleen Joyze M. Momo", "designation": "Internal Auditor III" }
+    ],
+    "directors": [
+      { "name": "Prof. Evelyn T. Bagood", "designation": "Director, Student Affairs and Welfare Services" },
+      { "name": "Prof. Ma. Cristina S. Dela Cerna", "designation": "Director, Extension Services & Linkages", "email": "mcsdelacerna@nemsu.edu.ph" },
+      { "name": "Dr. Erwin B. Berry", "designation": "Director, Research and Development", "email": "ebberry@nemsu.edu.ph" },
+      { "name": "Ms. Rhea M. Canang", "designation": "OIC Director - Library Services", "email": "library.tandag@nemsu.edu.ph" },
+      { "name": "Prof. Shyla O. Moreno", "designation": "Director for Culture and Arts & Sports Development", "email": "somoreno@nemsu.edu.ph" },
+      { "name": "Mr. Roel T. Lim", "designation": "Director for Auxiliary Services / Human Resource Management Officer", "email": "rtlim@nemsu.edu.ph" },
+      { "name": "Dr. Ermie Lux L. Matildo", "designation": "Director, International Affairs" },
+      { "name": "Dr. Karla Jean Roz", "designation": "OIC Director for Curriculum Development" },
+      { "name": "Atty. Michiko N. Donaire-Maglinte", "designation": "Legal Officer IV", "email": "mndonaire-maglinte@nemsu.edu.ph" },
+      { "name": "Ms. Jenevieve P. Babao", "designation": "Guidance Counselor III" },
+      { "name": "Engr. Luzminda S. Bacquial", "designation": "Innovation & Technology Support Office (ITSO) Manager", "email": "lsbacquial@nemsu.edu.ph" },
+      { "name": "Ms. Coravil Joy C. Avila", "designation": "Technology Business Incubator (TBI) Manager", "email": "cjcavila@nemsu.edu.ph" },
+      { "name": "Dr. Roxan E. Caray", "designation": "Editor-in-Chief, SDSSU Multidisciplinary Research Journal", "email": "rgeupena@nemsu.edu.ph" }
+    ],
+    "campus_directors": [
+      { "name": "Dr. Floresito D. Calub", "designation": "OIC Campus Director", "campus": "Tandag (Main Campus)" },
+      { "name": "Juancho A. Intano, Ph.D.", "designation": "Campus Director", "campus": "Cantilan Campus", "email": "jaintano@nemsu.edu.ph" },
+      { "name": "Dr. Marvie V. Gonzaga", "designation": "OIC Campus Director", "campus": "San Miguel Campus" },
+      { "name": "Rozette E. Mecardo", "designation": "OIC Campus Director", "campus": "Cagwait Campus", "email": "remercado@nemsu.edu.ph" },
+      { "name": "Ms. Catherine F. Salomon", "designation": "Board Secretary V / OIC Campus Director", "campus": "Lianga Campus", "email": "cfsalomon@nemsu.edu.ph" },
+      { "name": "Ariston O. Ronquillo, DM.", "designation": "Campus Director", "campus": "Tagbina Campus", "email": "aoronquillo@nemsu.edu.ph" },
+      { "name": "For. Whelson C. Pasos", "designation": "Campus Director", "campus": "Bislig Campus", "contact": "(086) 647-6452", "email": "wcpasos@nemsu.edu.ph" }
+    ],
+    "college_deans": [
+      { "name": "Prof. Alex S. Ladaga", "designation": "Dean - College of Engineering and Technology", "contact": "(086) 214-5067", "email": "asladaga@nemsu.edu.ph" },
+      { "name": "Annie Y. Samarca, Ph.D.", "designation": "Dean - College of Teacher Education", "contact": "(086) 214-2724", "email": "aysamarca@nemsu.edu.ph" },
+      { "name": "Prof. Romeo A. Patan", "designation": "Dean - College of Arts and Sciences", "contact": "(086) 214-5933", "email": "rapatan@nemsu.edu.ph" },
+      { "name": "Prof. Ramel D. Tomaquin", "designation": "Dean - College of Business and Management", "contact": "(086) 214-5195", "email": "rdtomaquin@nemsu.edu.ph" },
+      { "name": "Atty. Daniel L. Diaz", "designation": "Dean - College of Law", "email": "SDSSUlawschool@yahoo.com" },
+      { "name": "Prof. Jennifer M. Montero", "designation": "Dean - Graduate School", "email": "jmmontero@nemsu.edu.ph" },
+      { "name": "Prof. Clemencia L. Sumagaysay", "designation": "Dean - Agriculture and Forestry Programs", "email": "clsumagaysay@nemsu.edu.ph" },
+      { "name": "Prof. Born Christian A. Isip", "designation": "Dean - College of Information Technology Education", "contact": "(086) 214-5067", "email": "bcaisip@nemsu.edu.ph" },
+      { "name": "Dr. Laurence P. Bazan", "designation": "Dean - College of Criminal Justice Education & Director of NSTP", "email": "lpbazan@nemsu.edu.ph" },
+      { "name": "Dr. Fabio C. Ruaza Jr.", "designation": "Dean - College of Fisheries and Marine Sciences" },
+      { "name": "Dr. Ma. Cecillia C. Cruz", "designation": "Dean - College of Medicine" }
+    ]
+  },
+
+  "campuses": [
+    {
+      "id": "main",
+      "name": "Main Campus (Tandag City)",
+      "also_known_as": "NEMSU-Tandag",
+      "location": "Rosario, Tandag City, 8300 Surigao del Sur",
+      "oic_campus_director": "Dr. Floresito D. Calub",
+      "focus": "Graduate Studies, Law, Teacher Education, Arts and Sciences, Business, IT, Engineering",
+      "description": "The main administrative and academic hub of NEMSU. Houses the central administration, graduate school, and several undergraduate colleges. Home to the university president's office and all major administrative offices.",
+      "colleges": [
+        "Graduate School",
+        "College of Law",
+        "College of Teacher Education",
+        "College of Arts and Sciences",
+        "College of Business and Management",
+        "College of Information Technology Education",
+        "College of Engineering and Technology"
+      ]
+    },
+    {
+      "id": "cantilan",
+      "name": "Cantilan Campus",
+      "also_known_as": "NEMSU-Cantilan",
+      "location": "Cantilan, Surigao del Sur (117 km south of Surigao City, 67 km north of Tandag City, 3 km from inter-island wharf)",
+      "campus_director": "Juancho A. Intano, Ph.D.",
+      "campus_director_email": "jaintano@nemsu.edu.ph",
+      "focus": "College of Technological Education",
+      "description": "Located along the Pacific coast. Offers over 25 degree programs, with 8 AACCUP-accredited programs. Known for its strong technical-vocational education programs.",
+      "special_identity": "College of Technological Education",
+      "facilities": [
+        "Architectural Drafting Lab",
+        "Automotive and Mechanical Technology Lab",
+        "Electrical and Electronics Technology Lab",
+        "Home Economics Lab",
+        "Food Trades Lab",
+        "Garments Lab",
+        "Computer/IT Lab",
+        "Chemistry Lab",
+        "Biology Lab",
+        "Speech Lab",
+        "Audio-Visual Room (AVR)"
+      ],
+      "programs": {
+        "graduate": [
+          { "program": "Master in Teaching Technology Education", "accreditation": "" }
+        ],
+        "undergraduate": [
+          { "program": "Bachelor of Technology and Livelihood Education major in Home Economics", "accreditation": "" },
+          { "program": "Bachelor of Technical-Vocational Teacher Education major in Mechanical Technology", "accreditation": "" },
+          { "program": "Bachelor of Technical Teacher Education major in Garments Technology", "accreditation": "Level III Phase II" },
+          { "program": "Bachelor of Technical Teacher Education major in Food & Services Management", "accreditation": "Level III Phase II" },
+          { "program": "Bachelor of Technical Teacher Education major in Electrical Technology", "accreditation": "Level III Phase II" },
+          { "program": "Bachelor of Technical Teacher Education major in Civil Technology", "accreditation": "Level III Phase II" },
+          { "program": "Bachelor of Technical Teacher Education major in Automotive", "accreditation": "Level III Phase II" },
+          { "program": "Bachelor of Secondary Education major in Science", "accreditation": "Level III Phase II" },
+          { "program": "Bachelor of Secondary Education major in Mathematics", "accreditation": "Level III Phase II" },
+          { "program": "Bachelor of Secondary Education major in English", "accreditation": "" },
+          { "program": "Bachelor of Secondary Education major in Filipino", "accreditation": "" },
+          { "program": "Bachelor of Science in Tourism Management", "accreditation": "" },
+          { "program": "Bachelor of Science in Information Technology", "accreditation": "Level III-Phase I" },
+          { "program": "Bachelor of Science in Industrial Technology major in Mechanical Technology", "accreditation": "" },
+          { "program": "Bachelor of Science in Industrial Technology major in Garments Technology", "accreditation": "Level III-Phase I" },
+          { "program": "Bachelor of Science in Industrial Technology major in Foods Technology", "accreditation": "Level III-Phase I" },
+          { "program": "Bachelor of Science in Industrial Technology major in Electronics Technology", "accreditation": "Level III-Phase I" },
+          { "program": "Bachelor of Science in Industrial Technology major in Electrical Technology", "accreditation": "Level III-Phase I" },
+          { "program": "Bachelor of Science in Industrial Technology major in Automotive Technology", "accreditation": "" },
+          { "program": "Bachelor of Science in Industrial Technology major in Architectural Drafting", "accreditation": "Level III-Phase I" },
+          { "program": "Bachelor of Science in Hospitality Management", "accreditation": "" },
+          { "program": "Bachelor of Science in Criminology", "accreditation": "" },
+          { "program": "Bachelor of Science in Computer Science", "accreditation": "Level III-Phase I" },
+          { "program": "Bachelor of Science in Computer Engineering", "accreditation": "Candidate Status" },
+          { "program": "Bachelor of Science in Business Administration major in Human Resource Development Management", "accreditation": "" },
+          { "program": "Bachelor of Science in Business Administration major in Financial Management", "accreditation": "Candidate Status" }
+        ]
+      }
+    },
+    {
+      "id": "san_miguel",
+      "name": "San Miguel Campus",
+      "also_known_as": "NEMSU-San Miguel",
+      "location": "Barangay Carromata, Municipality of San Miguel (formerly Tago), Surigao del Sur",
+      "oic_campus_director": "Dr. Marvie V. Gonzaga",
+      "focus": "College of Forestry and Agriculture",
+      "special_identity": "Provincial Institute of Agriculture and Forestry (PIAF) under CHED NAFES Program",
+      "total_land_area": "779 hectares",
+      "land_breakdown": {
+        "lowland": "379 hectares",
+        "upland": "175 hectares",
+        "forest_reserves": "207 hectares"
+      },
+      "description": "The biggest NEMSU campus by land area. Located on a scenic plateau overlooking the largest lowland rice bowl of Surigao del Sur Province. Identified by CHED as the Provincial Institute of Agriculture and Forestry (PIAF) under the NAFES program. Caters to the needs of the province and region for skilled agro-forestry workers.",
+      "programs": {
+        "undergraduate": [
+          { "program": "Bachelor of Secondary Education major in Technology and Livelihood Education", "accreditation": "" },
+          { "program": "Bachelor of Science in Forestry", "accreditation": "Level I" },
+          { "program": "Bachelor of Science in Agriculture major in Crop Science", "accreditation": "Level I" },
+          { "program": "Bachelor of Science in Agricultural Technology", "accreditation": "Level I" }
+        ]
+      }
+    },
+    {
+      "id": "cagwait",
+      "name": "Cagwait Campus",
+      "also_known_as": "NEMSU-Cagwait",
+      "location": "Poblacion, Cagwait, Surigao del Sur (near Cagwait White Beach tourist destination)",
+      "oic_campus_director": "Rozette E. Mecardo",
+      "campus_director_email": "remercado@nemsu.edu.ph",
+      "focus": "Industrial Technology",
+      "description": "Located in the heart of Cagwait, near the famous Cagwait White Beach — a known tourist destination and annual venue of the Kaliguan Festival. Flagship program is BSIT. The BSIT program passed a preliminary survey in 2012 prior to Level I accreditation.",
+      "programs": {
+        "undergraduate": [
+          { "program": "Bachelor of Science in Information Technology", "accreditation": "" },
+          { "program": "Bachelor of Science in Industrial Technology major in Electrical Technology", "accreditation": "Level II" },
+          { "program": "Bachelor of Science in Industrial Technology major in Culinary Technology", "accreditation": "" },
+          { "program": "Bachelor of Science in Industrial Technology major in Computer Technology", "accreditation": "Level I" },
+          { "program": "Bachelor of Science in Industrial Technology major in Automotive Technology", "accreditation": "Level II" },
+          { "program": "Bachelor of Science in Hospitality Management (BSHM)", "accreditation": "Level I" }
+        ]
+      }
+    },
+    {
+      "id": "lianga",
+      "name": "Lianga Campus",
+      "also_known_as": "NEMSU-Lianga",
+      "location": "Lianga, Surigao del Sur",
+      "oic_campus_director": "Ms. Catherine F. Salomon (Board Secretary V / OIC Campus Director)",
+      "campus_director_email": "cfsalomon@nemsu.edu.ph",
+      "college_dean": "Dr. Fabio C. Ruaza Jr.",
+      "focus": "Fisheries and Marine Sciences",
+      "special_identity": "National University/College of Fisheries (NUCAF) in CARAGA Region under CHED NAFES Program",
+      "description": "Specializes in Fisheries and Marine Sciences. Identified by CHED in September 2009 as the NUCAF in CARAGA Region with a P1M/year grant for 5 years. Notable research expertise in Coastal Resource Management, corals, seaweeds, seagrass, fin fishes, holothurias, and mangroves. Has active fish farming operations and extension programs.",
+      "fish_farming": ["Bangus (Milkfish)", "Tilapia", "Crab"],
+      "notable_recognition": "Best HEI Extension Program in Caraga Region (2010) - Project Coastal Resource Initiative in Lianga Bay",
+      "programs": {
+        "undergraduate": [
+          { "program": "Bachelor of Secondary Education major in Science", "accreditation": "" },
+          { "program": "Bachelor of Science in Marine Biology", "accreditation": "Level III" },
+          { "program": "Bachelor of Science in Hospitality Management", "accreditation": "" },
+          { "program": "Bachelor of Science in Fisheries", "accreditation": "Level III" },
+          { "program": "Bachelor of Science in Environmental Science", "accreditation": "" },
+          { "program": "Bachelor of Science in Computer Science", "accreditation": "Level I" },
+          { "program": "Bachelor of Science in Business Administration major in Business Economics", "accreditation": "Level II" },
+          { "program": "Bachelor of Science in Business Administration major in Financial Management", "accreditation": "Level II" },
+          { "program": "Bachelor of Elementary Education", "accreditation": "Level III" }
+        ]
+      }
+    },
+    {
+      "id": "tagbina",
+      "name": "Tagbina Campus",
+      "also_known_as": "NEMSU-Tagbina / NEMSU-TC",
+      "location": "Tagbina, Surigao del Sur (only campus in the 2nd District of Surigao del Sur)",
+      "campus_director": "Ariston O. Ronquillo, DM.",
+      "campus_director_email": "aoronquillo@nemsu.edu.ph",
+      "focus": "Agri-business and Commercial Sciences",
+      "total_land_area": "215,418 square meters",
+      "demo_farm_area": "77,347 square meters",
+      "description": "The only NEMSU campus in the 2nd District of Surigao del Sur. Focuses on Agri-business and Commercial Sciences. Features Bioreactor Technology Processing Center, Pastureland, and Coconut plantation. Aims to develop students' entrepreneurial competence responsive to agri-based industries.",
+      "research_linkages": ["DA-BAR", "AFNR", "DOST-PCARRD"],
+      "aaccup_accreditation": "Six (6) programs passed AACCUP preliminary survey in 2012",
+      "programs": {
+        "undergraduate": [
+          { "program": "Bachelor of Secondary Education major in Science", "accreditation": "Level II" },
+          { "program": "Bachelor of Science in Hospitality Management major in Hotel and Restaurant Management", "accreditation": "" },
+          { "program": "Bachelor of Science in Computer Science", "accreditation": "Level II" },
+          { "program": "Bachelor of Science in Business Administration major in Human Resource Development Management", "accreditation": "Level II" },
+          { "program": "Bachelor of Science in Business Administration major in Financial Management", "accreditation": "Level II" },
+          { "program": "Bachelor of Science in Agriculture", "accreditation": "" },
+          { "program": "Bachelor of Elementary Education", "accreditation": "Level II" },
+          { "program": "Bachelor in Agricultural Technology", "accreditation": "Level II" }
+        ]
+      }
+    },
+    {
+      "id": "bislig",
+      "name": "Bislig Campus",
+      "also_known_as": "NEMSU-Bislig",
+      "location": "14 km Northwest of Barangay Mangagoy, Bislig City, Surigao del Sur",
+      "campus_director": "For. Whelson C. Pasos",
+      "campus_director_contact": "(086) 647-6452",
+      "campus_director_email": "wcpasos@nemsu.edu.ph",
+      "focus": "Center for Agroforestry, Paper and Wood Industry",
+      "total_area": "50.7 hectares within General Institutional Zone (3.55 km perimeter) per 2017-2026 CLUP of Bislig City",
+      "description": "Formerly USEP-Bislig Campus. Took 3 years of transition after MOA signed in 2018. Supports human resources aligned with the Bislig-PAIC Industry Development Plan for agri-based, agroforestry, aqua-marine, mineral-based, and footloose industries. Southernmost campus of NEMSU.",
+      "accreditation_note": "5 programs passed AACCUP Level II accreditation",
+      "programs": {
+        "undergraduate": [
+          { "program": "Bachelor of Technical-Vocational Teacher Education major in Automotive", "accreditation": "" },
+          { "program": "Bachelor of Technical-Vocational Teacher Education major in Electrical Technology", "accreditation": "" },
+          { "program": "Bachelor of Secondary Education major in English", "accreditation": "Level II" },
+          { "program": "Bachelor of Science in Mechanical Engineering", "accreditation": "Level II" },
+          { "program": "Bachelor of Science in Forestry", "accreditation": "Level II" },
+          { "program": "Bachelor of Science in Civil Engineering", "accreditation": "Level II" }
+        ]
+      }
+    }
+  ],
+
+  "main_campus_programs": {
+    "graduate_school": {
+      "dean": "Prof. Jennifer M. Montero",
+      "dean_email": "jmmontero@nemsu.edu.ph",
+      "programs": [
+        { "program": "Master of Science in Teaching Social Sciences", "accreditation": "Level III-Phase II" },
+        { "program": "Master of Science in Teaching Science Education", "accreditation": "Level III-Phase II" },
+        { "program": "Master of Science in Teaching Mathematics", "accreditation": "Level III-Phase II" },
+        { "program": "Master of Science in Teaching Home Economics", "accreditation": "Level III-Phase II" },
+        { "program": "Master of Science in Computer Science", "accreditation": "Level II" },
+        { "program": "Master of Legal Studies", "accreditation": "" },
+        { "program": "Master of Arts in Filipino Language Teaching", "accreditation": "Level III-Phase II" },
+        { "program": "Master of Arts in English Language Teaching", "accreditation": "Level III-Phase II" },
+        { "program": "Master of Arts in Education", "accreditation": "Level III-Phase II" },
+        { "program": "Master in Public Administration", "accreditation": "Level III-Phase II" },
+        { "program": "Master in Business Administration", "accreditation": "Level I" },
+        { "program": "Doctor of Philosophy - Science", "accreditation": "Level I" },
+        { "program": "Doctor of Philosophy - Mathematics", "accreditation": "Level I" },
+        { "program": "Doctor of Education major in English Language Teaching", "accreditation": "" },
+        { "program": "Doctor of Education major in Educational Management", "accreditation": "Level II" }
+      ]
+    },
+    "college_of_law": {
+      "dean": "Atty. Daniel L. Diaz",
+      "dean_email": "SDSSUlawschool@yahoo.com",
+      "programs": [
+        { "program": "Juris Doctor Program", "accreditation": "" },
+        { "program": "Bachelor of Laws", "accreditation": "Preliminary Visit" }
+      ]
+    },
+    "college_of_teacher_education": {
+      "dean": "Annie Y. Samarca, Ph.D.",
+      "dean_contact": "(086) 214-2724",
+      "dean_email": "aysamarca@nemsu.edu.ph",
+      "programs": [
+        { "program": "Diploma in Teaching", "accreditation": "" },
+        { "program": "Bachelor of Secondary Education major in Science", "accreditation": "Level III" },
+        { "program": "Bachelor of Secondary Education major in Filipino", "accreditation": "Level III-Phase II" },
+        { "program": "Bachelor of Secondary Education major in English", "accreditation": "Level III-Phase II" },
+        { "program": "Bachelor of Physical Education", "accreditation": "Level III" },
+        { "program": "Bachelor of Elementary Education", "accreditation": "" },
+        { "program": "Bachelor of Early Childhood Education", "accreditation": "Level I" }
+      ]
+    },
+    "college_of_arts_and_sciences": {
+      "dean": "Prof. Romeo A. Patan",
+      "dean_contact": "(086) 214-5933",
+      "dean_email": "rapatan@nemsu.edu.ph",
+      "programs": [
+        { "program": "Batsilyer sa Sining ng Filipino", "accreditation": "Level I" },
+        { "program": "Bachelor of Science in Midwifery", "accreditation": "Preliminary Visit" },
+        { "program": "Bachelor of Science in Mathematics", "accreditation": "Level IV Re-accredited" },
+        { "program": "Bachelor of Science in Environmental Science", "accreditation": "Level I" },
+        { "program": "Bachelor of Science in Biology", "accreditation": "Level I" },
+        { "program": "Bachelor of Public Administration", "accreditation": "Level III" },
+        { "program": "Bachelor of Arts in Political Science", "accreditation": "Level II" },
+        { "program": "Bachelor of Arts in English", "accreditation": "Level II" },
+        { "program": "Bachelor of Arts in Economics", "accreditation": "Level II" }
+      ]
+    },
+    "college_of_business_and_management": {
+      "dean": "Prof. Ramel D. Tomaquin",
+      "dean_contact": "(086) 214-5195",
+      "dean_email": "rdtomaquin@nemsu.edu.ph",
+      "programs": [
+        { "program": "Bachelor of Science in Hospitality Management", "accreditation": "Level III" },
+        { "program": "Bachelor of Science in Business Administration major in Marketing Management", "accreditation": "Level II" },
+        { "program": "Bachelor of Science in Business Administration major in Human Resource Management", "accreditation": "Level II" },
+        { "program": "Bachelor of Science in Business Administration major in Financial Management", "accreditation": "Level II (Qualified for Level III)" }
+      ]
+    },
+    "college_of_information_technology_education": {
+      "dean": "Prof. Born Christian A. Isip",
+      "dean_contact": "(086) 214-5067",
+      "dean_email": "bcaisip@nemsu.edu.ph",
+      "programs": [
+        { "program": "Bachelor of Science in Computer Science", "accreditation": "Level II" }
+      ]
+    },
+    "college_of_engineering_and_technology": {
+      "dean": "Prof. Alex S. Ladaga",
+      "dean_contact": "(086) 214-5067",
+      "dean_email": "asladaga@nemsu.edu.ph",
+      "programs": [
+        { "program": "Bachelor of Science in Civil Engineering", "accreditation": "Level III" }
+      ]
+    },
+    "college_of_criminal_justice_education": {
+      "dean": "Dr. Laurence P. Bazan",
+      "dean_email": "lpbazan@nemsu.edu.ph",
+      "note": "Dean also serves as Director of NSTP"
+    }
+  },
+
+  "top_notchers_and_achievements": {
+    "note": "Top notcher records are primarily announced through NEMSU's official news and social media. The following are documented achievements from the NEMSU website and verified news sources.",
+    "bar_exam": {
+      "college": "College of Law",
+      "campus": "Main Campus (Tandag City)",
+      "records": [
+        {
+          "year": "2025 (September 2025 Bar Exams)",
+          "passers": 5,
+          "takers": 5,
+          "passing_rate": "100%",
+          "group_name": "#AMYzingFive",
+          "ranking": "Ranked 1st among schools with 1-10 examinees (shared with Polytechnic College of La Union)",
+          "venue": "Ateneo de Davao University – Senior High School (ADDU-SHS)",
+          "results_released": "January 7, 2026",
+          "source": "NEMSU official news & GMA Network Regional TV"
+        },
+        {
+          "year": "2024 (September 2024 Bar Exams)",
+          "passing_rate": "100%",
+          "notes": "Two consecutive years of 100% passing rate (2024 and 2025). Ranked 1st among schools with 1-10 examinees.",
+          "source": "NEMSU College of Law official Facebook post"
+        }
+      ],
+      "achievement_statement": "NEMSU College of Law has maintained a 100% passing rate for two consecutive years in the 2024 and 2025 Bar Examinations."
+    },
+    "chra_exam": {
+      "exam": "Certified Human Resource Associate (CHRA) Assessment Examination",
+      "campus": "Tagbina Campus (NEMSU-TC)",
+      "records": [
+        {
+          "year": "August 2025",
+          "passing_rate": "100%",
+          "recognition": "Top Performing School",
+          "source": "NEMSU news by Cherra Mae Mangguilimutan, September 5, 2025"
+        }
+      ]
+    },
+    "general_note": "For the latest and complete list of top notchers and board exam passers per program and campus, students and stakeholders may visit the NEMSU official website at https://www.nemsu.edu.ph/news or contact the respective college deans listed in the directory."
+  },
+
+  "admission_requirements": {
+    "new_undergraduate": [
+      "Form 137-8 B Secondary Report Card (Original)",
+      "Good Moral Certificate (Original)",
+      "Entrance Exam Result (Original)",
+      "Medical Certificate with Hepa Test Result (Original)",
+      "Authenticated Birth Certificate (Photocopy)",
+      "Authenticated Marriage Certificate if Married (Photocopy)",
+      "2x2 ID picture (1 pc only)",
+      "Short Brown Envelope"
+    ],
+    "transferee_undergraduate": [
+      "Original Certificate of Transfer Credentials with Informative Copy of TOR (with Evaluation of Grades signed by School Registrar for Temporary Enrollment)",
+      "Good Moral Certificate (Original)",
+      "Entrance Exam Result (Original)",
+      "Medical Certificate with Hepa Test Result (Original)",
+      "Authenticated Birth Certificate (Photocopy)",
+      "Authenticated Marriage Certificate if Married (Photocopy)",
+      "2x2 ID picture (1 pc only)",
+      "Short Brown Envelope"
+    ],
+    "graduate_studies": [
+      "Original Certificate of Transfer Credentials with Informative Copy of TOR (for graduates from other schools) OR Photocopy of TOR (for NEMSU Tandag graduates)",
+      "Entrance Exam Result",
+      "Authenticated Birth Certificate (Photocopy)",
+      "Authenticated Marriage Certificate if Married (Photocopy)",
+      "2x2 ID picture (1 pc only)",
+      "Long Brown Envelope"
+    ]
+  },
+
+  "online_services": [
+    { "name": "MyPortal (Pre-enrollment)", "url": "https://preenrollment.nemsu.edu.ph", "description": "Online pre-enrollment system for students" },
+    { "name": "LMS (Learning Management System)", "url": "https://lms.nemsu.edu.ph", "description": "Online platform for learning and coursework" },
+    { "name": "ERMS", "url": "https://erms.nemsu.edu.ph", "description": "Electronic Records Management System" },
+    { "name": "CSMS", "url": "https://csms.nemsu.edu.ph", "description": "Campus Student Management System" },
+    { "name": "DTS", "url": "https://dts.nemsu.edu.ph", "description": "Document Tracking System" },
+    { "name": "Itinero", "url": "https://itinero.nemsu.edu.ph/", "description": "Transportation or tracking service" },
+    { "name": "ePass", "url": "https://epass.nemsu.edu.ph/login", "description": "Electronic pass/ID system" },
+    { "name": "Journal (SMRJ)", "url": "https://smrj.nemsu.edu.ph/", "description": "SDSSU Multidisciplinary Research Journal" },
+    { "name": "Memo", "url": "https://memo.nemsu.edu.ph/", "description": "Official memos and memoranda system" },
+    { "name": "Downloadable Forms", "url": "https://www.nemsu.edu.ph/downloadables", "description": "Portal for downloading official university forms" }
+  ],
+
+  "accomplishment_reports": {
+    "note": "Annual accomplishment reports are available on the NEMSU website.",
+    "available_reports": [
+      "2024 Annual Accomplishment Report",
+      "2023 Annual Accomplishment Report",
+      "President's Report 1st Quarter 2025",
+      "3rd and 4th Quarter 2024 President's Report",
+      "2nd Quarter 2024 President's Report",
+      "1st Quarter 2024 President's Report",
+      "140th Regular Board Meeting President's Report",
+      "139th Regular Board Meeting President's Report",
+      "138th Regular Board Meeting President's Report"
+    ],
+    "url": "https://www.nemsu.edu.ph/accomplishment"
+  },
+
+  "faq": [
+    { "question": "What is NEMSU?", "answer": "NEMSU stands for North Eastern Mindanao State University. It is a state university located in Tandag City, Surigao del Sur, Philippines. It was renamed from Surigao del Sur State University (SDSSU) through Republic Act 11584 signed on July 30, 2021." },
+    { "question": "Where is the main campus of NEMSU?", "answer": "The main campus is located in Rosario, Tandag City, 8300 Surigao del Sur, Philippines. Phone: 086-214-4221, Email: information@nemsu.edu.ph." },
+    { "question": "How many campuses does NEMSU have?", "answer": "NEMSU has 7 campuses: Main Campus (Tandag City), Cantilan Campus, San Miguel Campus, Cagwait Campus, Lianga Campus, Tagbina Campus, and Bislig Campus." },
+    { "question": "Who is the president of NEMSU?", "answer": "The University President is Dr. Nemesio G. Loayon. He can be reached at op@nemsu.edu.ph or (086) 214-4221." },
+    { "question": "Who is the campus director of Cantilan Campus?", "answer": "The Campus Director of NEMSU-Cantilan Campus is Dr. Juancho A. Intano. Email: jaintano@nemsu.edu.ph." },
+    { "question": "Who is the campus director of Tagbina Campus?", "answer": "The Campus Director of NEMSU-Tagbina Campus is Ariston O. Ronquillo, DM. Email: aoronquillo@nemsu.edu.ph." },
+    { "question": "Who is the campus director of Bislig Campus?", "answer": "The Campus Director of NEMSU-Bislig Campus is For. Whelson C. Pasos. Contact: (086) 647-6452, Email: wcpasos@nemsu.edu.ph." },
+    { "question": "Who is the dean of the College of Law?", "answer": "The Dean of the College of Law is Atty. Daniel L. Diaz. Email: SDSSUlawschool@yahoo.com." },
+    { "question": "Who is the dean of the College of Teacher Education?", "answer": "The Dean is Annie Y. Samarca, Ph.D. Contact: (086) 214-2724, Email: aysamarca@nemsu.edu.ph." },
+    { "question": "Who is the dean of the College of Engineering and Technology?", "answer": "The Dean is Prof. Alex S. Ladaga. Contact: (086) 214-5067, Email: asladaga@nemsu.edu.ph." },
+    { "question": "Who is the dean of the College of IT Education?", "answer": "The Dean is Prof. Born Christian A. Isip. Contact: (086) 214-5067, Email: bcaisip@nemsu.edu.ph." },
+    { "question": "Who is the dean of the Graduate School?", "answer": "The Dean is Prof. Jennifer M. Montero. Email: jmmontero@nemsu.edu.ph." },
+    { "question": "Who is the dean of the College of Business and Management?", "answer": "The Dean is Prof. Ramel D. Tomaquin. Contact: (086) 214-5195, Email: rdtomaquin@nemsu.edu.ph." },
+    { "question": "Who is the dean of the College of Arts and Sciences?", "answer": "The Dean is Prof. Romeo A. Patan. Contact: (086) 214-5933, Email: rapatan@nemsu.edu.ph." },
+    { "question": "Who is the dean of the College of Fisheries?", "answer": "The Dean of the College of Fisheries and Marine Sciences is Dr. Fabio C. Ruaza Jr." },
+    { "question": "Did NEMSU pass the Bar exam?", "answer": "Yes! NEMSU College of Law achieved a 100% passing rate in both the 2024 and 2025 Bar Examinations. In 2025, their 5-member group, the #AMYzingFive, all passed — and NEMSU ranked 1st among schools with 1-10 examinees." },
+    { "question": "What is the passing rate of NEMSU in the Bar exam?", "answer": "NEMSU College of Law achieved 100% passing rate in both the 2024 and 2025 Bar Examinations, for two consecutive years." },
+    { "question": "What are the top notcher achievements of NEMSU?", "answer": "Key achievements include: (1) NEMSU College of Law: 100% Bar Exam passing rate in 2024 and 2025, ranked 1st among schools with 1-10 examinees. (2) NEMSU-Tagbina Campus: 100% passing rate in the August 2025 CHRA Examination, recognized as Top Performing School. For more recent board exam achievements, visit https://www.nemsu.edu.ph/news." },
+    { "question": "What is NEMSU's vision and mission?", "answer": "Vision: A Research University advancing technology and innovation for sustainable development. Mission: We drive sustainable development through quality instruction, innovative research, community collaboration, and technological advancement." },
+    { "question": "What programs does Cantilan Campus offer?", "answer": "Cantilan Campus offers graduate and undergraduate programs including BSIT, BS Computer Science, BS Computer Engineering, BTTE programs in multiple majors (Garments, Food, Electrical, Civil, Automotive), BSEd, BSHM, BS Criminology, BSBA, BS Tourism, and BS Industrial Technology in multiple majors." },
+    { "question": "What programs does San Miguel Campus offer?", "answer": "San Miguel Campus offers BS Forestry, BS Agriculture major in Crop Science, BS Agricultural Technology, and BSEd major in Technology and Livelihood Education." },
+    { "question": "What programs does Cagwait Campus offer?", "answer": "Cagwait Campus offers BSIT, BS Industrial Technology (Electrical, Culinary, Computer, Automotive), and BS Hospitality Management." },
+    { "question": "What programs does Lianga Campus offer?", "answer": "Lianga Campus offers BS Marine Biology, BS Fisheries, BS Environmental Science, BS Computer Science, BSBA (Business Economics and Financial Management), BSEd major in Science, BSHM, and BEEd." },
+    { "question": "What programs does Tagbina Campus offer?", "answer": "Tagbina Campus offers BSEd major in Science, BSHM (Hotel and Restaurant Management), BS Computer Science, BSBA (HRM and Financial Management), BS Agriculture, BEEd, and Bachelor in Agricultural Technology." },
+    { "question": "What programs does Bislig Campus offer?", "answer": "Bislig Campus offers BTVTE (Automotive and Electrical Technology), BSEd major in English, BS Mechanical Engineering, BS Forestry, and BS Civil Engineering." },
+    { "question": "What are the requirements for new undergraduate students?", "answer": "New undergraduates need: Form 137 (Original), Good Moral Certificate (Original), Entrance Exam Result, Medical Certificate with Hepa Test Result, Authenticated Birth Certificate (Photocopy), 2x2 ID picture, and a Short Brown Envelope." },
+    { "question": "What are the requirements for transferees?", "answer": "Transferees need: Original Certificate of Transfer Credentials with TOR (with Evaluation of Grades for temporary enrollment), Good Moral Certificate, Entrance Exam Result, Medical Certificate with Hepa Test, Birth Certificate (Photocopy), 2x2 ID picture, and Short Brown Envelope." },
+    { "question": "What are graduate school admission requirements?", "answer": "Graduate school applicants need: Certificate of Transfer Credentials with TOR (from other schools) or Photocopy of TOR (for NEMSU graduates), Entrance Exam Result, Birth Certificate (Photocopy), 2x2 ID picture, and a Long Brown Envelope." },
+    { "question": "How do I contact the registrar?", "answer": "You may contact the Registrar at: registrarmain@nemsu.edu.ph or call +63 (086) 214-5069. The Registrar is Ms. Lynnet A. Sarvida." },
+    { "question": "Does NEMSU have an LMS?", "answer": "Yes, NEMSU has a Learning Management System (LMS) accessible at https://lms.nemsu.edu.ph." },
+    { "question": "Does NEMSU have online enrollment?", "answer": "Yes, NEMSU has an online pre-enrollment system called MyPortal at https://preenrollment.nemsu.edu.ph." },
+    { "question": "What are NEMSU's core values?", "answer": "NEMSU's core values are Compassion, Accountability, Responsiveness, Excellence, and Service — abbreviated as NEMSU CARES." },
+    { "question": "Is NEMSU ISO certified?", "answer": "Yes, NEMSU is ISO certified." },
+    { "question": "What is NEMSU's mandate?", "answer": "Under RA 9998 Section 2, NEMSU is mandated to provide advanced education and professional instruction in trade, fishery, agriculture, science, education, commerce, engineering, forestry, nautical courses, and related fields, and to undertake research and extension services." },
+    { "question": "Where can I find downloadable forms?", "answer": "Downloadable forms are available at https://www.nemsu.edu.ph/downloadables." },
+    { "question": "What research journal does NEMSU publish?", "answer": "NEMSU publishes the SDSSU Multidisciplinary Research Journal (SMRJ) at https://smrj.nemsu.edu.ph/, edited by Dr. Roxan E. Caray." }
+  ],
+
+  "chatbot_restrictions": {
+    "scope": "This chatbot only answers questions related to NEMSU (North Eastern Mindanao State University) — academics, admissions, programs, campuses, directory, history, and university services.",
+    "out_of_scope_message": "I'm sorry, I can only assist with questions related to NEMSU (North Eastern Mindanao State University). Please ask me about academics, admissions, programs, campuses, university officials, or services.",
+    "allowed_topics": [
+      "University history and background",
+      "Vision, mission, mandate, and core values",
+      "Degree programs per college and per campus",
+      "Admission requirements (new, transferee, graduate)",
+      "Campus locations, descriptions, and focus areas",
+      "Campus directors and their contact information",
+      "College deans and their contact information",
+      "University officials and administrative directory",
+      "Online services and portals",
+      "Contact information for offices and personnel",
+      "University president and administration",
+      "Research and extension activities",
+      "Accreditation status of programs",
+      "Top notchers and board exam achievements",
+      "University events and announcements",
+      "Accomplishment reports"
+    ]
+  }
+}

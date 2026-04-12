@@ -1,0 +1,45 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "nemorax"
+version = "3.0.0"
+description = "Nemorax desktop/web/mobile-ready app for the Nemis AI assistant"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi==0.135.3",
+  "uvicorn[standard]==0.44.0",
+  "flet==0.84.0",
+  "python-dotenv==1.2.2",
+  "pydantic==2.12.5",
+  "httpx==0.28.1",
+  "beautifulsoup4==4.14.3",
+  "lxml==6.0.3",
+  "trafilatura==2.0.0",
+  "rapidfuzz==3.14.5",
+  "pypdf==6.10.0",
+  "dateparser==1.4.0",
+  "htmldate==1.9.4",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.flet]
+org = "com.nemorax"
+product = "Nemorax"
+company = "Nemorax"
+copyright = "Copyright (c) 2026 Nemorax"
+
+[tool.flet.app]
+path = "."
+module = "app.py"
+assets = "assets"
+
+[tool.flet.android]
+adaptive_icon_background = "#0D0820"

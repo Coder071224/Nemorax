@@ -1,0 +1,62 @@
+{
+  "start_url": "https://www.nemsu.edu.ph/",
+  "allowed_domains": [
+    "www.nemsu.edu.ph",
+    "nemsu.edu.ph"
+  ],
+  "optional_document_domains": [
+    "app.box.com",
+    "drive.google.com",
+    "docs.google.com"
+  ],
+  "blocked_domains": [
+    "preenrollment.nemsu.edu.ph",
+    "lms.nemsu.edu.ph",
+    "erms.nemsu.edu.ph",
+    "csms.nemsu.edu.ph",
+    "dts.nemsu.edu.ph",
+    "itinero.nemsu.edu.ph",
+    "epass.nemsu.edu.ph",
+    "memo.nemsu.edu.ph"
+  ],
+  "include_patterns": [
+    "^https://(www\\.)?nemsu\\.edu\\.ph/.*$"
+  ],
+  "exclude_patterns": [
+    ".*login.*",
+    ".*signin.*",
+    ".*wp-admin.*",
+    ".*wp-login.*",
+    ".*feed.*",
+    ".*search.*",
+    ".*preview.*",
+    ".*replytocom.*",
+    ".*share.*",
+    ".*\\?.*utm_.*",
+    ".*\\?.*fbclid.*",
+    ".*\\?.*sort=.*",
+    ".*/page/\\d+/?$",
+    ".*tag/.*",
+    ".*archive.*",
+    ".*calendar.*",
+    ".*mailto:.*",
+    ".*javascript:.*"
+  ],
+  "max_pages": 250,
+  "max_depth": 4,
+  "concurrency": 3,
+  "crawl_delay_seconds": 1.5,
+  "request_timeout_seconds": 20,
+  "retries": 2,
+  "user_agent": "NEMSU-KB-Bot/1.0 (research and knowledge base generation)",
+  "same_domain_only": true,
+  "optional_linked_documents_phase": true,
+  "javascript_rendering": false,
+  "chunk_target_tokens": 700,
+  "chunk_min_tokens": 350,
+  "chunk_max_tokens": 950,
+  "chunk_overlap_tokens": 90,
+  "output_directory": "kb",
+  "log_directory": "logs",
+  "respect_robots_txt": true
+}
