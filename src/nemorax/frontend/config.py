@@ -13,7 +13,18 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
-BACKEND_URL: str = os.getenv("BACKEND_URL", "http://127.0.0.1:8000").strip()
+PRODUCTION_BACKEND_URL = "https://nemorax-backend.onrender.com"
+LOCAL_BACKEND_URL = "http://127.0.0.1:8000"
+
+
+def _resolve_backend_url() -> str:
+    configured = os.getenv("BACKEND_URL", "").strip()
+    if configured:
+        return configured
+    return PRODUCTION_BACKEND_URL
+
+
+BACKEND_URL: str = _resolve_backend_url()
 
 BRAND_NAME = "Nemorax"
 APP_NAME = "Nemis"

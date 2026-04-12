@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -14,6 +15,7 @@ def _bootstrap_src_path() -> None:
 
 
 _bootstrap_src_path()
+os.environ.setdefault("BACKEND_URL", "http://127.0.0.1:8000")
 
 
 if __name__ == "__main__":

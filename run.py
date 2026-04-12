@@ -66,6 +66,7 @@ def main() -> None:
     args = parser.parse_args()
 
     port = int(os.getenv("BACKEND_PORT", "8000"))
+    os.environ.setdefault("BACKEND_URL", f"http://127.0.0.1:{port}")
 
     if not args.no_backend:
         if _is_port_in_use("127.0.0.1", port):
