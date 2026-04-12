@@ -55,14 +55,19 @@ class GroqRateLimitTests(unittest.TestCase):
     def _settings() -> LLMSettings:
         return LLMSettings(
             provider="groq",
-            model="openai/gpt-oss-120b",
+            model="openai/gpt-oss-20b",
             fallback_model="llama-3.1-8b-instant",
             base_url="https://api.groq.com/openai/v1",
             api_key="secret",
             request_timeout_seconds=30.0,
             health_timeout_seconds=5.0,
-            temperature=0.4,
-            top_p=0.9,
+            temperature=0.25,
+            top_p=1.0,
+            max_completion_tokens=900,
+            reasoning_effort="medium",
+            include_reasoning=False,
+            stream=True,
+            seed=7,
             max_context_tokens=4096,
             message_window=10,
             prompt_knowledge_chars=6000,
@@ -103,7 +108,7 @@ class GroqRateLimitTests(unittest.TestCase):
 
         self.assertEqual(result.model, "llama-3.1-8b-instant")
         self.assertEqual(result.content, "Fallback answer")
-        self.assertEqual(fake_client.models_used, ["openai/gpt-oss-120b", "llama-3.1-8b-instant"])
+        self.assertEqual(fake_client.models_used, ["openai/gpt-oss-20b", "llama-3.1-8b-instant"])
 
     def test_returns_polite_daily_limit_message_when_fallback_is_also_limited(self) -> None:
         fake_client = _FakeAsyncClient(
@@ -127,6 +132,41 @@ class GroqRateLimitTests(unittest.TestCase):
                 asyncio.run(
                     provider.chat([LLMMessage(role="user", content="Where is the registrar?")])
                 )
+
+    def test_sends_groq_native_gpt_oss_parameters(self) -> None:
+        captured_payload: dict[str, object] = {}
+
+        class _PayloadClient(_FakeAsyncClient):
+            async def post(
+                self,
+                path: str,
+                *,
+                headers: dict[str, str] | None = None,
+                json: dict[str, object],
+            ) -> httpx.Response:
+                del path, headers
+                captured_payload.update(json)
+                return _build_response(
+                    status_code=200,
+                    payload={"choices": [{"message": {"content": "Answer"}}]},
+                )
+
+        provider = OpenAICompatibleChatProvider(self._settings(), provider_name="groq")
+
+        with patch(
+            "nemorax.backend.llm.providers.openai_compatible.httpx.AsyncClient",
+            return_value=_PayloadClient([]),
+        ):
+            asyncio.run(provider.chat([LLMMessage(role="user", content="Where is the registrar?")]))
+
+        self.assertEqual(captured_payload["model"], "openai/gpt-oss-20b")
+        self.assertEqual(captured_payload["temperature"], 0.25)
+        self.assertEqual(captured_payload["top_p"], 1.0)
+        self.assertEqual(captured_payload["max_completion_tokens"], 900)
+        self.assertEqual(captured_payload["reasoning_effort"], "medium")
+        self.assertFalse(captured_payload["include_reasoning"])
+        self.assertTrue(captured_payload["stream"])
+        self.assertEqual(captured_payload["seed"], 7)
 
 
 if __name__ == "__main__":

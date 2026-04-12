@@ -238,8 +238,14 @@ class OpenAICompatibleChatProvider(ChatProvider):
             "messages": [{"role": item.role, "content": item.content} for item in messages],
             "temperature": self._settings.temperature,
             "top_p": self._settings.top_p,
-            "stream": False,
+            "stream": self._settings.stream,
         }
+        if self.name == "groq":
+            payload["max_completion_tokens"] = self._settings.max_completion_tokens
+            payload["reasoning_effort"] = self._settings.reasoning_effort
+            payload["include_reasoning"] = self._settings.include_reasoning
+            if self._settings.seed is not None:
+                payload["seed"] = self._settings.seed
         response = await client.post("/chat/completions", headers=self._headers(), json=payload)
         response.raise_for_status()
         body = response.json()

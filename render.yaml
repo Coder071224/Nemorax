@@ -25,13 +25,27 @@ services:
       - key: LLM_PROVIDER
         value: groq
       - key: LLM_MODEL
-        value: openai/gpt-oss-120b
+        value: openai/gpt-oss-20b
       - key: LLM_FALLBACK_MODEL
         value: llama-3.1-8b-instant
       - key: LLM_BASE_URL
         value: https://api.groq.com/openai/v1
       - key: LLM_API_KEY
         sync: false
+      - key: LLM_TEMPERATURE
+        value: 0.25
+      - key: LLM_TOP_P
+        value: 1.0
+      - key: LLM_MAX_COMPLETION_TOKENS
+        value: 900
+      - key: LLM_REASONING_EFFORT
+        value: medium
+      - key: LLM_INCLUDE_REASONING
+        value: false
+      - key: LLM_STREAM
+        value: true
+      - key: LLM_SEED
+        value: 7
       - key: LLM_PROMPT_KNOWLEDGE_CHARS
         value: 6000
       - key: REQUEST_TIMEOUT_SECONDS

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 from datetime import datetime, timezone
+import re
 from typing import Any
 
 from nemorax.backend.core.logging import get_logger
@@ -16,6 +17,16 @@ from nemorax.backend.services.prompt import KnowledgeBasePromptService
 
 
 logger = get_logger("nemorax.chat")
+
+
+def clean_nemis_reply(text: str) -> str:
+    if not text:
+        return text
+
+    cleaned = text.replace("**", "").replace("*", "")
+    cleaned = re.sub(r"[ \t]+", " ", cleaned)
+    cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
+    return cleaned.strip()
 
 
 def _utc_now() -> datetime:
@@ -60,13 +71,14 @@ class ChatService:
 
     async def chat(self, request: ChatRequest) -> ChatResponse:
         completion = await self._provider.chat(self._provider_messages(request.messages))
+        reply = clean_nemis_reply(completion.content)
 
         if request.user_id:
             try:
                 self._history.append_messages(
                     request.session_id,
                     _extract_last_user_message(request.messages),
-                    completion.content,
+                    reply,
                     request.user_id,
                 )
             except Exception as exc:
@@ -79,7 +91,7 @@ class ChatService:
 
         return ChatResponse(
             session_id=request.session_id,
-            reply=completion.content,
+            reply=reply,
             timestamp=_utc_now(),
         )
 
