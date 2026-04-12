@@ -1,7 +1,7 @@
 window.NEMORAX_SITE_CONFIG = {
   github: {
-    owner: "",
-    repo: "",
+    owner: "Coder071224",
+    repo: "Nemorax",
     releaseTag: "",
     assets: {
       windows: "Nemorax.exe",
