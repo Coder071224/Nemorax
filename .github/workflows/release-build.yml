@@ -26,7 +26,8 @@ jobs:
       - name: Build Windows app
         env:
           PYTHONPATH: src
-        run: flet build windows --module app.py --output dist/windows
+          FLET_CLI_NO_RICH_OUTPUT: "1"
+        run: flet build windows --module app.py --output dist/windows --yes --no-rich-output
 
       - name: Collect Windows executable
         shell: pwsh
@@ -66,7 +67,8 @@ jobs:
       - name: Build Android APK
         env:
           PYTHONPATH: src
-        run: flet build apk --module app.py --output dist/android
+          FLET_CLI_NO_RICH_OUTPUT: "1"
+        run: flet build apk --module app.py --output dist/android --yes --no-rich-output
 
       - name: Rename APK
         run: |
