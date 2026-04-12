@@ -2,6 +2,7 @@
   const siteConfig = window.NEMORAX_SITE_CONFIG || {};
   const github = siteConfig.github || {};
   const githubAssets = github.assets || {};
+  const appConfig = siteConfig.app || {};
   const release = {
     version: "1.0.0",
     channel: "Initial Release",
@@ -16,6 +17,11 @@
         url: "",
         label: "Android distribution pending publication",
         status: "Use this card for the official .apk link once the beta package is ready for direct download."
+      },
+      web: {
+        url: appConfig.webUrl || "",
+        label: "Open web app",
+        status: "Use Nemorax directly in the browser for iPhone and desktop web access."
       }
     }
   };
@@ -76,7 +82,14 @@
       link.className = "download-button";
       link.href = config.url;
       link.rel = "noopener";
-      link.textContent = platform === "windows" ? "Download Windows build" : "Download .apk";
+      if (platform === "windows") {
+        link.textContent = "Download Windows build";
+      } else if (platform === "android") {
+        link.textContent = "Download .apk";
+      } else {
+        link.textContent = "Open web app";
+        link.target = "_blank";
+      }
       host.appendChild(link);
     } else {
       const disabled = document.createElement("span");
@@ -93,6 +106,7 @@
 
   renderDownloadSlot(document.querySelector("[data-download-windows]"), "windows");
   renderDownloadSlot(document.querySelector("[data-download-android]"), "android");
+  renderDownloadSlot(document.querySelector("[data-download-web]"), "web");
 
   const toggle = document.querySelector(".menu-toggle");
   const nav = document.querySelector(".site-nav");

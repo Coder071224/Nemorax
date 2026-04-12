@@ -16,5 +16,8 @@ window.NEMORAX_SITE_CONFIG = {
   support: {
     email: "",
     customDomain: ""
+  },
+  app: {
+    webUrl: "https://nemorax-backend.onrender.com"
   }
 };
