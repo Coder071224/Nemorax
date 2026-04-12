@@ -16,6 +16,7 @@ from nemorax.backend.core.errors import ApplicationError
 from nemorax.backend.core.logging import configure_logging, get_logger
 from nemorax.backend.core.settings import settings
 from nemorax.backend.runtime import ApplicationServices, get_runtime_services
+from nemorax.backend.services.rag import build_index
 
 
 configure_logging(settings.log_level)
@@ -33,6 +34,8 @@ def create_app(*, services: ApplicationServices | None = None) -> FastAPI:
             resolved_services.llm_provider.name,
             resolved_services.llm_provider.model,
         )
+        if resolved_services.settings.environment != "test":
+            build_index()
         yield
         logger.info("Stopping Nemorax backend")
 

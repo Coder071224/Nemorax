@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from nemorax.backend.core.errors import NotFoundError
 from nemorax.backend.repositories.history import HistoryRepository
-from nemorax.backend.schemas import ConversationRecord, HistoryListItem
+from nemorax.backend.schemas import ConversationRecord, HistoryListItem, MessageSchema
 
 
 class HistoryService:
@@ -28,3 +28,9 @@ class HistoryService:
 
     def delete_conversation(self, session_id: str, user_id: str) -> bool:
         return self._history.delete_conversation(session_id, user_id)
+
+    def recent_messages(self, session_id: str, user_id: str, *, limit: int = 6) -> list[MessageSchema]:
+        record = self._history.get_conversation(session_id, user_id)
+        if record is None:
+            return []
+        return list(record.messages[-max(0, limit) :])

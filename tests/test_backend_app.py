@@ -403,6 +403,70 @@ class BackendApiTests(unittest.TestCase):
         self.assertEqual(delete_response.status_code, 200)
         self.assertEqual(delete_response.json()["deleted"], "session-1")
 
+    def test_short_follow_up_uses_session_history(self) -> None:
+        self.client.post(
+            "/api/auth/register",
+            json={
+                "email": "student@example.com",
+                "password": "secret12",
+                "recovery_answers": {
+                    "favorite color": "blue",
+                    "favorite food": "rice",
+                },
+            },
+        )
+        user_id = self.client.post(
+            "/api/auth/login",
+            json={"email": "student@example.com", "password": "secret12"},
+        ).json()["user_id"]
+
+        first_response = self.client.post(
+            "/api/chat",
+            json={
+                "session_id": "session-follow-up",
+                "user_id": user_id,
+                "messages": [{"role": "user", "content": "What was NEMSU called before?"}],
+            },
+        )
+        self.assertEqual(first_response.status_code, 200)
+
+        second_response = self.client.post(
+            "/api/chat",
+            json={
+                "session_id": "session-follow-up",
+                "user_id": user_id,
+                "messages": [{"role": "user", "content": "what about their year or date"}],
+            },
+        )
+        self.assertEqual(second_response.status_code, 200)
+        self.assertEqual(second_response.json()["reply"], "Stub reply from the neutral provider layer.")
+        self.assertGreaterEqual(len(self.provider.last_messages), 4)
+        self.assertEqual(self.provider.last_messages[-1].content, "what about their year or date")
+
+    def test_topic_filter_allows_abbreviation_queries(self) -> None:
+        response = self.client.post(
+            "/api/chat",
+            json={
+                "session_id": "session-abbrev",
+                "messages": [{"role": "user", "content": "who is dean in cite"}],
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["reply"], "Stub reply from the neutral provider layer.")
+        self.assertTrue(self.provider.last_messages)
+
+    def test_topic_filter_rejects_off_topic_queries(self) -> None:
+        response = self.client.post(
+            "/api/chat",
+            json={
+                "session_id": "session-off-topic",
+                "messages": [{"role": "user", "content": "tell me the latest bitcoin price"}],
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("I can only assist with inquiries about NEMSU", response.json()["reply"])
+        self.assertFalse(self.provider.last_messages)
+
     def test_prompt_service_truncates_large_knowledge_base(self) -> None:
         large_kb = "NEMSU campus information. " * 800
         self.settings.paths.knowledge_base_markdown_path.write_text(large_kb, encoding="utf-8")
@@ -414,7 +478,7 @@ class BackendApiTests(unittest.TestCase):
 
         prompt = prompt_service.get_system_prompt()
 
-        self.assertIn("RETRIEVED KNOWLEDGE CONTEXT", prompt)
+        self.assertIn("Answer only school-related questions about NEMSU", prompt)
         self.assertLess(len(prompt), 4200)
 
     def test_prompt_service_uses_chunk_retrieval_for_query(self) -> None:

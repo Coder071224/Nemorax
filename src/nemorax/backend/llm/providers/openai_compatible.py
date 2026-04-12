@@ -244,6 +244,7 @@ class OpenAICompatibleChatProvider(ChatProvider):
         *,
         model: str,
         messages: Sequence[LLMMessage],
+        include_reasoning_options: bool = True,
     ) -> ChatCompletionResult:
         payload = {
             "model": model,
@@ -255,8 +256,9 @@ class OpenAICompatibleChatProvider(ChatProvider):
         }
         if self.name == "groq":
             payload["max_completion_tokens"] = self._settings.max_completion_tokens
-            payload["reasoning_effort"] = self._settings.reasoning_effort
-            payload["include_reasoning"] = self._settings.include_reasoning
+            if include_reasoning_options:
+                payload["reasoning_effort"] = self._settings.reasoning_effort
+                payload["include_reasoning"] = self._settings.include_reasoning
             if self._settings.seed is not None:
                 payload["seed"] = self._settings.seed
         response = await client.post("/chat/completions", headers=self._headers(), json=payload)
@@ -278,12 +280,33 @@ class OpenAICompatibleChatProvider(ChatProvider):
             raise LLMResponseError(_friendly_rate_limit_message(_rate_limit_info(response, detail)))
         raise LLMResponseError(f"{self.provider_label} request failed: {detail}")
 
+    async def _chat_with_model(
+        self,
+        client: httpx.AsyncClient,
+        *,
+        model: str,
+        messages: Sequence[LLMMessage],
+    ) -> ChatCompletionResult:
+        try:
+            return await self._post_chat_completion(client, model=model, messages=messages)
+        except httpx.HTTPStatusError as exc:
+            detail = _response_detail(exc.response).lower()
+            if exc.response.status_code == 400 and "reasoning_effort" in detail:
+                logger.debug("Retrying %s without reasoning options for model %s", self.provider_label, model)
+                return await self._post_chat_completion(
+                    client,
+                    model=model,
+                    messages=messages,
+                    include_reasoning_options=False,
+                )
+            raise
+
     async def chat(self, messages: Sequence[LLMMessage]) -> ChatCompletionResult:
         self._validate_configuration()
         try:
             async with httpx.AsyncClient(base_url=self.base_url.rstrip("/"), timeout=self._timeout) as client:
                 try:
-                    return await self._post_chat_completion(client, model=self.model, messages=messages)
+                    return await self._chat_with_model(client, model=self.model, messages=messages)
                 except httpx.HTTPStatusError as exc:
                     detail = _response_detail(exc.response)
                     if exc.response.status_code == 429 and self.name == "groq" and self.fallback_model:
@@ -293,7 +316,7 @@ class OpenAICompatibleChatProvider(ChatProvider):
                             self.fallback_model,
                         )
                         try:
-                            return await self._post_chat_completion(
+                            return await self._chat_with_model(
                                 client,
                                 model=self.fallback_model,
                                 messages=messages,

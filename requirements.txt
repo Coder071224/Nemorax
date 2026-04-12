@@ -11,3 +11,5 @@ rapidfuzz==3.14.5
 pypdf==6.10.0
 dateparser==1.4.0
 htmldate==1.9.4
+chromadb>=0.4.0
+sentence-transformers>=2.2.0

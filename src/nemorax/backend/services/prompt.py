@@ -11,6 +11,7 @@ from threading import RLock
 from typing import Any
 
 from nemorax.backend.core.logging import get_logger
+from nemorax.backend.services.rag import format_context, health as rag_health, retrieve
 
 
 logger = get_logger("nemorax.prompt")
@@ -898,34 +899,58 @@ class KnowledgeBasePromptService:
             f"{trimmed_knowledge_base}\n"
         )
 
+    def _build_semantic_prompt(
+        self,
+        *,
+        query: str | None,
+        conversation_history: list[dict[str, str]] | None = None,
+    ) -> str:
+        service_root = Path(__file__).resolve().parents[4]
+        try:
+            self._markdown_path.resolve().relative_to(service_root.resolve())
+        except ValueError:
+            return ""
+        context = format_context(retrieve(query or "", conversation_history=conversation_history or []))
+        if context:
+            return (
+                "You are Nemis, the official AI assistant of NEMSU "
+                "(Northeastern Mindanao State University). You answer questions about NEMSU "
+                "clearly and accurately based on the knowledge provided below.\n\n"
+                "IMPORTANT RULES:\n"
+                "- Answer ONLY from the provided knowledge context when it contains the answer.\n"
+                "- If the answer is clearly in the context, state it directly and confidently.\n"
+                "- If the context does not contain enough information, say:\n"
+                "\"I don't have that specific information in my knowledge base right now.\n"
+                " Please contact the NEMSU office directly for accurate details.\"\n"
+                "- Never make up names, dates, or facts not present in the context.\n"
+                "- Keep answers concise and helpful.\n"
+                "- You may use conversation history to resolve follow-up questions.\n"
+                "- Do not use markdown emphasis or asterisks in normal replies.\n\n"
+                "RETRIEVED KNOWLEDGE CONTEXT:\n"
+                f"{context}"
+            )
+        return ""
+
     def get_system_prompt(self) -> str:
         with self._lock:
-            knowledge_base, mtime_ns = self._load_markdown()
-            if not mtime_ns:
-                self._cached_prompt = self._cached_prompt or self._fallback_prompt()
-                return self._cached_prompt
-
-            if self._cached_prompt and not self._last_error and self._cached_markdown_mtime_ns == mtime_ns:
-                return self._cached_prompt
-
-            if not knowledge_base:
-                self._last_error = "Knowledge base markdown file is empty."
-                self._cached_prompt = self._fallback_prompt()
-                self._cached_markdown_mtime_ns = mtime_ns
-                return self._cached_prompt
-
-            self._last_error = ""
-            self._cached_prompt = self._build_prompt(knowledge_base)
-            self._cached_markdown_mtime_ns = mtime_ns
+            self._cached_prompt = self._cached_prompt or self._fallback_prompt()
             return self._cached_prompt
 
-    def get_system_prompt_for_query(self, query: str | None) -> str:
+    def get_system_prompt_for_query(
+        self,
+        query: str | None,
+        conversation_history: list[dict[str, str]] | None = None,
+    ) -> str:
         with self._lock:
+            semantic_prompt = self._build_semantic_prompt(query=query, conversation_history=conversation_history)
+            if semantic_prompt:
+                return semantic_prompt
             knowledge_base, _ = self._load_markdown()
             self._last_error = ""
             return self._build_prompt(knowledge_base, query)
 
     def health(self) -> dict[str, str | bool | None | int]:
+        rag_status = rag_health()
         try:
             markdown_available = self._markdown_path.exists() and bool(
                 self._markdown_path.read_text(encoding="utf-8", errors="replace").strip()
@@ -942,8 +967,8 @@ class KnowledgeBasePromptService:
 
         prompt = self.get_system_prompt()
         return {
-            "available": markdown_available or chunks_available,
-            "source_path": str(self._chunks_path or self._markdown_path),
+            "available": bool(rag_status.get("available")) or markdown_available or chunks_available,
+            "source_path": str(rag_status.get("source_path") or self._chunks_path or self._markdown_path),
             "markdown_path": str(self._markdown_path),
             "chunks_path": str(self._chunks_path) if self._chunks_path else None,
             "markdown_available": markdown_available,
@@ -951,5 +976,5 @@ class KnowledgeBasePromptService:
             "documents_loaded": len(documents),
             "files_scanned": scanned_files,
             "chunk_count": len(chunks),
-            "detail": self._last_error or (None if prompt else "Prompt is empty."),
+            "detail": rag_status.get("detail") or self._last_error or (None if prompt else "Prompt is empty."),
         }

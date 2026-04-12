@@ -1,12 +1,15 @@
 .env
 .prefs
 .venv/
+venv/
 .idea/
 .ruff_cache/
 __pycache__/
 *.py[cod]
+*.pyd
 *.log
 *.sqlite3
+.chroma_db/
 build/
 dist/
 website-dist/
@@ -16,3 +19,4 @@ data/USERS/
 .mypy_cache/
 *.egg-info/
 .DS_Store
+Thumbs.db

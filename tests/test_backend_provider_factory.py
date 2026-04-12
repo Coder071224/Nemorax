@@ -162,3 +162,61 @@ class ProviderFactoryTests(unittest.TestCase):
 
         asyncio.run(run_test())
         self.assertIs(captured_payload.get("stream"), False)
+
+    def test_chat_retries_without_reasoning_options_when_model_rejects_them(self) -> None:
+        provider = OpenAICompatibleChatProvider(
+            LLMSettings(
+                provider="groq",
+                model="llama-test",
+                fallback_model=None,
+                base_url="https://api.groq.com/openai/v1",
+                api_key="secret",
+                request_timeout_seconds=30.0,
+                health_timeout_seconds=5.0,
+                temperature=0.25,
+                top_p=1.0,
+                max_completion_tokens=900,
+                reasoning_effort="medium",
+                include_reasoning=False,
+                stream=True,
+                seed=7,
+                max_context_tokens=4096,
+                message_window=10,
+                prompt_knowledge_chars=6000,
+            ),
+            provider_name="groq",
+        )
+
+        payloads: list[dict[str, object]] = []
+        responses = [
+            httpx.Response(
+                400,
+                json={"error": {"message": "`reasoning_effort` is not supported with this model"}},
+                request=httpx.Request("POST", "https://api.groq.com/openai/v1/chat/completions"),
+            ),
+            httpx.Response(
+                200,
+                json={"choices": [{"message": {"content": "Hello"}}]},
+                request=httpx.Request("POST", "https://api.groq.com/openai/v1/chat/completions"),
+            ),
+        ]
+
+        class DummyClient:
+            async def post(self, *args, **kwargs):
+                payloads.append(dict(kwargs.get("json", {})))
+                return responses.pop(0)
+
+        async def run_test() -> None:
+            result = await provider._chat_with_model(
+                DummyClient(),
+                model="llama-test",
+                messages=[LLMMessage(role="user", content="Hello")],
+            )
+            self.assertEqual(result.content, "Hello")
+
+        import asyncio
+
+        asyncio.run(run_test())
+        self.assertEqual(len(payloads), 2)
+        self.assertIn("reasoning_effort", payloads[0])
+        self.assertNotIn("reasoning_effort", payloads[1])
