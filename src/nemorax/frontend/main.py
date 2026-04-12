@@ -9,7 +9,7 @@ import flet as ft
 
 from nemorax.frontend.chat_page import ChatPage
 from nemorax.frontend.config import APP_NAME, BRAND_NAME, current_theme, should_show_splash
-from nemorax.frontend.responsive import is_desktop
+from nemorax.frontend.responsive import is_desktop, is_web
 from nemorax.frontend.splash_page import SplashPage
 
 
@@ -21,7 +21,7 @@ def _mount_fullscreen(page: ft.Page, control: ft.Control) -> None:
 
 
 async def _configure_desktop_window(page: ft.Page) -> None:
-    if not is_desktop(page):
+    if is_web(page) or not is_desktop(page):
         return
 
     page.window.width = 1320
@@ -31,7 +31,7 @@ async def _configure_desktop_window(page: ft.Page) -> None:
 
     try:
         await page.window.center()
-    except AttributeError:
+    except Exception:
         pass
 
 
