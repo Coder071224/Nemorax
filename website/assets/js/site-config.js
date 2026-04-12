@@ -18,6 +18,6 @@ window.NEMORAX_SITE_CONFIG = {
     customDomain: ""
   },
   app: {
-    webUrl: "https://nemorax-backend.onrender.com"
+    webUrl: "https://nemorax-web.onrender.com"
   }
 };

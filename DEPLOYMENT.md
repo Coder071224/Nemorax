@@ -64,7 +64,31 @@ Recommended path: GitHub Pages.
 - Workflow: `.github/workflows/website-pages.yml`
 - The workflow publishes `website/`
 
-## 6. Connect a custom domain
+## 6. Deploy the Flet web frontend
+
+Recommended free-first path: Render as a second web service.
+
+- `render.yaml` now includes `nemorax-web`
+- frontend entrypoint is `python serve_web.py`
+- expected URL is `https://nemorax-web.onrender.com`
+
+After creating or syncing the Blueprint:
+
+- confirm the `nemorax-web` service is created
+- keep `BACKEND_URL=https://nemorax-backend.onrender.com`
+- update the backend `CORS_ORIGINS` to include both:
+  - `https://coder071224.github.io`
+  - `https://nemorax-web.onrender.com`
+
+Then open:
+
+```bash
+https://nemorax-web.onrender.com
+```
+
+The public website web-app button is intended to point to that frontend URL.
+
+## 7. Connect a custom domain
 
 For GitHub Pages:
 
@@ -73,7 +97,7 @@ For GitHub Pages:
 3. Add the DNS records requested by GitHub.
 4. If you want the custom domain tracked in source, add a `CNAME` file directly inside `website/`.
 
-## 7. Build EXE / APK with Flet
+## 8. Build EXE / APK with Flet
 
 Release workflow:
 
@@ -86,11 +110,11 @@ Outputs:
 
 Before relying on release automation, verify that the chosen Flet CLI version in CI still matches the project.
 
-## 8. Upload builds to GitHub Releases
+## 9. Upload builds to GitHub Releases
 
 This is handled by the release workflow when a GitHub Release is published.
 
-## 9. Connect download buttons to release files
+## 10. Connect download buttons to release files
 
 Edit `website/assets/js/site-config.js`:
 

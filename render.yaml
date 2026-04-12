@@ -38,3 +38,23 @@ services:
         value: 180
       - key: HEALTH_TIMEOUT_SECONDS
         value: 4
+  - type: web
+    name: nemorax-web
+    runtime: python
+    plan: free
+    region: oregon
+    buildCommand: pip install -r requirements.txt
+    startCommand: python serve_web.py
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.8
+      - key: NEMORAX_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: INFO
+      - key: BACKEND_URL
+        value: https://nemorax-backend.onrender.com
+      - key: FLET_FORCE_WEB_SERVER
+        value: true
+      - key: FLET_SERVER_IP
+        value: 0.0.0.0
