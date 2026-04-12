@@ -21,6 +21,11 @@ class ApiClientError(Exception):
         self.status_code = status_code
 
 
+def _sanitize_reply_text(text: str) -> str:
+    cleaned = (text or "").replace("**", "").replace("*", "")
+    return cleaned.strip()
+
+
 def _client() -> httpx.Client:
     return httpx.Client(base_url=BACKEND_URL.rstrip("/"), timeout=_TIMEOUT)
 
@@ -116,7 +121,10 @@ def send_message(
                 payload["user_id"] = user_id
             result = _post("/api/chat", payload)
             reply = result.get("reply")
-            on_response(reply if isinstance(reply, str) and reply else "No reply received.")
+            if isinstance(reply, str) and reply:
+                on_response(_sanitize_reply_text(reply) or "No reply received.")
+            else:
+                on_response("No reply received.")
         except ApiClientError as exc:
             on_error(f"Warning: {exc}")
         except Exception as exc:  # pragma: no cover - defensive fallback

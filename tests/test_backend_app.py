@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 import sys
 import tempfile
 import unittest
@@ -75,6 +76,7 @@ def build_test_settings(root: Path) -> Settings:
         feedback_dir=data_dir / "FEEDBACK",
         knowledge_base_markdown_path=data_dir / "school_info.md",
         knowledge_base_json_path=data_dir / "school_info.json",
+        knowledge_base_chunks_path=root / "kb" / "chunks.jsonl",
     )
     api = ApiSettings(
         app_name="Nemorax API",
@@ -94,8 +96,13 @@ def build_test_settings(root: Path) -> Settings:
         api_key=None,
         request_timeout_seconds=30.0,
         health_timeout_seconds=5.0,
-        temperature=0.4,
-        top_p=0.9,
+        temperature=0.25,
+        top_p=1.0,
+        max_completion_tokens=900,
+        reasoning_effort="medium",
+        include_reasoning=False,
+        stream=True,
+        seed=7,
         max_context_tokens=4096,
         message_window=10,
         prompt_knowledge_chars=6000,
@@ -107,6 +114,62 @@ def build_test_settings(root: Path) -> Settings:
         encoding="utf-8",
     )
     paths.knowledge_base_json_path.write_text("{}", encoding="utf-8")
+    paths.knowledge_base_chunks_path.parent.mkdir(parents=True, exist_ok=True)
+    paths.knowledge_base_chunks_path.write_text(
+        "\n".join(
+            [
+                json.dumps(
+                    {
+                        "chunk_id": "chunk_directory",
+                        "page_id": "page_directory",
+                        "url": "https://www.nemsu.edu.ph/directory",
+                        "title": "Directory",
+                        "heading_path": ["Directory"],
+                        "page_type": "directory",
+                        "topic": "Directory",
+                        "raw_text": "Admissions Office: Main campus administration building. Registrar: registrarmain@nemsu.edu.ph.",
+                        "normalized_text": "admissions office main campus administration building registrar registrarmain nemsu edu ph",
+                        "short_summary": "Admissions and registrar contact information.",
+                        "keywords": ["admissions", "registrar", "directory", "office"],
+                        "entities": [],
+                        "publication_date": None,
+                        "updated_date": None,
+                        "freshness": "evergreen",
+                        "content_hash": "hash-directory",
+                        "previous_chunk_id": None,
+                        "next_chunk_id": None,
+                        "parent_chunk_id": None,
+                        "source_section_id": "section-directory",
+                    }
+                ),
+                json.dumps(
+                    {
+                        "chunk_id": "chunk_campuses",
+                        "page_id": "page_about",
+                        "url": "https://www.nemsu.edu.ph/about",
+                        "title": "Campuses",
+                        "heading_path": ["Campuses"],
+                        "page_type": "campus_info",
+                        "topic": "Campuses",
+                        "raw_text": "NEMSU has campuses in Tandag, Cantilan, Lianga, Tagbina, San Miguel, Cagwait, and Bislig.",
+                        "normalized_text": "nemsu has campuses in tandag cantilan lianga tagbina san miguel cagwait and bislig",
+                        "short_summary": "Campus list.",
+                        "keywords": ["campuses", "tandag", "cantilan", "bislig"],
+                        "entities": [],
+                        "publication_date": None,
+                        "updated_date": None,
+                        "freshness": "evergreen",
+                        "content_hash": "hash-campuses",
+                        "previous_chunk_id": None,
+                        "next_chunk_id": None,
+                        "parent_chunk_id": None,
+                        "source_section_id": "section-campuses",
+                    }
+                ),
+            ]
+        ),
+        encoding="utf-8",
+    )
     return settings
 
 
@@ -117,7 +180,10 @@ def build_test_services(settings: Settings, provider: StubProvider) -> Applicati
     auth_service = AuthService(user_repository)
     history_service = HistoryService(history_repository)
     feedback_service = FeedbackService(feedback_repository)
-    prompt_service = KnowledgeBasePromptService(settings.paths.knowledge_base_markdown_path)
+    prompt_service = KnowledgeBasePromptService(
+        settings.paths.knowledge_base_markdown_path,
+        chunks_path=settings.paths.knowledge_base_chunks_path,
+    )
     chat_service = ChatService(
         settings=settings,
         provider=provider,
@@ -290,10 +356,24 @@ class BackendApiTests(unittest.TestCase):
         self.settings.paths.knowledge_base_markdown_path.write_text(large_kb, encoding="utf-8")
         prompt_service = KnowledgeBasePromptService(
             self.settings.paths.knowledge_base_markdown_path,
+            chunks_path=None,
             max_knowledge_chars=1200,
         )
 
         prompt = prompt_service.get_system_prompt()
 
         self.assertIn("[Knowledge base truncated for request size safety.]", prompt)
-        self.assertLess(len(prompt), 2800)
+        self.assertLess(len(prompt), 4200)
+
+    def test_prompt_service_uses_chunk_retrieval_for_query(self) -> None:
+        prompt_service = KnowledgeBasePromptService(
+            self.settings.paths.knowledge_base_markdown_path,
+            chunks_path=self.settings.paths.knowledge_base_chunks_path,
+            max_knowledge_chars=1800,
+        )
+
+        prompt = prompt_service.get_system_prompt_for_query("What is the registrar email?")
+
+        self.assertIn("registrarmain@nemsu.edu.ph", prompt)
+        self.assertIn("Directory", prompt)
+        self.assertIn("https://www.nemsu.edu.ph/directory", prompt)

@@ -44,6 +44,7 @@ _SETTINGS_PANEL_WIDTH = 360
 _MOBILE_BREAKPOINT = 800
 _THEME_SAVE_DELAY_SECONDS = 0.08
 _AUTH_BANNER_SECONDS = 4.0
+_MOBILE_WEB_RESIZE_WIDTH_DELTA = 12.0
 
 
 class ChatPage(ft.Container):
@@ -85,8 +86,12 @@ class ChatPage(ft.Container):
         self._settings_panel: ft.Container | None = None
         self._input: ft.TextField | None = None
         self._send_button: ft.IconButton | None = None
+        self._chat_bottom_anchor = ft.Container(key="chat-bottom-anchor", height=1)
         self._history_context_menu_overlay: ft.Stack | None = None
         self._history_delete_sheet: ft.BottomSheet | None = None
+        self._scroll_to_latest_requested = False
+        self._last_viewport_width = self._page_width()
+        self._last_viewport_height = self._page_height()
 
         self.expand = True
         self.padding = 0
@@ -171,6 +176,13 @@ class ChatPage(ft.Container):
 
     def _page_width(self) -> float:
         return float(self._page.width or getattr(self._page, "window_width", None) or 1320)
+
+    def _page_height(self) -> float:
+        return float(self._page.height or getattr(self._page, "window_height", None) or 860)
+
+    def _is_mobile_web_view(self, width: float | None = None) -> bool:
+        resolved_width = self._page_width() if width is None else float(width)
+        return bool(getattr(self._page, "web", False)) and resolved_width < _MOBILE_BREAKPOINT
 
     def _current_conversation_has_messages(self) -> bool:
         conversation = self._history.current_conversation
@@ -290,6 +302,17 @@ class ChatPage(ft.Container):
     # Resize / layout
 
     def _on_resize(self, _: ft.PageResizeEvent) -> None:
+        width = self._page_width()
+        height = self._page_height()
+        width_delta = abs(width - self._last_viewport_width)
+
+        if self._is_mobile_web_view(width) and width_delta < _MOBILE_WEB_RESIZE_WIDTH_DELTA:
+            self._last_viewport_width = width
+            self._last_viewport_height = height
+            return
+
+        self._last_viewport_width = width
+        self._last_viewport_height = height
         self._update_mobile_state()
         self._refresh()
         self._safe_update(self)
@@ -521,7 +544,6 @@ class ChatPage(ft.Container):
 
         return ft.Container(
             width=cfg["drawer_width"],
-            height=self.height,
             bgcolor=theme.sidebar_bg,
             border_radius=ft.BorderRadius.only(top_right=18, bottom_right=18),
             shadow=ft.BoxShadow(
@@ -659,9 +681,10 @@ class ChatPage(ft.Container):
     def _refresh(self) -> None:
         theme = current_theme()
         self.width = float(self._page.width or 1320)
-        self.height = float(self._page.height or 860)
         self.bgcolor = theme.grad_bottom
         self.gradient = None
+        if self._current_conversation_has_messages():
+            self._request_scroll_to_latest()
         self.content = self._assemble()
         self._render_conversation()
 
@@ -903,10 +926,26 @@ class ChatPage(ft.Container):
         return ft.ListView(
             controls=[],
             expand=True,
-            auto_scroll=True,
+            auto_scroll=False,
+            build_controls_on_demand=False,
             spacing=12,
             padding=ft.Padding.only(top=8, bottom=8, left=4, right=4),
         )
+
+    async def _deferred_scroll_to_latest(self) -> None:
+        await asyncio.sleep(0.01)
+        if self._message_list is None or not self._control_is_attached(self._message_list):
+            return
+
+        try:
+            self._message_list.scroll_to(scroll_key="chat-bottom-anchor", duration=180)
+        except Exception:
+            return
+
+        self._safe_update(self._message_list)
+
+    def _request_scroll_to_latest(self) -> None:
+        self._scroll_to_latest_requested = True
 
     def _build_chip(self, text: str, cfg: dict[str, Any]) -> ft.Control:
         theme = current_theme()
@@ -1239,7 +1278,6 @@ class ChatPage(ft.Container):
             )
             self._mobile_drawer_container = ft.Container(
                 width=drawer_width,
-                height=self.height,
                 left=0 if self._custom_drawer_open else -drawer_width,
                 top=0,
                 bottom=0,
@@ -1400,6 +1438,7 @@ class ChatPage(ft.Container):
 
         self._pending_request_session_id = session_id
         self._typing_session_id = session_id
+        self._request_scroll_to_latest()
         self._clear_inline_error(session_id)
         self._render_conversation()
         self._set_send_enabled(False)
@@ -1422,6 +1461,7 @@ class ChatPage(ft.Container):
 
         self._clear_inline_error(session_id)
         self._typing_session_id = None
+        self._request_scroll_to_latest()
         message = self._append_message_to_conversation(session_id, "assistant", response)
         if message is None:
             self._unlock_input()
@@ -1438,6 +1478,7 @@ class ChatPage(ft.Container):
 
         self._typing_session_id = None
         self._inline_error = (session_id, error)
+        self._request_scroll_to_latest()
         if self._history.current_conversation is not None and self._history.current_conversation.id == session_id:
             self._render_conversation()
         self._unlock_input()
@@ -1508,6 +1549,7 @@ class ChatPage(ft.Container):
             if self._typing_session_id == conversation.id:
                 self._message_list.controls.append(typing_indicator())
 
+            self._message_list.controls.append(self._chat_bottom_anchor)
             self._chat_host.content = self._message_list
         else:
             cfg = get_layout_config(self._page)
@@ -1517,6 +1559,9 @@ class ChatPage(ft.Container):
         self._safe_update(self._chat_host)
         self._safe_update(self._message_list)
         self._safe_page_update()
+        if has_content and self._scroll_to_latest_requested:
+            self._scroll_to_latest_requested = False
+            self._page.run_task(self._deferred_scroll_to_latest)
         self._refresh_sidebar()
 
     def _toggle_sidebar(self, e=None) -> None:
@@ -1530,6 +1575,7 @@ class ChatPage(ft.Container):
         self._dismiss_history_context_menu()
         self._dismiss_history_delete_sheet()
         if self._history.switch_conversation(conversation_id):
+            self._request_scroll_to_latest()
             self._render_conversation()
 
     def _handle_new_chat(self, e=None) -> None:

@@ -15,6 +15,8 @@ _LOADING_STEPS: list[tuple[str, float]] = [
     ("Loading history...", 0.45),
     ("Almost ready...", 0.35),
 ]
+_MOBILE_WEB_MAX_WIDTH = 800
+_MOBILE_WEB_RESIZE_WIDTH_DELTA = 12.0
 
 
 class SplashPage(ft.Container):
@@ -32,6 +34,8 @@ class SplashPage(ft.Container):
         self._footer_ref = ft.Ref[ft.Container]()
         self._status_ref = ft.Ref[ft.Text]()
         self._bar_ref = ft.Ref[ft.Container]()
+        self._last_viewport_width = float(self._page.width or getattr(self._page, "window_width", None) or 1320)
+        self._last_viewport_height = float(self._page.height or getattr(self._page, "window_height", None) or 860)
 
         self.padding = 0
         self.margin = 0
@@ -54,15 +58,29 @@ class SplashPage(ft.Container):
         height = float(self._page.height or 860)
         return width, height
 
+    def _is_mobile_web_view(self, width: float | None = None) -> bool:
+        resolved_width = float(self._page.width or 1320) if width is None else float(width)
+        return bool(getattr(self._page, "web", False)) and resolved_width < _MOBILE_WEB_MAX_WIDTH
+
     def _on_resize(self, _: ft.ControlEvent) -> None:
         if self._loading:
             return
+
+        width, height = self._page_size()
+        width_delta = abs(width - self._last_viewport_width)
+
+        if self._is_mobile_web_view(width) and width_delta < _MOBILE_WEB_RESIZE_WIDTH_DELTA:
+            self._last_viewport_width = width
+            self._last_viewport_height = height
+            return
+
+        self._last_viewport_width = width
+        self._last_viewport_height = height
 
         self._refresh()
         self._safe_update(self)
 
     def _refresh(self) -> None:
-        self.width, self.height = self._page_size()
         self.content = self._build()
 
     def _build_brand_block(

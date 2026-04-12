@@ -66,6 +66,7 @@ class PathSettings:
     feedback_dir: Path
     knowledge_base_markdown_path: Path
     knowledge_base_json_path: Path
+    knowledge_base_chunks_path: Path
 
     def ensure_directories(self) -> None:
         for directory in (self.data_dir, self.users_dir, self.history_dir, self.feedback_dir):
@@ -101,6 +102,11 @@ class LLMSettings:
     health_timeout_seconds: float
     temperature: float
     top_p: float
+    max_completion_tokens: int
+    reasoning_effort: str
+    include_reasoning: bool
+    stream: bool
+    seed: int | None
     max_context_tokens: int
     message_window: int
     prompt_knowledge_chars: int
@@ -177,6 +183,10 @@ def load_settings() -> Settings:
             _read_str("NEMORAX_KB_JSON_PATH", default="data/school_info.json"),
             base=PROJECT_ROOT,
         ),
+        knowledge_base_chunks_path=_resolve_path(
+            _read_str("NEMORAX_KB_CHUNKS_PATH", default="kb/chunks.jsonl"),
+            base=PROJECT_ROOT,
+        ),
     )
 
     if provider == "groq":
@@ -204,14 +214,23 @@ def load_settings() -> Settings:
     )
     llm = LLMSettings(
         provider=provider,
-        model=llm_model,
+        model=llm_model or "openai/gpt-oss-20b",
         fallback_model=_read_str("LLM_FALLBACK_MODEL", "GROQ_FALLBACK_MODEL", default="") or None,
         base_url=llm_base_url,
         api_key=llm_api_key,
         request_timeout_seconds=_read_float("REQUEST_TIMEOUT_SECONDS", default=180.0),
         health_timeout_seconds=_read_float("HEALTH_TIMEOUT_SECONDS", default=4.0),
-        temperature=_read_float("LLM_TEMPERATURE", default=0.4),
-        top_p=_read_float("LLM_TOP_P", default=0.9),
+        temperature=_read_float("LLM_TEMPERATURE", default=0.25),
+        top_p=_read_float("LLM_TOP_P", default=1.0),
+        max_completion_tokens=_read_int("LLM_MAX_COMPLETION_TOKENS", default=900),
+        reasoning_effort=_read_str("LLM_REASONING_EFFORT", default="medium").lower() or "medium",
+        include_reasoning=_read_str("LLM_INCLUDE_REASONING", default="false").lower() in {"1", "true", "yes", "on"},
+        stream=_read_str("LLM_STREAM", default="true").lower() in {"1", "true", "yes", "on"},
+        seed=(
+            None
+            if _read_str("LLM_SEED", default="7").strip().lower() in {"", "none", "null"}
+            else _read_int("LLM_SEED", default=7)
+        ),
         max_context_tokens=_read_int("LLM_MAX_CONTEXT_TOKENS", default=16384),
         message_window=_read_int("LLM_MESSAGE_WINDOW", default=10),
         prompt_knowledge_chars=_read_int("LLM_PROMPT_KNOWLEDGE_CHARS", default=6000),

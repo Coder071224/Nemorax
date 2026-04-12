@@ -44,6 +44,7 @@ def build_services(config: Settings | None = None) -> ApplicationServices:
     feedback_service = FeedbackService(feedback_repository)
     prompt_service = KnowledgeBasePromptService(
         resolved_settings.paths.knowledge_base_markdown_path,
+        chunks_path=resolved_settings.paths.knowledge_base_chunks_path,
         max_knowledge_chars=resolved_settings.llm.prompt_knowledge_chars,
     )
     provider = build_provider(resolved_settings.llm)
