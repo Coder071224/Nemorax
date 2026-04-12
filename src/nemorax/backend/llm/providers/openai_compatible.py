@@ -69,6 +69,18 @@ def _extract_content(payload: Any) -> str:
     return ""
 
 
+def _parse_json_body(response: httpx.Response, provider_label: str) -> dict[str, Any]:
+    try:
+        body = response.json()
+    except ValueError as exc:
+        detail = response.text.strip() or f"HTTP {response.status_code} with an empty response body."
+        raise LLMResponseError(f"{provider_label} returned an invalid response: {detail}") from exc
+
+    if not isinstance(body, dict):
+        raise LLMResponseError(f"{provider_label} returned an invalid response payload.")
+    return body
+
+
 def _duration_seconds(raw: str | None) -> int | None:
     if not raw:
         return None
@@ -248,7 +260,7 @@ class OpenAICompatibleChatProvider(ChatProvider):
                 payload["seed"] = self._settings.seed
         response = await client.post("/chat/completions", headers=self._headers(), json=payload)
         response.raise_for_status()
-        body = response.json()
+        body = _parse_json_body(response, self.provider_label)
         content = _extract_content(body)
         if not content:
             raise LLMResponseError(f"{self.provider_label} returned an empty response.")
@@ -256,7 +268,7 @@ class OpenAICompatibleChatProvider(ChatProvider):
             provider=self.name,
             model=model,
             content=content,
-            raw=body if isinstance(body, dict) else {},
+            raw=body,
         )
 
     def _raise_http_error(self, response: httpx.Response) -> None:
