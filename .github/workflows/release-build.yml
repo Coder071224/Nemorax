@@ -37,9 +37,17 @@ jobs:
           Copy-Item $exe.FullName dist/Nemorax.exe -Force
 
       - name: Upload Windows release asset
+        if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
           files: dist/Nemorax.exe
+
+      - name: Upload Windows artifact
+        if: github.event_name != 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nemorax-windows
+          path: dist/Nemorax.exe
 
   build-android:
     runs-on: ubuntu-latest
@@ -75,6 +83,14 @@ jobs:
           find dist/android -name "*.apk" -print -exec cp {} dist/Nemorax.apk \;
 
       - name: Upload Android release asset
+        if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
           files: dist/Nemorax.apk
+
+      - name: Upload Android artifact
+        if: github.event_name != 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: Nemorax-android
+          path: dist/Nemorax.apk
