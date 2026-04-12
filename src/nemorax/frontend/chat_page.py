@@ -949,7 +949,10 @@ class ChatPage(ft.Container):
             return
 
         try:
-            self._message_list.scroll_to(scroll_key="chat-bottom-anchor", duration=180)
+            await self._message_list.scroll_to(
+                scroll_key="chat-bottom-anchor",
+                duration=180,
+            )
         except Exception:
             return
 
