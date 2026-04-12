@@ -681,6 +681,10 @@ class ChatPage(ft.Container):
     def _refresh(self) -> None:
         theme = current_theme()
         self.width = float(self._page.width or 1320)
+        if self._is_mobile_web_view():
+            self.height = None
+        else:
+            self.height = self._page_height()
         self.bgcolor = theme.grad_bottom
         self.gradient = None
         if self._current_conversation_has_messages():
