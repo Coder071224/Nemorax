@@ -110,10 +110,29 @@ def build_test_settings(root: Path) -> Settings:
     settings = Settings(api=api, llm=llm, paths=paths)
     settings.ensure_directories()
     paths.knowledge_base_markdown_path.write_text(
-        "Admissions Office: Main campus administration building.",
+        "Admissions Office: Main campus administration building.\n\nNEMSU is North Eastern Mindanao State University.",
         encoding="utf-8",
     )
-    paths.knowledge_base_json_path.write_text("{}", encoding="utf-8")
+    paths.knowledge_base_json_path.write_text(
+        json.dumps(
+            {
+                "institution": {
+                    "name": "North Eastern Mindanao State University",
+                    "abbreviation": "NEMSU",
+                    "formerly_known_as": [
+                        "Surigao del Sur State University (SDSSU)",
+                        "Surigao del Sur Polytechnic State College (SSPSC)",
+                        "Surigao del Sur Polytechnic College (SSPC)",
+                        "Bukidnon External Studies Center (BESC)",
+                    ],
+                },
+                "history": {
+                    "current_president": "Dr. Nemesio G. Loayon",
+                },
+            }
+        ),
+        encoding="utf-8",
+    )
     paths.knowledge_base_chunks_path.parent.mkdir(parents=True, exist_ok=True)
     paths.knowledge_base_chunks_path.write_text(
         "\n".join(
@@ -164,6 +183,39 @@ def build_test_settings(root: Path) -> Settings:
                         "next_chunk_id": None,
                         "parent_chunk_id": None,
                         "source_section_id": "section-campuses",
+                    }
+                ),
+                json.dumps(
+                    {
+                        "chunk_id": "chunk_history",
+                        "page_id": "page_history",
+                        "url": "https://www.nemsu.edu.ph/aboutus",
+                        "title": "History",
+                        "heading_path": ["History"],
+                        "page_type": "about",
+                        "topic": "History",
+                        "raw_text": (
+                            "North Eastern Mindanao State University (NEMSU) was formerly known as "
+                            "Surigao del Sur State University (SDSSU), Surigao del Sur Polytechnic State College "
+                            "(SSPSC), Surigao del Sur Polytechnic College (SSPC), and Bukidnon External Studies Center (BESC). "
+                            "The current president is Dr. Nemesio G. Loayon."
+                        ),
+                        "normalized_text": (
+                            "north eastern mindanao state university nemsu was formerly known as surigao del sur state university sdssu "
+                            "surigao del sur polytechnic state college sspsc surigao del sur polytechnic college sspc "
+                            "and bukidnon external studies center besc the current president is dr nemesio g loayon"
+                        ),
+                        "short_summary": "Historical names and current president.",
+                        "keywords": ["history", "former names", "president", "nemsu"],
+                        "entities": [],
+                        "publication_date": "2024-01-01",
+                        "updated_date": "2024-01-01",
+                        "freshness": "evergreen",
+                        "content_hash": "hash-history",
+                        "previous_chunk_id": None,
+                        "next_chunk_id": None,
+                        "parent_chunk_id": None,
+                        "source_section_id": "section-history",
                     }
                 ),
             ]
@@ -318,7 +370,7 @@ class BackendApiTests(unittest.TestCase):
         self.assertEqual(chat_response.json()["reply"], "Stub reply from the neutral provider layer.")
         self.assertTrue(self.provider.last_messages)
         self.assertEqual(self.provider.last_messages[0].role, "system")
-        self.assertIn("KNOWLEDGE BASE", self.provider.last_messages[0].content)
+        self.assertIn("RETRIEVED KNOWLEDGE CONTEXT", self.provider.last_messages[0].content)
 
         history_response = self.client.get("/api/history", params={"user_id": user_id})
         self.assertEqual(history_response.status_code, 200)
@@ -362,7 +414,7 @@ class BackendApiTests(unittest.TestCase):
 
         prompt = prompt_service.get_system_prompt()
 
-        self.assertIn("[Knowledge base truncated for request size safety.]", prompt)
+        self.assertIn("RETRIEVED KNOWLEDGE CONTEXT", prompt)
         self.assertLess(len(prompt), 4200)
 
     def test_prompt_service_uses_chunk_retrieval_for_query(self) -> None:
@@ -377,3 +429,18 @@ class BackendApiTests(unittest.TestCase):
         self.assertIn("registrarmain@nemsu.edu.ph", prompt)
         self.assertIn("Directory", prompt)
         self.assertIn("https://www.nemsu.edu.ph/directory", prompt)
+
+    def test_prompt_service_retrieves_president_and_former_names(self) -> None:
+        prompt_service = KnowledgeBasePromptService(
+            self.settings.paths.knowledge_base_markdown_path,
+            chunks_path=self.settings.paths.knowledge_base_chunks_path,
+            max_knowledge_chars=2200,
+        )
+
+        president_prompt = prompt_service.get_system_prompt_for_query("Who is the current president of NEMSU?")
+        history_prompt = prompt_service.get_system_prompt_for_query("What was NEMSU called before?")
+
+        self.assertIn("Dr. Nemesio G. Loayon", president_prompt)
+        self.assertIn("Surigao del Sur State University", history_prompt)
+        self.assertIn("Bukidnon External Studies Center", history_prompt)
+        self.assertIn("Source: kb/chunks.jsonl", history_prompt)

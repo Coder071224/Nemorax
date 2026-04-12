@@ -10,7 +10,6 @@ __pycache__/
 build/
 dist/
 website-dist/
-kb/raw/
 data/HISTORY/
 data/USERS/
 .pytest_cache/
