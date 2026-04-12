@@ -32,4 +32,12 @@ _configure_web_server_env()
 if __name__ == "__main__":
     from nemorax.frontend.main import main
 
-    ft.run(main, assets_dir="assets", view=ft.AppView.WEB_BROWSER)
+    host = os.environ.get("FLET_SERVER_IP", "0.0.0.0")
+    port = int(os.environ.get("FLET_SERVER_PORT", os.environ.get("PORT", "8550")))
+    ft.run(
+        main,
+        assets_dir="assets",
+        view=ft.AppView.WEB_BROWSER,
+        host=host,
+        port=port,
+    )
