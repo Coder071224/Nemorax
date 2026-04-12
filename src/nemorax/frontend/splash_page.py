@@ -1,12 +1,14 @@
-﻿from __future__ import annotations
+from __future__ import annotations
 
 import asyncio
 from collections.abc import Callable
+from typing import Any, cast
+from flet.controls.control_event import Event
 
 import flet as ft
 
 from nemorax.frontend import api_client
-from nemorax.frontend.config import APP_NAME, BRAND_NAME, current_theme, set_show_splash
+from nemorax.frontend.config import APP_NAME, BRAND_NAME, ThemePalette, current_theme, set_show_splash
 from nemorax.frontend.responsive import get_layout_config
 
 
@@ -15,7 +17,7 @@ _LOADING_STEPS: list[tuple[str, float]] = [
     ("Loading history...", 0.45),
     ("Almost ready...", 0.35),
 ]
-_MOBILE_WEB_MAX_WIDTH = 800
+_MOBILE_WEB_BREAKPOINT = 800.0
 _MOBILE_WEB_RESIZE_WIDTH_DELTA = 12.0
 
 
@@ -34,8 +36,7 @@ class SplashPage(ft.Container):
         self._footer_ref = ft.Ref[ft.Container]()
         self._status_ref = ft.Ref[ft.Text]()
         self._bar_ref = ft.Ref[ft.Container]()
-        self._last_viewport_width = float(self._page.width or getattr(self._page, "window_width", None) or 1320)
-        self._last_viewport_height = float(self._page.height or getattr(self._page, "window_height", None) or 860)
+        self._last_viewport_width, self._last_viewport_height = self._page_size()
 
         self.padding = 0
         self.margin = 0
@@ -43,7 +44,8 @@ class SplashPage(ft.Container):
         self._refresh()
         self._page.on_resize = self._on_resize
 
-    def _safe_update(self, control: ft.Control | None) -> None:
+    @staticmethod
+    def _safe_update(control: ft.Control | None) -> None:
         if control is None:
             return
 
@@ -58,21 +60,17 @@ class SplashPage(ft.Container):
         height = float(self._page.height or 860)
         return width, height
 
-    def _is_mobile_web_view(self, width: float | None = None) -> bool:
-        resolved_width = float(self._page.width or 1320) if width is None else float(width)
-        return bool(getattr(self._page, "web", False)) and resolved_width < _MOBILE_WEB_MAX_WIDTH
-
-    def _on_resize(self, _: ft.ControlEvent) -> None:
+    def _on_resize(self, _: ft.PageResizeEvent) -> None:
         if self._loading:
             return
 
         width, height = self._page_size()
         width_delta = abs(width - self._last_viewport_width)
-
-        if self._is_mobile_web_view(width) and width_delta < _MOBILE_WEB_RESIZE_WIDTH_DELTA:
+        if bool(getattr(self._page, "web", False)) and width < _MOBILE_WEB_BREAKPOINT:
             self._last_viewport_width = width
             self._last_viewport_height = height
-            return
+            if width_delta < _MOBILE_WEB_RESIZE_WIDTH_DELTA:
+                return
 
         self._last_viewport_width = width
         self._last_viewport_height = height
@@ -81,10 +79,11 @@ class SplashPage(ft.Container):
         self._safe_update(self)
 
     def _refresh(self) -> None:
+        self.width, self.height = self._page_size()
         self.content = self._build()
 
+    @staticmethod
     def _build_brand_block(
-        self,
         *,
         title_size: int | float,
         subtitle_size: int | float,
@@ -109,7 +108,8 @@ class SplashPage(ft.Container):
             spacing=6,
         )
 
-    def _build_logo_chip(self, compact: bool) -> ft.Container:
+    @staticmethod
+    def _build_logo_chip(compact: bool) -> ft.Container:
         theme = current_theme()
         size = 52 if compact else 72
         radius = 14 if compact else 20
@@ -327,8 +327,8 @@ class SplashPage(ft.Container):
 
     def _build_cta_footer(
         self,
-        theme,
-        cfg: dict,
+        theme: ThemePalette,
+        cfg: dict[str, object],
         checkbox_row: ft.Control,
     ) -> ft.Control:
         compact = cfg["compact"]
@@ -341,7 +341,7 @@ class SplashPage(ft.Container):
                 color=theme.sidebar_bg,
             ),
             on_click=self._handle_continue,
-            style=ft.ButtonStyle(
+            style=cast(Any, ft.ButtonStyle)(
                 bgcolor=theme.accent,
                 padding=ft.Padding.symmetric(
                     horizontal=14 if compact else 18,
@@ -358,7 +358,7 @@ class SplashPage(ft.Container):
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
         )
 
-    def _build_loading_footer(self, theme, cfg: dict) -> ft.Control:
+    def _build_loading_footer(self, theme: ThemePalette, cfg: dict[str, object]) -> ft.Control:
         compact = cfg["compact"]
         bar_height = 3 if compact else 4
 
@@ -426,7 +426,7 @@ class SplashPage(ft.Container):
             tight=True,
         )
 
-    def _handle_checkbox(self, event: ft.ControlEvent) -> None:
+    def _handle_checkbox(self, event: Event[ft.Checkbox]) -> None:
         self._dont_show = bool(event.control.value)
 
     def _swap_footer_to_loading(self) -> None:
@@ -439,7 +439,7 @@ class SplashPage(ft.Container):
         self._footer_ref.current.content = self._build_loading_footer(theme, cfg)
         self._safe_update(self._footer_ref.current)
 
-    def _handle_continue(self, e=None) -> None:
+    def _handle_continue(self, _: Event[ft.Button] | None = None) -> None:
         if self._loading:
             return
 
@@ -501,4 +501,3 @@ class SplashPage(ft.Container):
     def _bar_max_width(self) -> float:
         cfg = get_layout_config(self._page)
         return max(80.0, cfg["splash_card_width"] - (cfg["splash_padding_h"] * 2))
-

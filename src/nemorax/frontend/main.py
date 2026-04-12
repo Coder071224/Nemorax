@@ -13,7 +13,14 @@ from nemorax.frontend.responsive import is_desktop, is_web
 from nemorax.frontend.splash_page import SplashPage
 
 
+def _clear_page_overlays(page: ft.Page) -> None:
+    if not page.overlay:
+        return
+    page.overlay.clear()
+
+
 def _mount_fullscreen(page: ft.Page, control: ft.Control) -> None:
+    _clear_page_overlays(page)
     page.clean()
     control.expand = True
     page.add(control)
@@ -42,6 +49,8 @@ async def main(page: ft.Page) -> None:
     page.bgcolor = current_theme().grad_bottom
     page.theme_mode = ft.ThemeMode.DARK
     page.scroll = ft.ScrollMode.HIDDEN
+    page.horizontal_alignment = ft.CrossAxisAlignment.STRETCH
+    page.vertical_alignment = ft.MainAxisAlignment.START
 
     await _configure_desktop_window(page)
 

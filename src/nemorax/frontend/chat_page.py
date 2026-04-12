@@ -128,6 +128,13 @@ class ChatPage(ft.Container):
         except Exception:
             pass
 
+    def _replace_page_content(self, control: ft.Control) -> None:
+        self._page.overlay.clear()
+        self._page.clean()
+        control.expand = True
+        self._page.add(control)
+        self._safe_page_update()
+
     def _append_overlay_control(self, control: ft.Control) -> None:
         if control not in self._page.overlay:
             self._page.overlay.append(control)
@@ -1833,13 +1840,9 @@ class ChatPage(ft.Container):
         self._custom_drawer_open = False
 
         def open_chat_again() -> None:
-            self._page.clean()
-            self._page.add(ChatPage(self._page))
-            self._safe_page_update()
+            self._replace_page_content(ChatPage(self._page))
 
-        self._page.clean()
-        self._page.add(SplashPage(self._page, on_continue=open_chat_again))
-        self._safe_page_update()
+        self._replace_page_content(SplashPage(self._page, on_continue=open_chat_again))
 
     def _open_dialog(self, dialog: ft.AlertDialog) -> None:
         self._page.overlay.append(dialog)

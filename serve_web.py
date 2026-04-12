@@ -21,6 +21,8 @@ def _configure_web_server_env() -> None:
     port = os.getenv("PORT", "").strip()
     if port:
         os.environ["FLET_SERVER_PORT"] = port
+    else:
+        os.environ.setdefault("FLET_SERVER_PORT", "8550")
 
 
 _bootstrap_src_path()
