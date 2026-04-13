@@ -7,9 +7,9 @@
 - The public website can be bundled for static hosting.
 - GitHub Actions workflows are included for CI, website deploy, and release builds.
 
-## Important constraint
+## Persistence
 
-The backend currently uses file-backed storage under `data/`. On a free stateless host, that data is not durable across restarts or redeploys. For production persistence, move users/history/feedback to a database or use a host plan with persistent disk support.
+Persistent app data now lives in Supabase. Apply the SQL in `supabase/migrations/202604140001_app_persistence.sql` before deploying the backend, and use `python -m nemorax.backend.migrate_legacy_storage --root data` if you need to import legacy JSON data.
 
 ## 1. Push code to GitHub
 
@@ -32,6 +32,8 @@ Set these in the Render service:
 - `BACKEND_URL`
 - `CORS_ORIGINS`
 - `LLM_API_KEY`
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
 
 Review and keep:
 
@@ -40,6 +42,7 @@ Review and keep:
 - `LLM_FALLBACK_MODEL=llama-3.1-8b-instant`
 - `LLM_BASE_URL=https://api.groq.com/openai/v1`
 - `LLM_PROMPT_KNOWLEDGE_CHARS=6000`
+- `NEMORAX_KB_SOURCE=supabase` or `hybrid`
 
 ## 4. Test the live API
 

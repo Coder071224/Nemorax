@@ -7,13 +7,19 @@ from functools import lru_cache
 
 from nemorax.backend.core.settings import Settings, settings
 from nemorax.backend.llm import ChatProvider, build_provider
-from nemorax.backend.repositories import FeedbackRepository, HistoryRepository, UserRepository
+from nemorax.backend.repositories import (
+    FeedbackRepository,
+    HistoryRepository,
+    SupabasePersistenceClient,
+    UserRepository,
+)
 from nemorax.backend.services import (
     AuthService,
     ChatService,
     FeedbackService,
     HistoryService,
     KnowledgeBasePromptService,
+    SupabaseKnowledgeBaseClient,
 )
 
 
@@ -36,16 +42,20 @@ class ApplicationServices:
 
 def build_services(config: Settings | None = None) -> ApplicationServices:
     resolved_settings = config or settings
-    user_repository = UserRepository(resolved_settings.paths)
-    history_repository = HistoryRepository(resolved_settings.paths)
-    feedback_repository = FeedbackRepository(resolved_settings.paths)
+    persistence_client = SupabasePersistenceClient(resolved_settings.supabase)
+    user_repository = UserRepository(persistence_client)
+    history_repository = HistoryRepository(persistence_client)
+    feedback_repository = FeedbackRepository(persistence_client)
     auth_service = AuthService(user_repository)
     history_service = HistoryService(history_repository)
     feedback_service = FeedbackService(feedback_repository)
+    supabase_kb = SupabaseKnowledgeBaseClient(resolved_settings.supabase)
     prompt_service = KnowledgeBasePromptService(
         resolved_settings.paths.knowledge_base_markdown_path,
         chunks_path=resolved_settings.paths.knowledge_base_chunks_path,
         max_knowledge_chars=resolved_settings.llm.prompt_knowledge_chars,
+        kb_source=resolved_settings.supabase.kb_source,
+        supabase_client=supabase_kb,
     )
     provider = build_provider(resolved_settings.llm)
     chat_service = ChatService(

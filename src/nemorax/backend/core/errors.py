@@ -40,7 +40,7 @@ class ConfigurationError(ApplicationError):
 
 
 class PersistenceError(ApplicationError):
-    """Raised when file-backed storage cannot be read or written safely."""
+    """Raised when persistent storage cannot be read or written safely."""
 
     status_code = 500
 

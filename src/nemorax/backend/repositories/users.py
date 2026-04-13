@@ -1,13 +1,10 @@
-"""File-backed user repository."""
+"""Supabase-backed user repository."""
 
 from __future__ import annotations
 
-from pathlib import Path
-from threading import RLock
 from typing import Any
 
-from nemorax.backend.core.settings import PathSettings
-from nemorax.backend.repositories.json_store import JsonObject, read_json_object, write_json_atomic
+from nemorax.backend.repositories.supabase_client import SupabasePersistenceClient
 
 
 UserRecord = dict[str, Any]
@@ -56,35 +53,33 @@ def public_user(user: UserRecord) -> dict[str, Any]:
 
 
 class UserRepository:
-    def __init__(self, paths: PathSettings) -> None:
-        self._users_dir = paths.users_dir
-        self._lock = RLock()
+    def __init__(self, client: SupabasePersistenceClient) -> None:
+        self._client = client
 
-    def _user_path(self, user_id: str) -> Path:
-        return self._users_dir / f"{user_id}.json"
-
-    def _iter_user_files(self) -> list[Path]:
-        self._users_dir.mkdir(parents=True, exist_ok=True)
-        return sorted(self._users_dir.glob("*.json"))
+    @staticmethod
+    def _normalize_user(user: dict[str, Any]) -> UserRecord:
+        normalized = dict(user)
+        normalized["email"] = normalize_email(str(user.get("email", "")))
+        normalized["display_name"] = normalize_display_name(user.get("display_name"))
+        settings = user.get("settings", {})
+        normalized["settings"] = settings if isinstance(settings, dict) else {}
+        answers = user.get("recovery_answers", {})
+        normalized["recovery_answers"] = answers if isinstance(answers, dict) else {}
+        return normalized
 
     def get_by_id(self, user_id: str) -> UserRecord | None:
-        with self._lock:
-            return read_json_object(self._user_path(user_id))
+        user = self._client.select_one("app_users", filters={"user_id": user_id})
+        return None if user is None else self._normalize_user(user)
 
-    def find_by_email(self, email: str) -> tuple[UserRecord | None, Path | None]:
-        target = normalize_email(email)
-        with self._lock:
-            for path in self._iter_user_files():
-                user = read_json_object(path)
-                if user is None:
-                    continue
-                if normalize_email(str(user.get("email", ""))) == target:
-                    return user, path
-        return None, None
+    def find_by_email(self, email: str) -> tuple[UserRecord | None, None]:
+        user = self._client.select_one("app_users", filters={"email": normalize_email(email)})
+        return (None if user is None else self._normalize_user(user), None)
 
-    def save(self, user: JsonObject) -> None:
+    def save(self, user: UserRecord) -> None:
         user_id = str(user.get("user_id", "")).strip()
         if not user_id:
             raise ValueError("user_id is required to save a user record.")
-        with self._lock:
-            write_json_atomic(self._user_path(user_id), user)
+
+        payload = self._normalize_user(user)
+        payload["user_id"] = user_id
+        self._client.upsert("app_users", payload, on_conflict="user_id", returning="minimal")

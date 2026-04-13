@@ -121,9 +121,27 @@ class LLMSettings:
 
 
 @dataclass(frozen=True, slots=True)
+class SupabaseSettings:
+    url: str
+    anon_key: str | None
+    service_role_key: str | None
+    kb_source: str
+    timeout_seconds: float
+
+    @property
+    def configured(self) -> bool:
+        return bool(self.url and self.service_role_key)
+
+    @property
+    def enabled(self) -> bool:
+        return bool(self.configured and self.kb_source in {"supabase", "hybrid"})
+
+
+@dataclass(frozen=True, slots=True)
 class Settings:
     api: ApiSettings
     llm: LLMSettings
+    supabase: SupabaseSettings
     paths: PathSettings
 
     @property
@@ -235,8 +253,15 @@ def load_settings() -> Settings:
         message_window=_read_int("LLM_MESSAGE_WINDOW", default=10),
         prompt_knowledge_chars=_read_int("LLM_PROMPT_KNOWLEDGE_CHARS", default=6000),
     )
+    supabase = SupabaseSettings(
+        url=_read_str("SUPABASE_URL", default=""),
+        anon_key=_read_str("SUPABASE_ANON_KEY", default="") or None,
+        service_role_key=_read_str("SUPABASE_SERVICE_ROLE_KEY", default="") or None,
+        kb_source=_read_str("NEMORAX_KB_SOURCE", default="local").strip().lower() or "local",
+        timeout_seconds=_read_float("SUPABASE_TIMEOUT_SECONDS", default=10.0),
+    )
 
-    settings = Settings(api=api, llm=llm, paths=paths)
+    settings = Settings(api=api, llm=llm, supabase=supabase, paths=paths)
     settings.ensure_directories()
     return settings
 
@@ -250,6 +275,7 @@ __all__ = [
     "LLMSettings",
     "PathSettings",
     "Settings",
+    "SupabaseSettings",
     "load_settings",
     "settings",
 ]

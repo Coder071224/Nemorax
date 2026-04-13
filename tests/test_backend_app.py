@@ -4,8 +4,11 @@ import json
 import sys
 import tempfile
 import unittest
+from urllib.parse import parse_qsl
+import uuid
 from pathlib import Path
 
+import httpx
 from fastapi.testclient import TestClient
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -14,10 +17,15 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from nemorax.backend.api.app import create_app
-from nemorax.backend.core.settings import ApiSettings, LLMSettings, PathSettings, Settings
+from nemorax.backend.core.settings import ApiSettings, LLMSettings, PathSettings, Settings, SupabaseSettings
 from nemorax.backend.llm.base import ChatProvider
 from nemorax.backend.llm.models import ChatCompletionResult, LLMMessage, ProviderStatus
-from nemorax.backend.repositories import FeedbackRepository, HistoryRepository, UserRepository
+from nemorax.backend.repositories import (
+    FeedbackRepository,
+    HistoryRepository,
+    SupabasePersistenceClient,
+    UserRepository,
+)
 from nemorax.backend.runtime import ApplicationServices
 from nemorax.backend.services import rag as rag_service
 from nemorax.backend.services import (
@@ -26,6 +34,7 @@ from nemorax.backend.services import (
     FeedbackService,
     HistoryService,
     KnowledgeBasePromptService,
+    SupabaseKnowledgeBaseClient,
 )
 
 
@@ -65,6 +74,219 @@ class StubProvider(ChatProvider):
             base_url=self.base_url,
             available=True,
         )
+
+
+class StubSupabaseKnowledgeBaseClient(SupabaseKnowledgeBaseClient):
+    def __init__(self, snapshot: dict[str, object]) -> None:
+        super().__init__(
+            SupabaseSettings(
+                url="https://stub-supabase.local",
+                anon_key="anon",
+                service_role_key="service-role",
+                kb_source="supabase",
+                timeout_seconds=5.0,
+            )
+        )
+        self._snapshot = snapshot
+
+    def fetch_snapshot(self) -> dict[str, object]:
+        return dict(self._snapshot)
+
+
+class FakeSupabaseTransport(httpx.MockTransport):
+    def __init__(self) -> None:
+        self.tables: dict[str, list[dict[str, object]]] = {
+            "app_users": [],
+            "conversation_sessions": [],
+            "conversation_messages": [],
+            "feedback_records": [],
+        }
+        super().__init__(self._handler)
+
+    def _json_response(self, payload: object, status_code: int = 200) -> httpx.Response:
+        return httpx.Response(status_code=status_code, json=payload)
+
+    @staticmethod
+    def _request_params(request: httpx.Request) -> dict[str, str]:
+        return dict(parse_qsl(request.url.query.decode("utf-8"), keep_blank_values=True))
+
+    @staticmethod
+    def _parse_filter(raw: str) -> tuple[str, str]:
+        operator, _, operand = raw.partition(".")
+        return operator, operand
+
+    def _matches(self, row: dict[str, object], params: dict[str, str]) -> bool:
+        for column, raw in params.items():
+            if column in {"select", "order", "limit", "on_conflict"}:
+                continue
+            operator, operand = self._parse_filter(raw)
+            value = row.get(column)
+            if operator == "eq" and str(value) != operand:
+                return False
+            if operator == "gt" and not (float(value or 0) > float(operand)):
+                return False
+            if operator == "is":
+                if operand == "null" and value is not None:
+                    return False
+        return True
+
+    def _sort_rows(self, rows: list[dict[str, object]], order: str | None) -> list[dict[str, object]]:
+        if not order:
+            return rows
+        column, _, direction = order.partition(".")
+        reverse = direction == "desc"
+        return sorted(rows, key=lambda item: item.get(column) or "", reverse=reverse)
+
+    def _upsert_rows(self, table: str, incoming: list[dict[str, object]], *, on_conflict: str) -> list[dict[str, object]]:
+        stored = self.tables[table]
+        keys = [item.strip() for item in on_conflict.split(",") if item.strip()]
+        results: list[dict[str, object]] = []
+        for entry in incoming:
+            index = next(
+                (
+                    idx
+                    for idx, row in enumerate(stored)
+                    if all(str(row.get(key)) == str(entry.get(key)) for key in keys)
+                ),
+                None,
+            )
+            if index is None:
+                stored.append(dict(entry))
+                results.append(dict(entry))
+            else:
+                stored[index] = {**stored[index], **entry}
+                results.append(dict(stored[index]))
+        return results
+
+    def _handler(self, request: httpx.Request) -> httpx.Response:
+        path = request.url.path
+        params = self._request_params(request)
+        prefer = request.headers.get("Prefer", "")
+        if path.startswith("/rest/v1/rpc/append_conversation_messages"):
+            payload = json.loads(request.content.decode("utf-8"))
+            return self._json_response(self._append_conversation_messages(payload))
+
+        if not path.startswith("/rest/v1/"):
+            return self._json_response({"message": "not found"}, 404)
+
+        table = path.removeprefix("/rest/v1/")
+        if table not in self.tables:
+            return self._json_response({"message": "unknown table"}, 404)
+
+        if request.method == "GET":
+            rows = [dict(row) for row in self.tables[table] if self._matches(row, params)]
+            rows = self._sort_rows(rows, params.get("order"))
+            limit = params.get("limit")
+            if limit is not None:
+                rows = rows[: int(limit)]
+            return self._json_response(rows)
+
+        payload = json.loads(request.content.decode("utf-8")) if request.content else None
+        rows_payload = payload if isinstance(payload, list) else [payload]
+        rows_payload = [dict(item) for item in rows_payload if isinstance(item, dict)]
+
+        if request.method == "POST":
+            if "resolution=merge-duplicates" in prefer:
+                result = self._upsert_rows(table, rows_payload, on_conflict=params["on_conflict"])
+            else:
+                self.tables[table].extend(dict(item) for item in rows_payload)
+                result = rows_payload
+            return self._json_response([] if "return=minimal" in prefer else result)
+
+        if request.method == "PATCH":
+            updated: list[dict[str, object]] = []
+            for row in self.tables[table]:
+                if self._matches(row, params):
+                    row.update(rows_payload[0])
+                    updated.append(dict(row))
+            return self._json_response([] if "return=minimal" in prefer else updated)
+
+        if request.method == "DELETE":
+            kept: list[dict[str, object]] = []
+            deleted: list[dict[str, object]] = []
+            for row in self.tables[table]:
+                if self._matches(row, params):
+                    deleted.append(dict(row))
+                    if table == "conversation_sessions":
+                        session_id = str(row.get("session_id"))
+                        self.tables["conversation_messages"] = [
+                            message
+                            for message in self.tables["conversation_messages"]
+                            if str(message.get("session_id")) != session_id
+                        ]
+                    continue
+                kept.append(row)
+            self.tables[table] = kept
+            return self._json_response([] if "return=minimal" in prefer else deleted)
+
+        return self._json_response({"message": "unsupported"}, 405)
+
+    def _append_conversation_messages(self, payload: dict[str, object]) -> list[dict[str, object]]:
+        session_id = str(payload["p_session_id"])
+        user_id = str(payload["p_user_id"])
+        user_text = str(payload.get("p_user_text") or "").strip()
+        assistant_text = str(payload.get("p_assistant_text") or "").strip()
+        fallback_title = str(payload.get("p_fallback_title") or "New Chat").strip() or "New Chat"
+        message_timestamp = str(payload.get("p_message_timestamp") or "")
+
+        sessions = self.tables["conversation_sessions"]
+        session = next(
+            (
+                row
+                for row in sessions
+                if str(row.get("session_id")) == session_id and str(row.get("user_id")) == user_id
+            ),
+            None,
+        )
+        if session is None:
+            session = {
+                "session_id": session_id,
+                "user_id": user_id,
+                "title": fallback_title,
+                "message_count": 0,
+                "created_at": message_timestamp,
+                "updated_at": message_timestamp,
+            }
+            sessions.append(session)
+
+        messages = self.tables["conversation_messages"]
+        sequence = max(
+            [int(row.get("sequence") or 0) for row in messages if str(row.get("session_id")) == session_id],
+            default=0,
+        )
+        if user_text:
+            sequence += 1
+            messages.append(
+                {
+                    "message_id": str(uuid.uuid4()),
+                    "session_id": session_id,
+                    "user_id": user_id,
+                    "sequence": sequence,
+                    "role": "user",
+                    "content": user_text,
+                    "timestamp": message_timestamp,
+                }
+            )
+            if str(session.get("title") or "New Chat") == "New Chat":
+                session["title"] = f"{user_text.replace('\n', ' ')[:40]}..." if len(user_text.replace("\n", " ")) > 40 else user_text.replace("\n", " ")
+                if not str(session["title"]).strip():
+                    session["title"] = "New Chat"
+        if assistant_text:
+            sequence += 1
+            messages.append(
+                {
+                    "message_id": str(uuid.uuid4()),
+                    "session_id": session_id,
+                    "user_id": user_id,
+                    "sequence": sequence,
+                    "role": "assistant",
+                    "content": assistant_text,
+                    "timestamp": message_timestamp,
+                }
+            )
+        session["message_count"] = len([row for row in messages if str(row.get("session_id")) == session_id])
+        session["updated_at"] = message_timestamp
+        return []
 
 
 def build_test_settings(root: Path) -> Settings:
@@ -108,7 +330,14 @@ def build_test_settings(root: Path) -> Settings:
         message_window=10,
         prompt_knowledge_chars=6000,
     )
-    settings = Settings(api=api, llm=llm, paths=paths)
+    supabase = SupabaseSettings(
+        url="https://stub-supabase.local",
+        anon_key="anon",
+        service_role_key="service-role",
+        kb_source="local",
+        timeout_seconds=10.0,
+    )
+    settings = Settings(api=api, llm=llm, supabase=supabase, paths=paths)
     settings.ensure_directories()
     paths.knowledge_base_markdown_path.write_text(
         "Admissions Office: Main campus administration building.\n\nNEMSU is North Eastern Mindanao State University.",
@@ -243,10 +472,15 @@ def build_test_settings(root: Path) -> Settings:
     return settings
 
 
-def build_test_services(settings: Settings, provider: StubProvider) -> ApplicationServices:
-    user_repository = UserRepository(settings.paths)
-    history_repository = HistoryRepository(settings.paths)
-    feedback_repository = FeedbackRepository(settings.paths)
+def build_test_services(
+    settings: Settings,
+    provider: StubProvider,
+    transport: FakeSupabaseTransport,
+) -> ApplicationServices:
+    persistence_client = SupabasePersistenceClient(settings.supabase, transport=transport)
+    user_repository = UserRepository(persistence_client)
+    history_repository = HistoryRepository(persistence_client)
+    feedback_repository = FeedbackRepository(persistence_client)
     auth_service = AuthService(user_repository)
     history_service = HistoryService(history_repository)
     feedback_service = FeedbackService(feedback_repository)
@@ -279,8 +513,9 @@ class BackendApiTests(unittest.TestCase):
         self._tempdir = tempfile.TemporaryDirectory()
         self.root = Path(self._tempdir.name)
         self.provider = StubProvider()
+        self.transport = FakeSupabaseTransport()
         self.settings = build_test_settings(self.root)
-        self.services = build_test_services(self.settings, self.provider)
+        self.services = build_test_services(self.settings, self.provider, self.transport)
         self.client = TestClient(create_app(services=self.services))
 
     def tearDown(self) -> None:
@@ -602,6 +837,57 @@ class BackendApiTests(unittest.TestCase):
         self.assertIn("Bachelor of Science in Information Technology", program_prompt)
         self.assertIn("BS Mechanical Engineering", bislig_prompt)
         self.assertIn("Bislig Campus", bislig_prompt)
+
+    def test_prompt_service_can_load_supabase_kb(self) -> None:
+        supabase_client = StubSupabaseKnowledgeBaseClient(
+            {
+                "entities": [
+                    {
+                        "id": 1,
+                        "entity_type": "college",
+                        "canonical_name": "College of Business and Management",
+                        "campus": None,
+                        "title": "CBM",
+                        "content": "The dean of the College of Business and Management is Prof. Sample Dean.",
+                        "metadata": {"scope": "college"},
+                        "updated_at": "2026-04-13T00:00:00+00:00",
+                    }
+                ],
+                "aliases": [
+                    {
+                        "id": 1,
+                        "entity_id": 1,
+                        "alias": "CBM",
+                        "normalized_alias": "cbm",
+                    }
+                ],
+                "faqs": [
+                    {
+                        "id": 1,
+                        "question": "What is NEMSU?",
+                        "answer": "NEMSU stands for Northeastern Mindanao State University.",
+                        "category": "Identity",
+                        "campus": None,
+                        "metadata": {},
+                        "updated_at": "2026-04-13T00:00:00+00:00",
+                    }
+                ],
+                "fingerprint": "stub-snapshot-1",
+            }
+        )
+        prompt_service = KnowledgeBasePromptService(
+            self.settings.paths.knowledge_base_markdown_path,
+            chunks_path=None,
+            max_knowledge_chars=2200,
+            kb_source="supabase",
+            supabase_client=supabase_client,
+        )
+
+        prompt = prompt_service.get_system_prompt_for_query("who is the dean of cbm")
+
+        self.assertIn("Prof. Sample Dean", prompt)
+        self.assertIn("College of Business and Management", prompt)
+        self.assertIn("supabase:kb_entities", prompt)
 
     def test_rag_health_is_passive(self) -> None:
         original_read_state = rag_service._read_state
