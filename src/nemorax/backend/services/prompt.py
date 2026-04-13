@@ -649,6 +649,22 @@ class KnowledgeBasePromptService:
         )
         return any(marker in lowered for marker in markers)
 
+    def _query_prefers_programs(self, query: str) -> bool:
+        lowered = query.lower()
+        markers = (
+            "course",
+            "courses",
+            "program",
+            "programs",
+            "offered",
+            "available",
+            "degree",
+            "degrees",
+            "college offers",
+            "campus offers",
+        )
+        return any(marker in lowered for marker in markers)
+
     def _expand_query_tokens(self, query: str, alias_map: dict[str, set[str]]) -> tuple[set[str], set[str]]:
         lowered_query = query.lower()
         query_tokens = self._normalize_tokens(query)
@@ -746,6 +762,27 @@ class KnowledgeBasePromptService:
                 score += 2.0
             if str(metadata.get("section") or "").lower() == "institution":
                 score += 4.0
+        elif self._query_prefers_programs(query):
+            if any(
+                token in body
+                for token in (
+                    "what programs does",
+                    "programs:",
+                    "offers graduate and undergraduate programs",
+                    "main_campus_programs",
+                    "campuses > programs",
+                    "college_of_",
+                    "bachelor of science",
+                    "bachelor of",
+                    "master of",
+                    "doctor of",
+                )
+            ):
+                score += 5.0
+            if str(metadata.get("section") or "").lower() in {"main campus programs", "campuses"}:
+                score += 3.0
+            if "program" in str(metadata.get("title") or "").lower() or "program" in str(metadata.get("section") or "").lower():
+                score += 2.5
         elif self._query_prefers_time_sensitive(query):
             if any(token in body for token in ("current", "present", "as of", "today")):
                 score += 2.0

@@ -129,6 +129,23 @@ def build_test_settings(root: Path) -> Settings:
                 "history": {
                     "current_president": "Dr. Nemesio G. Loayon",
                 },
+                "main_campus_programs": {
+                    "college_of_information_technology_education": {
+                        "programs": [
+                            {"program": "Bachelor of Science in Computer Science"},
+                            {"program": "Bachelor of Science in Information Technology"},
+                        ]
+                    }
+                },
+                "faq": [
+                    {
+                        "question": "What programs does Bislig Campus offer?",
+                        "answer": (
+                            "Bislig Campus offers BS Mechanical Engineering, "
+                            "BS Forestry, and BS Civil Engineering."
+                        ),
+                    }
+                ],
             }
         ),
         encoding="utf-8",
@@ -508,3 +525,18 @@ class BackendApiTests(unittest.TestCase):
         self.assertIn("Surigao del Sur State University", history_prompt)
         self.assertIn("Bukidnon External Studies Center", history_prompt)
         self.assertIn("Source: kb/chunks.jsonl", history_prompt)
+
+    def test_prompt_service_retrieves_program_information_for_course_queries(self) -> None:
+        prompt_service = KnowledgeBasePromptService(
+            self.settings.paths.knowledge_base_markdown_path,
+            chunks_path=self.settings.paths.knowledge_base_chunks_path,
+            max_knowledge_chars=2200,
+        )
+
+        program_prompt = prompt_service.get_system_prompt_for_query("What courses are available?")
+        bislig_prompt = prompt_service.get_system_prompt_for_query("What programs does Bislig Campus offer?")
+
+        self.assertIn("Bachelor of Science in Computer Science", program_prompt)
+        self.assertIn("Bachelor of Science in Information Technology", program_prompt)
+        self.assertIn("BS Mechanical Engineering", bislig_prompt)
+        self.assertIn("Bislig Campus", bislig_prompt)

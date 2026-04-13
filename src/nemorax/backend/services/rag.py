@@ -607,6 +607,50 @@ def retrieve(query: str, conversation_history: list[dict[str, str]] | None = Non
             token in body for token in ("north eastern mindanao state university", "abbreviation", "institution > name")
         ):
             rerank_score += 0.3
+        if any(token in normalized_query for token in ("course", "courses", "program", "programs", "offered", "available")):
+            if any(
+                token in body
+                for token in (
+                    "what programs does",
+                    "offers graduate and undergraduate programs",
+                    "programs >",
+                    "main_campus_programs",
+                    "bachelor of science",
+                    "bachelor of",
+                    "master of",
+                    "doctor of",
+                    "bsit",
+                    "bs computer science",
+                    "bs mechanical engineering",
+                )
+            ):
+                rerank_score += 0.7
+            if section in {"main campus programs", "campuses", "faq"}:
+                rerank_score += 0.3
+            if source_suffix == ".md" and section == "school_info":
+                if not any(
+                    token in body
+                    for token in (
+                        "what programs does",
+                        "programs #####",
+                        "college of information technology education",
+                        "bachelor of",
+                        "bs ",
+                        "bsit",
+                        "bscs",
+                    )
+                ):
+                    rerank_score -= 0.45
+                if any(
+                    token in body
+                    for token in (
+                        "what is nemsu's mandate",
+                        "what are nemsu's core values",
+                        "what is nemsu's vision and mission",
+                        "top notcher achievements",
+                    )
+                ):
+                    rerank_score -= 0.35
         if "established" in query_tokens and any(token in body for token in ("1982", "1992", "established", "traces its roots")):
             rerank_score += 0.25
         if any(token in normalized_query for token in ("year", "date", "when")) and any(
@@ -629,7 +673,23 @@ def retrieve(query: str, conversation_history: list[dict[str, str]] | None = Non
         logger.debug("[RAG] Match: score=%.3f source=%s section=%s", rerank_score, match["source"], match["section"])
 
     matches.sort(key=lambda item: item["score"], reverse=True)
-    matches = matches[:top_k]
+    if any(token in normalized_query for token in ("course", "courses", "program", "programs", "offered", "available")):
+        diversified: list[dict[str, Any]] = []
+        school_info_md_taken = False
+        for match in matches:
+            if (
+                str(match.get("source", "")).endswith("school_info.md")
+                and str(match.get("section", "")).strip().lower() == "school_info"
+            ):
+                if school_info_md_taken:
+                    continue
+                school_info_md_taken = True
+            diversified.append(match)
+            if len(diversified) >= top_k:
+                break
+        matches = diversified
+    else:
+        matches = matches[:top_k]
     logger.info("[RAG] Retrieved %d chunks | top score: %.3f", len(matches), matches[0]["score"] if matches else 0.0)
     return matches
 
