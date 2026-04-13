@@ -165,7 +165,7 @@ class GroqRateLimitTests(unittest.TestCase):
         self.assertEqual(captured_payload["max_completion_tokens"], 900)
         self.assertEqual(captured_payload["reasoning_effort"], "medium")
         self.assertFalse(captured_payload["include_reasoning"])
-        self.assertTrue(captured_payload["stream"])
+        self.assertFalse(captured_payload["stream"])
         self.assertEqual(captured_payload["seed"], 7)
 
 

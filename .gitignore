@@ -15,6 +15,7 @@ dist/
 website-dist/
 data/HISTORY/
 data/USERS/
+kb/raw/
 .pytest_cache/
 .mypy_cache/
 *.egg-info/

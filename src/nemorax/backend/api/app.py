@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 from contextlib import asynccontextmanager
 from time import perf_counter
 import uuid
@@ -34,9 +35,18 @@ def create_app(*, services: ApplicationServices | None = None) -> FastAPI:
             resolved_services.llm_provider.name,
             resolved_services.llm_provider.model,
         )
+        rag_task: asyncio.Task[None] | None = None
         if resolved_services.settings.environment != "test":
-            build_index()
+            async def warm_rag_index() -> None:
+                try:
+                    await asyncio.to_thread(build_index)
+                except Exception as exc:
+                    logger.exception("Background RAG index build failed", exc_info=exc)
+
+            rag_task = asyncio.create_task(warm_rag_index())
         yield
+        if rag_task is not None and not rag_task.done():
+            rag_task.cancel()
         logger.info("Stopping Nemorax backend")
 
     app = FastAPI(
