@@ -4,9 +4,6 @@ import os
 import sys
 from pathlib import Path
 
-import flet as ft
-
-
 def _bootstrap_src_path() -> None:
     project_root = Path(__file__).resolve().parent
     src_dir = project_root / "src"
@@ -27,6 +24,8 @@ def _configure_web_server_env() -> None:
 
 _bootstrap_src_path()
 _configure_web_server_env()
+
+import flet as ft
 
 
 if __name__ == "__main__":
