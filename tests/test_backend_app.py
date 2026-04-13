@@ -19,6 +19,7 @@ from nemorax.backend.llm.base import ChatProvider
 from nemorax.backend.llm.models import ChatCompletionResult, LLMMessage, ProviderStatus
 from nemorax.backend.repositories import FeedbackRepository, HistoryRepository, UserRepository
 from nemorax.backend.runtime import ApplicationServices
+from nemorax.backend.services import rag as rag_service
 from nemorax.backend.services import (
     AuthService,
     ChatService,
@@ -472,6 +473,55 @@ class BackendApiTests(unittest.TestCase):
         self.assertEqual(response.json()["reply"], "Stub reply from the neutral provider layer.")
         self.assertTrue(self.provider.last_messages)
 
+    def test_topic_filter_allows_typoed_alias_queries(self) -> None:
+        response = self.client.post(
+            "/api/chat",
+            json={
+                "session_id": "session-abbrev-typo",
+                "messages": [{"role": "user", "content": "who is the dean of citr"}],
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["reply"], "Stub reply from the neutral provider layer.")
+        self.assertTrue(self.provider.last_messages)
+
+    def test_topic_filter_allows_identity_queries(self) -> None:
+        response = self.client.post(
+            "/api/chat",
+            json={
+                "session_id": "session-identity",
+                "messages": [{"role": "user", "content": "what is nemsu"}],
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["reply"], "Stub reply from the neutral provider layer.")
+        self.assertTrue(self.provider.last_messages)
+
+    def test_greeting_returns_natural_scoped_reply(self) -> None:
+        response = self.client.post(
+            "/api/chat",
+            json={
+                "session_id": "session-greeting",
+                "messages": [{"role": "user", "content": "hi"}],
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("NEMSU questions", response.json()["reply"])
+        self.assertFalse(self.provider.last_messages)
+
+    def test_in_scope_query_with_weak_retrieval_asks_for_narrowing(self) -> None:
+        response = self.client.post(
+            "/api/chat",
+            json={
+                "session_id": "session-weak-retrieval",
+                "messages": [{"role": "user", "content": "who is the dean of cbm"}],
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("not fully sure yet", response.json()["reply"])
+        self.assertIn("college of business and management", response.json()["reply"].lower())
+        self.assertFalse(self.provider.last_messages)
+
     def test_topic_filter_rejects_off_topic_queries(self) -> None:
         response = self.client.post(
             "/api/chat",
@@ -481,7 +531,19 @@ class BackendApiTests(unittest.TestCase):
             },
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIn("I can only assist with inquiries about NEMSU", response.json()["reply"])
+        self.assertIn("NEMSU-related questions", response.json()["reply"])
+        self.assertFalse(self.provider.last_messages)
+
+    def test_topic_filter_rejects_world_knowledge_with_school_keyword_overlap(self) -> None:
+        response = self.client.post(
+            "/api/chat",
+            json={
+                "session_id": "session-world-topic",
+                "messages": [{"role": "user", "content": "who is the president of the philippines"}],
+            },
+        )
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("NEMSU-related questions", response.json()["reply"])
         self.assertFalse(self.provider.last_messages)
 
     def test_prompt_service_truncates_large_knowledge_base(self) -> None:
@@ -495,7 +557,7 @@ class BackendApiTests(unittest.TestCase):
 
         prompt = prompt_service.get_system_prompt()
 
-        self.assertIn("Answer only school-related questions about NEMSU", prompt)
+        self.assertIn("scoped campus assistant", prompt)
         self.assertLess(len(prompt), 4200)
 
     def test_prompt_service_uses_chunk_retrieval_for_query(self) -> None:
@@ -540,3 +602,36 @@ class BackendApiTests(unittest.TestCase):
         self.assertIn("Bachelor of Science in Information Technology", program_prompt)
         self.assertIn("BS Mechanical Engineering", bislig_prompt)
         self.assertIn("Bislig Campus", bislig_prompt)
+
+    def test_rag_health_is_passive(self) -> None:
+        original_read_state = rag_service._read_state
+        original_load_collection = rag_service._load_collection
+        original_kb_dirs = rag_service._KB_DIRS
+        original_chroma_path = rag_service._CHROMA_PATH
+        original_last_error = rag_service._last_error
+        original_rag_disabled = rag_service._rag_disabled
+
+        try:
+            rag_service._read_state = lambda: {"chunk_count": 7}
+
+            def fail_load_collection(*args, **kwargs):
+                raise AssertionError("health should not initialize Chroma")
+
+            rag_service._load_collection = fail_load_collection
+            rag_service._KB_DIRS = (self.root / "kb", self.root / "data")
+            rag_service._CHROMA_PATH = self.root / ".missing_chroma"
+            rag_service._last_error = ""
+            rag_service._rag_disabled = False
+
+            status = rag_service.health()
+
+            self.assertTrue(status["available"])
+            self.assertEqual(status["chunk_count"], 7)
+            self.assertEqual(status["source_path"], str(self.root / ".missing_chroma"))
+        finally:
+            rag_service._read_state = original_read_state
+            rag_service._load_collection = original_load_collection
+            rag_service._KB_DIRS = original_kb_dirs
+            rag_service._CHROMA_PATH = original_chroma_path
+            rag_service._last_error = original_last_error
+            rag_service._rag_disabled = original_rag_disabled

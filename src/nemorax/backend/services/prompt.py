@@ -115,9 +115,9 @@ class KnowledgeBasePromptService:
         return (
             "You are Nemis, the assistant inside the Nemorax app for "
             "North Eastern Mindanao State University (NEMSU). "
-            "Answer only school-related questions about NEMSU. "
+            "You are a scoped campus assistant: warm, natural, and helpful, but limited to NEMSU-related information. "
             "Use plain text and do not use the asterisk character in normal replies. "
-            f"If asked anything outside school information, reply exactly: {_OUT_OF_SCOPE_MESSAGE}"
+            "If a request is outside NEMSU scope, politely redirect the user toward NEMSU topics instead of sounding robotic."
         )
 
     def _normalize_tokens(self, text: str) -> set[str]:
@@ -813,48 +813,56 @@ class KnowledgeBasePromptService:
             body = body[:max_chars].rstrip() + "..."
         return "[" + " | ".join(parts) + "]\n" + body
 
-    def _select_relevant_chunks_excerpt(self, query: str | None) -> str:
+    def _rank_lexical_chunks(self, query: str | None) -> list[dict[str, Any]]:
         _, chunks, alias_map = self._load_documents_and_chunks()
         if not chunks:
             logger.warning("Knowledge retrieval fallback triggered: no chunks available.")
             self._last_retrieval_summary = "fallback:no_chunks"
-            return ""
+            return []
 
         query_text = (query or "").strip()
         if not query_text:
-            selected = chunks[: min(3, len(chunks))]
-            self._last_retrieval_summary = "fallback:no_query"
-        else:
-            query_tokens, alias_tokens = self._expand_query_tokens(query_text, alias_map)
-            query_phrases = self._query_phrases(query_text)
-            ranked: list[tuple[float, int, dict[str, Any]]] = []
-            for index, chunk in enumerate(chunks):
-                score = self._score_chunk(
-                    chunk,
-                    query=query_text,
-                    query_tokens=query_tokens,
-                    query_phrases=query_phrases,
-                    alias_tokens=alias_tokens,
-                )
-                if score > 0:
-                    ranked.append((score, index, chunk))
+            return chunks[: min(3, len(chunks))]
 
-            if not ranked:
-                logger.warning("Knowledge retrieval fallback triggered: query=%r had no positive matches.", query_text)
-                self._last_retrieval_summary = "fallback:no_positive_matches"
-                return ""
-
-            ranked.sort(key=lambda item: (item[0], -item[1]), reverse=True)
-            selected = [chunk for _, _, chunk in ranked[:_MAX_RETRIEVED_CHUNKS]]
-            logger.info(
-                "Top knowledge matches for query=%r -> %s",
-                query_text,
-                ", ".join(
-                    f"{item[2].get('source')} ({item[0]:.2f})"
-                    for item in ranked[:_MAX_RETRIEVED_CHUNKS]
-                ),
+        query_tokens, alias_tokens = self._expand_query_tokens(query_text, alias_map)
+        query_phrases = self._query_phrases(query_text)
+        ranked: list[tuple[float, int, dict[str, Any]]] = []
+        for index, chunk in enumerate(chunks):
+            score = self._score_chunk(
+                chunk,
+                query=query_text,
+                query_tokens=query_tokens,
+                query_phrases=query_phrases,
+                alias_tokens=alias_tokens,
             )
-            self._last_retrieval_summary = "ranked"
+            if score <= 0:
+                continue
+            chunk_with_score = {
+                **chunk,
+                "_retrieval_score": round(score, 4),
+            }
+            ranked.append((score, index, chunk_with_score))
+
+        if not ranked:
+            logger.warning("Knowledge retrieval fallback triggered: query=%r had no positive matches.", query_text)
+            self._last_retrieval_summary = "fallback:no_positive_matches"
+            return []
+
+        ranked.sort(key=lambda item: (item[0], -item[1]), reverse=True)
+        logger.info(
+            "Top knowledge matches for query=%r -> %s",
+            query_text,
+            ", ".join(
+                f"{item[2].get('source')} ({item[0]:.2f})"
+                for item in ranked[:_MAX_RETRIEVED_CHUNKS]
+            ),
+        )
+        self._last_retrieval_summary = "ranked"
+        return [chunk for _, _, chunk in ranked[:_MAX_RETRIEVED_CHUNKS]]
+
+    def _format_selected_chunks(self, selected: list[dict[str, Any]]) -> str:
+        if not selected:
+            return ""
 
         budget = max(1200, self._max_knowledge_chars - 96)
         per_chunk_budget = max(500, min(1500, budget // max(1, len(selected))))
@@ -876,6 +884,16 @@ class KnowledgeBasePromptService:
 
         return "\n\n".join(blocks).strip()
 
+    def _select_relevant_chunks_excerpt(self, query: str | None) -> str:
+        selected = self._rank_lexical_chunks(query)
+        if not selected:
+            return ""
+
+        query_text = (query or "").strip()
+        if not query_text:
+            self._last_retrieval_summary = "fallback:no_query"
+        return self._format_selected_chunks(selected)
+
     def _select_relevant_excerpt(self, knowledge_base: str, query: str | None) -> str:
         chunk_excerpt = self._select_relevant_chunks_excerpt(query)
         if chunk_excerpt:
@@ -892,8 +910,14 @@ class KnowledgeBasePromptService:
         logger.info("Knowledge retrieval fallback triggered: using markdown excerpt.")
         return excerpt + "\n\n[Knowledge base truncated for request size safety.]"
 
-    def _build_prompt(self, knowledge_base: str, query: str | None = None) -> str:
-        trimmed_knowledge_base = self._select_relevant_excerpt(knowledge_base, query)
+    def _build_prompt(
+        self,
+        knowledge_base: str,
+        query: str | None = None,
+        *,
+        retrieved_context: str | None = None,
+    ) -> str:
+        trimmed_knowledge_base = retrieved_context or self._select_relevant_excerpt(knowledge_base, query)
 
         return (
             "You are Nemis, the assistant inside the Nemorax app.\n\n"
@@ -917,9 +941,10 @@ class KnowledgeBasePromptService:
             "- Be professional, smooth, and human.\n\n"
             "Scope:\n"
             "- Answer only questions about NEMSU school information and official institutional details.\n"
+            "- You may still handle greetings, brief clarifications, and natural follow-up conversation tied to your NEMSU help role.\n"
             "- Allowed topics include procedures, admissions, enrollment, offices, contacts, schedules, campuses, facilities, services, directory information, programs, university history, leadership, historical names, aliases, and related institutional information.\n"
             "- Do not answer academic tutoring requests such as solving problems, explaining lessons, doing homework, writing essays, generating code for assignments, or teaching subject matter.\n"
-            f"- If the user asks for something outside NEMSU school information, reply exactly: {_OUT_OF_SCOPE_MESSAGE}\n\n"
+            "- If the user asks for something clearly outside NEMSU scope, respond politely and redirect them to NEMSU-related help such as programs, campuses, offices, admissions, or history.\n\n"
             "Source priority:\n"
             "- Use the retrieved knowledge context below first.\n"
             "- Treat the retrieved context as authoritative before any model background knowledge.\n"
@@ -928,45 +953,78 @@ class KnowledgeBasePromptService:
             "- Do not override provided local KB data with general model knowledge.\n\n"
             "Answering rules:\n"
             "1. Base the answer on the provided retrieved context first.\n"
-            "2. If the requested information is not stated in the retrieved context, say that it is not available in the current knowledge base.\n"
+            "2. If the requested information is not clearly stated in the retrieved context, say you cannot verify it from the current NEMSU data yet.\n"
             "3. If partial information exists, answer only that part and state the limitation clearly.\n"
-            "4. Do not invent, guess, or present uncertain information as confirmed fact.\n"
-            "5. If a user asks for academic help or anything outside school information, reply exactly with the out-of-scope response above.\n\n"
+            "4. If the user is probably asking about NEMSU but the data is weak, ask one short clarifying question instead of refusing.\n"
+            "5. Do not invent, guess, or present uncertain information as confirmed fact.\n"
+            "6. If a user asks for academic help or something clearly outside school information, politely redirect them back to NEMSU-related help.\n\n"
             "RETRIEVED KNOWLEDGE CONTEXT:\n"
             f"{trimmed_knowledge_base}\n"
         )
 
-    def _build_semantic_prompt(
-        self,
-        *,
-        query: str | None,
-        conversation_history: list[dict[str, str]] | None = None,
-    ) -> str:
+    def _semantic_retrieval_allowed(self) -> bool:
         service_root = Path(__file__).resolve().parents[4]
         try:
             self._markdown_path.resolve().relative_to(service_root.resolve())
         except ValueError:
-            return ""
-        context = format_context(retrieve(query or "", conversation_history=conversation_history or []))
-        if context:
-            return (
-                "You are Nemis, the official AI assistant of NEMSU "
-                "(Northeastern Mindanao State University). You answer questions about NEMSU "
-                "clearly and accurately based on the knowledge provided below.\n\n"
-                "IMPORTANT RULES:\n"
-                "- Answer ONLY from the provided knowledge context when it contains the answer.\n"
-                "- If the answer is clearly in the context, state it directly and confidently.\n"
-                "- If the context does not contain enough information, say:\n"
-                "\"I don't have that specific information in my knowledge base right now.\n"
-                " Please contact the NEMSU office directly for accurate details.\"\n"
-                "- Never make up names, dates, or facts not present in the context.\n"
-                "- Keep answers concise and helpful.\n"
-                "- You may use conversation history to resolve follow-up questions.\n"
-                "- Do not use markdown emphasis or asterisks in normal replies.\n\n"
-                "RETRIEVED KNOWLEDGE CONTEXT:\n"
-                f"{context}"
+            return False
+        return True
+
+    def _semantic_retrieval_preview(
+        self,
+        *,
+        query: str | None,
+        conversation_history: list[dict[str, str]] | None = None,
+    ) -> dict[str, Any]:
+        if not self._semantic_retrieval_allowed():
+            return {"strategy": "semantic", "chunks": [], "context": "", "max_score": 0.0}
+
+        chunks = retrieve(query or "", conversation_history=conversation_history or [])
+        return {
+            "strategy": "semantic",
+            "chunks": chunks,
+            "context": format_context(chunks),
+            "max_score": max((float(chunk.get("score", 0.0)) for chunk in chunks), default=0.0),
+        }
+
+    def _build_semantic_prompt_from_context(self, context: str) -> str:
+        return (
+            "You are Nemis, the official AI assistant of NEMSU "
+            "(Northeastern Mindanao State University). You answer questions about NEMSU "
+            "clearly and accurately based on the knowledge provided below.\n\n"
+            "IMPORTANT RULES:\n"
+            "- Answer from the provided knowledge context first whenever it contains the answer.\n"
+            "- If the answer is clearly in the context, state it directly and confidently.\n"
+            "- If the context is only partial, answer the verified part and briefly say what remains unclear.\n"
+            "- If the context does not contain enough information, say naturally that you cannot verify it yet from the current NEMSU data and, when helpful, ask one short clarifying question.\n"
+            "- Never make up names, dates, or facts not present in the context.\n"
+            "- Keep answers concise, helpful, and conversational.\n"
+            "- You may use conversation history to resolve follow-up questions.\n"
+            "- Do not use markdown emphasis or asterisks in normal replies.\n\n"
+            "RETRIEVED KNOWLEDGE CONTEXT:\n"
+            f"{context}"
+        )
+
+    def preview_retrieval(
+        self,
+        query: str | None,
+        conversation_history: list[dict[str, str]] | None = None,
+    ) -> dict[str, Any]:
+        with self._lock:
+            semantic_preview = self._semantic_retrieval_preview(
+                query=query,
+                conversation_history=conversation_history,
             )
-        return ""
+            if semantic_preview["context"]:
+                return semantic_preview
+
+            lexical_chunks = self._rank_lexical_chunks(query)
+            return {
+                "strategy": "lexical" if lexical_chunks else "none",
+                "chunks": lexical_chunks,
+                "context": self._format_selected_chunks(lexical_chunks),
+                "max_score": max((float(chunk.get("_retrieval_score", 0.0)) for chunk in lexical_chunks), default=0.0),
+            }
 
     def get_system_prompt(self) -> str:
         with self._lock:
@@ -979,12 +1037,16 @@ class KnowledgeBasePromptService:
         conversation_history: list[dict[str, str]] | None = None,
     ) -> str:
         with self._lock:
-            semantic_prompt = self._build_semantic_prompt(query=query, conversation_history=conversation_history)
-            if semantic_prompt:
-                return semantic_prompt
+            retrieval_preview = self._semantic_retrieval_preview(
+                query=query,
+                conversation_history=conversation_history,
+            )
+            if retrieval_preview["context"]:
+                return self._build_semantic_prompt_from_context(retrieval_preview["context"])
             knowledge_base, _ = self._load_markdown()
             self._last_error = ""
-            return self._build_prompt(knowledge_base, query)
+            lexical_context = self._format_selected_chunks(self._rank_lexical_chunks(query))
+            return self._build_prompt(knowledge_base, query, retrieved_context=lexical_context)
 
     def health(self) -> dict[str, str | bool | None | int]:
         rag_status = rag_health()

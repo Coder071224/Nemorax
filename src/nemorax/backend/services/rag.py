@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import csv
+from difflib import SequenceMatcher
 import hashlib
 import json
 import os
@@ -11,6 +12,16 @@ import re
 import sys
 import tempfile
 from typing import Any
+
+try:
+    from rapidfuzz import fuzz
+except ImportError:
+    class _FuzzFallback:
+        @staticmethod
+        def ratio(left: str, right: str) -> float:
+            return SequenceMatcher(None, left, right).ratio() * 100
+
+    fuzz = _FuzzFallback()
 
 from nemorax.backend.core.logging import get_logger
 
@@ -64,16 +75,22 @@ _SKIP_FILE_NAMES = {
 _MAX_FILE_SIZE_BYTES = 5_000_000
 _ABBREVIATIONS = {
     "cite": "College of Information Technology Education",
+    "college of it education": "College of Information Technology Education",
+    "college of information technology": "College of Information Technology Education",
     "cbm": "College of Business and Management",
     "cas": "College of Arts and Sciences",
     "coed": "College of Education",
+    "college of teacher education": "College of Education",
     "coe": "College of Engineering",
+    "college of engineering and technology": "College of Engineering",
     "cag": "College of Agriculture",
     "cthm": "College of Tourism and Hospitality Management",
     "cjc": "College of Justice and Criminology",
+    "college of criminal justice education": "College of Justice and Criminology",
     "con": "College of Nursing",
     "cp": "College of Pharmacy",
     "nemsu": "Northeastern Mindanao State University",
+    "north eastern mindanao state university": "Northeastern Mindanao State University",
     "besc": "Bukidnon External Studies Center",
     "sspc": "Surigao del Sur Polytechnic College",
     "sspsc": "Surigao del Sur Polytechnic State College",
@@ -119,8 +136,34 @@ def _tokenize(text: str) -> set[str]:
 
 
 def _expand(text: str) -> str:
-    tokens = re.findall(r"\w+", (text or "").lower())
-    return " ".join(_ABBREVIATIONS.get(token, token) for token in tokens)
+    normalized = _normalize((text or "").lower())
+    phrases: list[str] = []
+    consumed: set[str] = set()
+    for alias, expansion in _ABBREVIATIONS.items():
+        alias_normalized = _normalize(alias.lower())
+        if " " in alias_normalized and alias_normalized in normalized:
+            phrases.append(expansion)
+            consumed.add(alias_normalized)
+
+    tokens = re.findall(r"\w+", normalized)
+    expanded_tokens: list[str] = []
+    for token in tokens:
+        expansion = _ABBREVIATIONS.get(token)
+        if expansion is None:
+            fuzzy_match = next(
+                (
+                    candidate_expansion
+                    for candidate, candidate_expansion in _ABBREVIATIONS.items()
+                    if " " not in candidate and len(token) >= 3 and fuzz.ratio(token, candidate) >= 86
+                ),
+                None,
+            )
+            expansion = fuzzy_match
+        expanded_tokens.append(expansion or token)
+
+    if phrases:
+        expanded_tokens.extend(phrases)
+    return " ".join(expanded_tokens)
 
 
 def _ensure_parent(path: Path) -> None:
@@ -712,30 +755,26 @@ def format_context(chunks: list[dict[str, Any]]) -> str:
 
 
 def health() -> dict[str, Any]:
+    state = _read_state()
+    indexed_chunk_count = int(state.get("chunk_count") or 0)
+    kb_available = any(path.exists() for path in _KB_DIRS)
+    chroma_ready = _CHROMA_PATH.exists()
+
     if _rag_disabled:
         return {
-            "available": any(path.exists() for path in _KB_DIRS),
+            "available": kb_available,
             "source_path": str(_CHROMA_PATH),
             "detail": _last_error or "Semantic retrieval is disabled.",
-            "chunk_count": 0,
+            "chunk_count": indexed_chunk_count,
         }
-    try:
-        count = _load_collection().count()
-    except ImportError as exc:
-        return {
-            "available": False,
-            "source_path": str(_CHROMA_PATH),
-            "detail": f"Missing dependency: {exc}",
-        }
-    except Exception as exc:
-        return {
-            "available": False,
-            "source_path": str(_CHROMA_PATH),
-            "detail": str(exc),
-        }
+
+    detail = _last_error or None
+    if not chroma_ready and not indexed_chunk_count:
+        detail = detail or "Semantic index not initialized."
+
     return {
-        "available": bool(count) or any(path.exists() for path in _KB_DIRS),
+        "available": bool(indexed_chunk_count) or kb_available,
         "source_path": str(_CHROMA_PATH),
-        "detail": _last_error or None,
-        "chunk_count": count,
+        "detail": detail,
+        "chunk_count": indexed_chunk_count,
     }
