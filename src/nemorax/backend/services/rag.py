@@ -5,9 +5,11 @@ from __future__ import annotations
 import csv
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import sys
+import tempfile
 from typing import Any
 
 from nemorax.backend.core.logging import get_logger
@@ -17,7 +19,14 @@ logger = get_logger("nemorax.rag")
 
 _MODULE_DIR = Path(__file__).resolve().parent
 _PROJECT_ROOT = _MODULE_DIR.parents[3]
-_CHROMA_PATH = _PROJECT_ROOT / ".chroma_db"
+_CHROMA_PATH = Path(
+    os.getenv("NEMORAX_CHROMA_PATH", "").strip()
+    or (
+        str((Path(tempfile.gettempdir()) / "nemorax_chroma").resolve())
+        if os.getenv("RENDER") or os.getenv("RENDER_SERVICE_ID")
+        else str((_PROJECT_ROOT / ".chroma_db").resolve())
+    )
+)
 _STATE_PATH = _CHROMA_PATH / "index_state.json"
 _KB_DIRS = (_PROJECT_ROOT / "kb", _PROJECT_ROOT / "data")
 _COLLECTION_NAME = "nemsu_kb"

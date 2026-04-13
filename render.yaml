@@ -52,6 +52,8 @@ services:
         value: 180
       - key: HEALTH_TIMEOUT_SECONDS
         value: 4
+      - key: NEMORAX_CHROMA_PATH
+        value: /tmp/nemorax_chroma
   - type: web
     name: nemorax-web
     runtime: python
