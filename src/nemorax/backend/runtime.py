@@ -51,8 +51,8 @@ def build_services(config: Settings | None = None) -> ApplicationServices:
     feedback_service = FeedbackService(feedback_repository)
     supabase_kb = SupabaseKnowledgeBaseClient(resolved_settings.supabase)
     prompt_service = KnowledgeBasePromptService(
-        resolved_settings.paths.knowledge_base_markdown_path,
-        chunks_path=resolved_settings.paths.knowledge_base_chunks_path,
+        None if resolved_settings.supabase.kb_source == "supabase" else resolved_settings.paths.knowledge_base_markdown_path,
+        chunks_path=None if resolved_settings.supabase.kb_source == "supabase" else resolved_settings.paths.knowledge_base_chunks_path,
         max_knowledge_chars=resolved_settings.llm.prompt_knowledge_chars,
         kb_source=resolved_settings.supabase.kb_source,
         supabase_client=supabase_kb,

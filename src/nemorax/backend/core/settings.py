@@ -69,8 +69,7 @@ class PathSettings:
     knowledge_base_chunks_path: Path
 
     def ensure_directories(self) -> None:
-        for directory in (self.data_dir, self.users_dir, self.history_dir, self.feedback_dir):
-            directory.mkdir(parents=True, exist_ok=True)
+        self.data_dir.mkdir(parents=True, exist_ok=True)
 
 
 @dataclass(frozen=True, slots=True)
@@ -134,7 +133,7 @@ class SupabaseSettings:
 
     @property
     def enabled(self) -> bool:
-        return bool(self.configured and self.kb_source in {"supabase", "hybrid"})
+        return bool(self.configured and self.kb_source == "supabase")
 
 
 @dataclass(frozen=True, slots=True)
@@ -257,7 +256,7 @@ def load_settings() -> Settings:
         url=_read_str("SUPABASE_URL", default=""),
         anon_key=_read_str("SUPABASE_ANON_KEY", default="") or None,
         service_role_key=_read_str("SUPABASE_SERVICE_ROLE_KEY", default="") or None,
-        kb_source=_read_str("NEMORAX_KB_SOURCE", default="local").strip().lower() or "local",
+        kb_source=_read_str("NEMORAX_KB_SOURCE", default="supabase").strip().lower() or "supabase",
         timeout_seconds=_read_float("SUPABASE_TIMEOUT_SECONDS", default=10.0),
     )
 

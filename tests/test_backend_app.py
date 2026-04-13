@@ -27,7 +27,6 @@ from nemorax.backend.repositories import (
     UserRepository,
 )
 from nemorax.backend.runtime import ApplicationServices
-from nemorax.backend.services import rag as rag_service
 from nemorax.backend.services import (
     AuthService,
     ChatService,
@@ -77,7 +76,7 @@ class StubProvider(ChatProvider):
 
 
 class StubSupabaseKnowledgeBaseClient(SupabaseKnowledgeBaseClient):
-    def __init__(self, snapshot: dict[str, object]) -> None:
+    def __init__(self, chunks: list[dict[str, object]]) -> None:
         super().__init__(
             SupabaseSettings(
                 url="https://stub-supabase.local",
@@ -87,10 +86,19 @@ class StubSupabaseKnowledgeBaseClient(SupabaseKnowledgeBaseClient):
                 timeout_seconds=5.0,
             )
         )
-        self._snapshot = snapshot
+        self._chunks = chunks
 
-    def fetch_snapshot(self) -> dict[str, object]:
-        return dict(self._snapshot)
+    def search_chunks(self, query: str, *, limit: int = 6) -> list[dict[str, object]]:
+        del query
+        return list(self._chunks[:limit])
+
+    def health(self) -> dict[str, object]:
+        return {
+            "available": bool(self._chunks),
+            "source_path": "supabase://kb_chunks",
+            "detail": None,
+            "chunk_count": len(self._chunks),
+        }
 
 
 class FakeSupabaseTransport(httpx.MockTransport):
@@ -753,9 +761,8 @@ class BackendApiTests(unittest.TestCase):
             },
         )
         self.assertEqual(response.status_code, 200)
-        self.assertIn("not fully sure yet", response.json()["reply"])
-        self.assertIn("college of business and management", response.json()["reply"].lower())
-        self.assertFalse(self.provider.last_messages)
+        self.assertEqual(response.json()["reply"], "Stub reply from the neutral provider layer.")
+        self.assertTrue(self.provider.last_messages)
 
     def test_topic_filter_rejects_off_topic_queries(self) -> None:
         response = self.client.post(
@@ -840,40 +847,18 @@ class BackendApiTests(unittest.TestCase):
 
     def test_prompt_service_can_load_supabase_kb(self) -> None:
         supabase_client = StubSupabaseKnowledgeBaseClient(
-            {
-                "entities": [
-                    {
-                        "id": 1,
-                        "entity_type": "college",
-                        "canonical_name": "College of Business and Management",
-                        "campus": None,
-                        "title": "CBM",
-                        "content": "The dean of the College of Business and Management is Prof. Sample Dean.",
-                        "metadata": {"scope": "college"},
-                        "updated_at": "2026-04-13T00:00:00+00:00",
-                    }
-                ],
-                "aliases": [
-                    {
-                        "id": 1,
-                        "entity_id": 1,
-                        "alias": "CBM",
-                        "normalized_alias": "cbm",
-                    }
-                ],
-                "faqs": [
-                    {
-                        "id": 1,
-                        "question": "What is NEMSU?",
-                        "answer": "NEMSU stands for Northeastern Mindanao State University.",
-                        "category": "Identity",
-                        "campus": None,
-                        "metadata": {},
-                        "updated_at": "2026-04-13T00:00:00+00:00",
-                    }
-                ],
-                "fingerprint": "stub-snapshot-1",
-            }
+            [
+                {
+                    "source": "supabase:entity:cbm",
+                    "content": "canonical_name: College of Business and Management\naliases: CBM\ndescription: The dean of the College of Business and Management is Prof. Sample Dean.",
+                    "metadata": {
+                        "title": "College of Business and Management",
+                        "section": "College",
+                        "type": "entity",
+                    },
+                    "_retrieval_score": 12.0,
+                }
+            ]
         )
         prompt_service = KnowledgeBasePromptService(
             self.settings.paths.knowledge_base_markdown_path,
@@ -887,37 +872,34 @@ class BackendApiTests(unittest.TestCase):
 
         self.assertIn("Prof. Sample Dean", prompt)
         self.assertIn("College of Business and Management", prompt)
-        self.assertIn("supabase:kb_entities", prompt)
+        self.assertIn("supabase:entity:cbm", prompt)
 
-    def test_rag_health_is_passive(self) -> None:
-        original_read_state = rag_service._read_state
-        original_load_collection = rag_service._load_collection
-        original_kb_dirs = rag_service._KB_DIRS
-        original_chroma_path = rag_service._CHROMA_PATH
-        original_last_error = rag_service._last_error
-        original_rag_disabled = rag_service._rag_disabled
+    def test_prompt_service_supabase_mode_does_not_require_local_kb_files(self) -> None:
+        supabase_client = StubSupabaseKnowledgeBaseClient(
+            [
+                {
+                    "source": "supabase:page:directory",
+                    "content": "Admissions Office: Main campus administration building.",
+                    "metadata": {
+                        "title": "Directory",
+                        "section": "Directory",
+                        "type": "page",
+                    },
+                    "_retrieval_score": 9.0,
+                }
+            ]
+        )
+        prompt_service = KnowledgeBasePromptService(
+            None,
+            chunks_path=None,
+            max_knowledge_chars=1800,
+            kb_source="supabase",
+            supabase_client=supabase_client,
+        )
 
-        try:
-            rag_service._read_state = lambda: {"chunk_count": 7}
+        prompt = prompt_service.get_system_prompt_for_query("where is the admissions office")
+        health = prompt_service.health()
 
-            def fail_load_collection(*args, **kwargs):
-                raise AssertionError("health should not initialize Chroma")
-
-            rag_service._load_collection = fail_load_collection
-            rag_service._KB_DIRS = (self.root / "kb", self.root / "data")
-            rag_service._CHROMA_PATH = self.root / ".missing_chroma"
-            rag_service._last_error = ""
-            rag_service._rag_disabled = False
-
-            status = rag_service.health()
-
-            self.assertTrue(status["available"])
-            self.assertEqual(status["chunk_count"], 7)
-            self.assertEqual(status["source_path"], str(self.root / ".missing_chroma"))
-        finally:
-            rag_service._read_state = original_read_state
-            rag_service._load_collection = original_load_collection
-            rag_service._KB_DIRS = original_kb_dirs
-            rag_service._CHROMA_PATH = original_chroma_path
-            rag_service._last_error = original_last_error
-            rag_service._rag_disabled = original_rag_disabled
+        self.assertIn("Admissions Office", prompt)
+        self.assertEqual(health["source_path"], "supabase://kb_chunks")
+        self.assertEqual(health["chunk_count"], 1)

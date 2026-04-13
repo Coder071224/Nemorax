@@ -1,15 +1,13 @@
-"""Minimal server-side Supabase client for knowledge-base records."""
+"""Supabase-backed KB retrieval client."""
 
 from __future__ import annotations
 
-import hashlib
-import json
+from functools import lru_cache
 from typing import Any
-
-import httpx
 
 from nemorax.backend.core.logging import get_logger
 from nemorax.backend.core.settings import SupabaseSettings
+from nemorax.backend.repositories.supabase_client import SupabasePersistenceClient
 
 
 logger = get_logger("nemorax.supabase_kb")
@@ -18,67 +16,93 @@ logger = get_logger("nemorax.supabase_kb")
 class SupabaseKnowledgeBaseClient:
     def __init__(self, config: SupabaseSettings) -> None:
         self._config = config
+        self._client = SupabasePersistenceClient(config)
 
     @property
     def enabled(self) -> bool:
-        return self._config.enabled
+        return self._config.configured and self._config.kb_source == "supabase"
 
-    def _headers(self) -> dict[str, str]:
-        key = self._config.service_role_key or ""
-        return {
-            "apikey": key,
-            "Authorization": f"Bearer {key}",
-            "Accept": "application/json",
-        }
-
-    def _fetch_table(self, table: str, select: str) -> list[dict[str, Any]]:
+    @lru_cache(maxsize=1)
+    def alias_map(self) -> dict[str, set[str]]:
         if not self.enabled:
-            return []
-
-        base_url = self._config.url.rstrip("/")
-        url = f"{base_url}/rest/v1/{table}"
-        params = {"select": select, "order": "id.asc"}
-        try:
-            with httpx.Client(timeout=self._config.timeout_seconds) as client:
-                response = client.get(url, headers=self._headers(), params=params)
-                response.raise_for_status()
-        except httpx.HTTPError as exc:
-            logger.warning("Supabase fetch failed for table=%s (%s)", table, exc)
-            return []
-
-        payload = response.json()
-        if not isinstance(payload, list):
-            logger.warning("Supabase table=%s returned unexpected payload type=%s", table, type(payload).__name__)
-            return []
-        return [row for row in payload if isinstance(row, dict)]
-
-    def fetch_snapshot(self) -> dict[str, Any]:
-        entities = self._fetch_table(
-            "kb_entities",
-            "id,entity_type,canonical_name,campus,title,content,metadata,updated_at",
-        )
-        aliases = self._fetch_table(
+            return {}
+        rows = self._client.select(
             "kb_aliases",
-            "id,entity_id,alias,normalized_alias",
+            columns="canonical_name,alias,normalized_alias",
+            order="canonical_name.asc",
+            limit=5000,
         )
-        faqs = self._fetch_table(
-            "kb_faq",
-            "id,question,answer,category,campus,metadata,updated_at",
+        result: dict[str, set[str]] = {}
+        for row in rows:
+            canonical_name = str(row.get("canonical_name") or "").strip()
+            alias = str(row.get("alias") or "").strip()
+            if not canonical_name or not alias:
+                continue
+            result.setdefault(canonical_name.lower(), {canonical_name}).add(alias)
+        return result
+
+    def _expanded_query(self, query: str) -> str:
+        lowered = query.lower()
+        extras: list[str] = []
+        for canonical, aliases in self.alias_map().items():
+            variants = {canonical, *{alias.lower() for alias in aliases}}
+            if any(item and item in lowered for item in variants):
+                extras.extend(sorted(aliases))
+                extras.append(canonical)
+        expanded = " ".join(dict.fromkeys([query.strip(), *extras]))
+        return expanded.strip()
+
+    def search_chunks(self, query: str, *, limit: int = 6) -> list[dict[str, Any]]:
+        if not self.enabled or not query.strip():
+            return []
+        payload = self._client.rpc(
+            "search_kb_chunks",
+            {"p_query": self._expanded_query(query), "p_limit": max(1, min(limit, 12))},
         )
-        fingerprint = hashlib.sha256(
-            json.dumps(
+        if not isinstance(payload, list):
+            logger.warning("KB RPC returned unexpected payload type=%s", type(payload).__name__)
+            return []
+
+        rows: list[dict[str, Any]] = []
+        for row in payload:
+            if not isinstance(row, dict):
+                continue
+            metadata = row.get("metadata")
+            if not isinstance(metadata, dict):
+                metadata = {}
+            metadata = {
+                **metadata,
+                "title": str(row.get("title") or metadata.get("title") or "").strip(),
+                "section": " > ".join(item for item in (row.get("heading_path") or []) if isinstance(item, str)),
+                "url": str(row.get("url") or metadata.get("url") or "").strip(),
+                "type": str(row.get("page_type") or metadata.get("type") or "").strip(),
+                "topic": str(row.get("topic") or metadata.get("topic") or "").strip(),
+                "date": str(row.get("updated_date") or row.get("publication_date") or metadata.get("date") or "").strip(),
+            }
+            rows.append(
                 {
-                    "entities": entities,
-                    "aliases": aliases,
-                    "faqs": faqs,
-                },
-                sort_keys=True,
-                ensure_ascii=True,
-            ).encode("utf-8")
-        ).hexdigest()
+                    "source": f"supabase:{str(row.get('source_kind') or 'kb')}:{str(row.get('source_ref') or row.get('chunk_id') or '').strip()}",
+                    "content": str(row.get("content") or "").strip(),
+                    "metadata": metadata,
+                    "_retrieval_score": float(row.get("rank") or 0.0),
+                }
+            )
+        return rows
+
+    def health(self) -> dict[str, Any]:
+        if not self.enabled:
+            return {
+                "available": False,
+                "source_path": "supabase://kb_chunks",
+                "detail": "Supabase knowledge base is not configured.",
+                "chunk_count": 0,
+            }
+        rows = self._client.select("kb_runtime_stats", limit=1)
+        row = rows[0] if rows else {}
+        chunk_count = int(row.get("chunk_count", 0) or 0)
         return {
-            "entities": entities,
-            "aliases": aliases,
-            "faqs": faqs,
-            "fingerprint": fingerprint,
+            "available": chunk_count > 0,
+            "source_path": "supabase://kb_chunks",
+            "detail": None if chunk_count > 0 else "No KB chunks found in Supabase.",
+            "chunk_count": chunk_count,
         }

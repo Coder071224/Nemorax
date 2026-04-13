@@ -1,9 +1,7 @@
-"""Knowledge-base prompt builder for the neutral chat service."""
+"""Knowledge-base prompt builder backed primarily by Supabase."""
 
 from __future__ import annotations
 
-import csv
-import html
 import json
 import re
 from pathlib import Path
@@ -11,41 +9,13 @@ from threading import RLock
 from typing import Any
 
 from nemorax.backend.core.logging import get_logger
-from nemorax.backend.services.rag import format_context, health as rag_health, retrieve
+from nemorax.backend.services.supabase_kb import SupabaseKnowledgeBaseClient
 
 
 logger = get_logger("nemorax.prompt")
 
 _OUT_OF_SCOPE_MESSAGE = "I'm sorry, I can only help with school-related inquiries about NEMSU."
 _TOKEN_PATTERN = re.compile(r"[a-z0-9]+")
-_SENTENCE_BOUNDARY_PATTERN = re.compile(r"(?<=[.!?])\s+")
-_SECTION_SPLIT_PATTERN = re.compile(r"\n\s*\n+")
-_TAG_PATTERN = re.compile(r"<[^>]+>")
-_SKIP_DIR_NAMES = {".venv", "venv", "__pycache__", "build", "dist", "website-dist", ".git", "logs"}
-_SKIP_SUFFIXES = {
-    ".pyc",
-    ".pyo",
-    ".exe",
-    ".apk",
-    ".dll",
-    ".so",
-    ".dylib",
-    ".png",
-    ".jpg",
-    ".jpeg",
-    ".gif",
-    ".ico",
-    ".svg",
-    ".bin",
-    ".pdf",
-}
-_SUPPORTED_SUFFIXES = {".txt", ".md", ".json", ".csv", ".jsonl", ".html", ".htm"}
-_SKIP_FILE_NAMES = {"embeddings_ready.json", "qa_eval.json", "validation_summary.json"}
-_TARGET_CHUNK_TOKENS = 650
-_MIN_CHUNK_TOKENS = 400
-_MAX_CHUNK_TOKENS = 800
-_CHUNK_OVERLAP_TOKENS = 90
-_MAX_RETRIEVED_CHUNKS = 6
 _STOP_TOKENS = {
     "a",
     "an",
@@ -54,11 +24,7 @@ _STOP_TOKENS = {
     "as",
     "at",
     "be",
-    "before",
     "by",
-    "called",
-    "current",
-    "does",
     "for",
     "from",
     "how",
@@ -82,26 +48,25 @@ _STOP_TOKENS = {
 class KnowledgeBasePromptService:
     def __init__(
         self,
-        markdown_path: Path,
+        markdown_path: Path | None = None,
         *,
         chunks_path: Path | None = None,
         max_knowledge_chars: int = 6000,
+        kb_source: str = "supabase",
+        supabase_client: SupabaseKnowledgeBaseClient | None = None,
     ) -> None:
         self._markdown_path = markdown_path
         self._chunks_path = chunks_path
-        self._data_root = markdown_path.parent
-        self._kb_root = chunks_path.parent if chunks_path is not None else markdown_path.parents[1] / "kb"
+        self._legacy_json_path = markdown_path.with_suffix(".json") if markdown_path is not None else None
         self._max_knowledge_chars = max(1000, max_knowledge_chars)
+        self._kb_source = kb_source.strip().lower() or "supabase"
+        self._supabase_client = supabase_client
         self._lock = RLock()
         self._cached_prompt = ""
-        self._cached_markdown = ""
-        self._cached_markdown_mtime_ns: int | None = None
-        self._cached_documents: list[dict[str, Any]] = []
-        self._cached_chunks: list[dict[str, Any]] = []
-        self._cached_alias_map: dict[str, set[str]] = {}
-        self._cached_file_fingerprints: dict[str, int] = {}
         self._last_error = ""
         self._last_retrieval_summary = ""
+        self._local_chunks_cache: list[dict[str, Any]] | None = None
+        self._local_alias_map: dict[str, set[str]] | None = None
 
     @property
     def out_of_scope_message(self) -> str:
@@ -109,7 +74,12 @@ class KnowledgeBasePromptService:
 
     @property
     def source_path(self) -> Path:
-        return self._chunks_path or self._markdown_path
+        if self._uses_supabase():
+            return Path("supabase://kb_chunks")
+        return self._chunks_path or self._markdown_path or Path("legacy://kb_unconfigured")
+
+    def _uses_supabase(self) -> bool:
+        return bool(self._supabase_client and self._supabase_client.enabled and self._kb_source == "supabase")
 
     def _fallback_prompt(self) -> str:
         return (
@@ -129,551 +99,150 @@ class KnowledgeBasePromptService:
         expanded = set(tokens)
         if "cite" in tokens:
             expanded.update({"college", "information", "technology", "education", "it"})
-        if "it" in tokens:
-            expanded.update({"information", "technology", "education"})
+        if "cbm" in tokens:
+            expanded.update({"college", "business", "management"})
         if "nemsu" in tokens:
             expanded.update({"north", "eastern", "mindanao", "state", "university"})
         if "president" in tokens:
-            expanded.update({"university", "head", "leader", "loayon", "designation"})
+            expanded.update({"leader", "head", "university"})
         return expanded
-
-    def _approx_token_count(self, text: str) -> int:
-        return len(_TOKEN_PATTERN.findall(text or ""))
-
-    def _relative_source(self, path: Path) -> str:
-        for root in (self._kb_root.parent, self._kb_root, self._data_root):
-            try:
-                return path.resolve().relative_to(root.resolve()).as_posix()
-            except ValueError:
-                continue
-        return path.as_posix()
 
     def _normalize_text(self, text: str) -> str:
         return re.sub(r"\s+", " ", (text or "")).strip()
 
-    def _flatten_json_value(
-        self,
-        value: Any,
-        *,
-        key_path: tuple[str, ...] = (),
-        lines: list[str] | None = None,
-        alias_map: dict[str, set[str]] | None = None,
-    ) -> list[str]:
-        target_lines = lines if lines is not None else []
+    def _relative_source(self, path: Path) -> str:
+        if path.name == "chunks.jsonl":
+            return f"{path.parent.name}/{path.name}"
+        if path.name == "school_info.json":
+            return f"{path.parent.name}/{path.name}"
+        return path.as_posix()
+
+    def _flatten_json(self, value: Any, *, key_path: tuple[str, ...] = ()) -> list[str]:
+        lines: list[str] = []
         if isinstance(value, dict):
-            canonical = value.get("canonical_name") or value.get("name") or value.get("title")
-            aliases = value.get("aliases")
-            if alias_map is not None and isinstance(canonical, str) and canonical.strip():
-                group = alias_map.setdefault(canonical.strip().lower(), set())
-                group.add(canonical.strip())
-                if isinstance(aliases, list):
-                    for item in aliases:
-                        if isinstance(item, str) and item.strip():
-                            group.add(item.strip())
             for key, item in value.items():
                 if item in (None, "", [], {}):
                     continue
-                self._flatten_json_value(
-                    item,
-                    key_path=key_path + (str(key),),
-                    lines=target_lines,
-                    alias_map=alias_map,
-                )
-            return target_lines
-
+                lines.extend(self._flatten_json(item, key_path=key_path + (str(key),)))
+            return lines
         if isinstance(value, list):
             if value and all(not isinstance(item, (dict, list)) for item in value):
+                label = " > ".join(key_path) if key_path else "value"
                 joined = ", ".join(str(item).strip() for item in value if str(item).strip())
                 if joined:
-                    label = " > ".join(key_path) if key_path else "value"
-                    target_lines.append(f"{label}: {joined}")
-                return target_lines
+                    lines.append(f"{label}: {joined}")
+                return lines
             for index, item in enumerate(value, start=1):
-                self._flatten_json_value(
-                    item,
-                    key_path=key_path + (f"item_{index}",),
-                    lines=target_lines,
-                    alias_map=alias_map,
-                )
-            return target_lines
-
+                lines.extend(self._flatten_json(item, key_path=key_path + (f"item_{index}",)))
+            return lines
         text = str(value).strip()
-        if not text:
-            return target_lines
-        label = " > ".join(key_path) if key_path else "value"
-        target_lines.append(f"{label}: {text}")
-        return target_lines
+        if text:
+            label = " > ".join(key_path) if key_path else "value"
+            lines.append(f"{label}: {text}")
+        return lines
 
-    def _extract_json_metadata(self, payload: Any, path: Path) -> dict[str, Any]:
-        metadata: dict[str, Any] = {"title": path.stem.replace("_", " ").strip().title()}
-        if isinstance(payload, dict):
-            for key in ("title", "name", "canonical_name"):
-                value = payload.get(key)
-                if isinstance(value, str) and value.strip():
-                    metadata["title"] = value.strip()
-                    break
-            for key in ("date", "updated_date", "publication_date", "valid_from"):
-                value = payload.get(key)
-                if isinstance(value, str) and value.strip():
-                    metadata["date"] = value.strip()
-                    break
-        return metadata
-
-    def _build_json_document(
-        self,
-        *,
-        path: Path,
-        payload: Any,
-        content: str,
-        section: str | None = None,
-    ) -> dict[str, Any]:
-        metadata = self._extract_json_metadata(payload, path)
-        if section:
-            metadata["section"] = section
-        return {
-            "source": self._relative_source(path),
-            "content": content,
-            "type": path.suffix.lstrip("."),
-            "metadata": metadata,
-        }
-
-    def _read_structured_json(self, path: Path, alias_map: dict[str, set[str]]) -> list[dict[str, Any]]:
-        try:
-            payload = json.loads(path.read_text(encoding="utf-8", errors="replace"))
-        except json.JSONDecodeError as exc:
-            logger.warning("Malformed JSON knowledge file skipped: %s (%s)", path.as_posix(), exc)
-            self._last_error = f"Malformed JSON in {path.as_posix()}: {exc}"
-            return []
-        except OSError as exc:
-            logger.warning("Unable to read JSON knowledge file: %s (%s)", path.as_posix(), exc)
-            self._last_error = str(exc)
-            return []
-
-        documents: list[dict[str, Any]] = []
-        if isinstance(payload, dict):
-            for key, value in payload.items():
-                lines = self._flatten_json_value(
-                    value,
-                    key_path=(str(key),),
-                    alias_map=alias_map,
-                )
-                block = "\n".join(lines).strip()
-                if block:
-                    documents.append(
-                        self._build_json_document(
-                            path=path,
-                            payload=value,
-                            content=block,
-                            section=str(key).replace("_", " ").strip().title(),
-                        )
-                    )
-        else:
-            lines = self._flatten_json_value(payload, alias_map=alias_map)
-            content = "\n".join(lines).strip()
-            if content:
-                documents.append(self._build_json_document(path=path, payload=payload, content=content))
-        return documents
-
-    def _read_jsonl_document(self, path: Path, alias_map: dict[str, set[str]]) -> dict[str, Any] | None:
-        rows: list[str] = []
-        try:
-            with path.open("r", encoding="utf-8", errors="replace") as handle:
-                for line_number, line in enumerate(handle, start=1):
-                    line = line.strip()
-                    if not line:
-                        continue
-                    try:
-                        payload = json.loads(line)
-                    except json.JSONDecodeError as exc:
-                        logger.warning(
-                            "Malformed JSONL record skipped: %s:%s (%s)",
-                            path.as_posix(),
-                            line_number,
-                            exc,
-                        )
-                        continue
-                    rows.extend(self._flatten_json_value(payload, alias_map=alias_map))
-        except OSError as exc:
-            logger.warning("Unable to read JSONL knowledge file: %s (%s)", path.as_posix(), exc)
-            self._last_error = str(exc)
-            return None
-
-        content = "\n".join(rows).strip()
-        if not content:
-            return None
-        return {
-            "source": self._relative_source(path),
-            "content": content,
-            "type": "jsonl",
-            "metadata": {"title": path.stem.replace("_", " ").strip().title()},
-        }
-
-    def _read_csv_document(self, path: Path) -> dict[str, Any] | None:
-        lines: list[str] = []
-        try:
-            with path.open("r", encoding="utf-8", errors="replace", newline="") as handle:
-                reader = csv.DictReader(handle)
-                for index, row in enumerate(reader, start=1):
-                    values = [f"{key}: {value}" for key, value in row.items() if key and value]
-                    if values:
-                        lines.append(f"row {index}: " + "; ".join(values))
-        except OSError as exc:
-            logger.warning("Unable to read CSV knowledge file: %s (%s)", path.as_posix(), exc)
-            self._last_error = str(exc)
-            return None
-
-        content = "\n".join(lines).strip()
-        if not content:
-            return None
-        return {
-            "source": self._relative_source(path),
-            "content": content,
-            "type": "csv",
-            "metadata": {"title": path.stem.replace("_", " ").strip().title()},
-        }
-
-    def _read_text_document(self, path: Path) -> dict[str, Any] | None:
-        try:
-            raw = path.read_text(encoding="utf-8", errors="replace")
-        except OSError as exc:
-            logger.warning("Unable to read text knowledge file: %s (%s)", path.as_posix(), exc)
-            self._last_error = str(exc)
-            return None
-
-        if path.suffix.lower() in {".html", ".htm"}:
-            raw = html.unescape(_TAG_PATTERN.sub(" ", raw))
-        content = raw.strip()
-        if not content:
-            return None
-        return {
-            "source": self._relative_source(path),
-            "content": content,
-            "type": path.suffix.lstrip("."),
-            "metadata": {"title": path.stem.replace("_", " ").strip().title()},
-        }
-
-    def _load_document_from_file(self, path: Path, alias_map: dict[str, set[str]]) -> list[dict[str, Any]]:
-        suffix = path.suffix.lower()
-        if suffix == ".json":
-            return self._read_structured_json(path, alias_map)
-        if suffix == ".jsonl":
-            document = self._read_jsonl_document(path, alias_map)
-            return [document] if document is not None else []
-        if suffix == ".csv":
-            document = self._read_csv_document(path)
-            return [document] if document is not None else []
-        document = self._read_text_document(path)
-        return [document] if document is not None else []
-
-    def _iter_knowledge_files(self) -> tuple[list[Path], dict[str, int]]:
-        files: list[Path] = []
-        fingerprints: dict[str, int] = {}
-        scanned_roots: list[str] = []
-
-        for root in (self._kb_root, self._data_root):
-            if not root.exists():
-                logger.warning("Knowledge folder not found: %s", root.as_posix())
-                continue
-            scanned_roots.append(root.as_posix())
-            for path in sorted(root.rglob("*")):
-                if not path.is_file():
-                    continue
-                if any(part in _SKIP_DIR_NAMES for part in path.parts):
-                    continue
-                if path.name in _SKIP_FILE_NAMES:
-                    continue
-                if path.suffix.lower() in _SKIP_SUFFIXES:
-                    continue
-                if path.suffix.lower() not in _SUPPORTED_SUFFIXES:
-                    continue
-                if self._chunks_path is not None and path.resolve() == self._chunks_path.resolve():
-                    continue
-                files.append(path)
-                try:
-                    fingerprints[path.as_posix()] = path.stat().st_mtime_ns
-                except OSError:
-                    fingerprints[path.as_posix()] = -1
-
-        logger.info("Knowledge scan complete. roots=%s files=%s", ", ".join(scanned_roots) or "none", len(files))
-        return files, fingerprints
-
-    def _load_structured_chunks(self, alias_map: dict[str, set[str]]) -> list[dict[str, Any]]:
-        if self._chunks_path is None or not self._chunks_path.exists():
-            return []
-
-        chunks: list[dict[str, Any]] = []
-        try:
-            with self._chunks_path.open("r", encoding="utf-8", errors="replace") as handle:
-                for line_number, line in enumerate(handle, start=1):
-                    line = line.strip()
-                    if not line:
-                        continue
-                    try:
-                        record = json.loads(line)
-                    except json.JSONDecodeError as exc:
-                        logger.warning(
-                            "Malformed chunk record skipped: %s:%s (%s)",
-                            self._chunks_path.as_posix(),
-                            line_number,
-                            exc,
-                        )
-                        continue
-                    if not isinstance(record, dict):
-                        continue
-                    body = self._normalize_text(str(record.get("raw_text") or record.get("normalized_text") or ""))
-                    if not body:
-                        continue
-                    title = str(record.get("title") or "Untitled").strip() or "Untitled"
-                    aliases = record.get("aliases")
-                    if isinstance(aliases, list) and aliases:
-                        group = alias_map.setdefault(title.lower(), {title})
-                        for item in aliases:
-                            if isinstance(item, str) and item.strip():
-                                group.add(item.strip())
-                    source = self._relative_source(self._chunks_path)
-                    metadata = {
-                        "title": title,
-                        "section": " > ".join(str(item) for item in (record.get("heading_path") or []) if item),
-                        "url": str(record.get("url") or "").strip(),
-                        "type": str(record.get("page_type") or "").strip(),
-                        "date": str(record.get("publication_date") or record.get("updated_date") or "").strip(),
-                    }
-                    chunks.append(
-                        self._finalize_chunk(
-                            source=source,
-                            content=body,
-                            doc_type="jsonl",
-                            metadata=metadata,
-                        )
-                    )
-        except OSError as exc:
-            logger.warning("Unable to read structured chunks: %s (%s)", self._chunks_path.as_posix(), exc)
-            self._last_error = str(exc)
-            return []
-
-        logger.info("Structured chunk file loaded. source=%s chunks=%s", self._chunks_path.as_posix(), len(chunks))
-        return chunks
-
-    def _split_document_sections(self, text: str) -> list[str]:
-        cleaned = text.replace("\r\n", "\n").replace("\r", "\n").strip()
-        if not cleaned:
-            return []
-        sections = [part.strip() for part in _SECTION_SPLIT_PATTERN.split(cleaned) if part.strip()]
-        return sections or [cleaned]
-
-    def _chunk_overlap_text(self, text: str) -> str:
-        tokens = _TOKEN_PATTERN.findall(text or "")
-        if not tokens:
-            return ""
-        return " ".join(tokens[-_CHUNK_OVERLAP_TOKENS:])
-
-    def _finalize_chunk(
+    def _chunk_payload(
         self,
         *,
         source: str,
         content: str,
-        doc_type: str,
         metadata: dict[str, Any],
+        score: float = 0.0,
     ) -> dict[str, Any]:
-        normalized = self._normalize_text(content)
-        token_set = self._normalize_tokens(
-            " ".join([normalized, str(metadata.get("title") or ""), str(metadata.get("section") or "")])
-        )
         return {
             "source": source,
-            "content": normalized,
-            "type": doc_type,
+            "content": content,
             "metadata": metadata,
-            "_token_set": token_set,
+            "_token_set": self._normalize_tokens(
+                " ".join(
+                    [
+                        content,
+                        str(metadata.get("title") or ""),
+                        str(metadata.get("section") or ""),
+                        str(metadata.get("topic") or ""),
+                    ]
+                )
+            ),
+            "_retrieval_score": score,
         }
 
-    def _chunk_document(self, document: dict[str, Any]) -> list[dict[str, Any]]:
-        sections = self._split_document_sections(str(document.get("content") or ""))
-        if not sections:
-            return []
+    def _load_local_legacy_chunks(self) -> tuple[list[dict[str, Any]], dict[str, set[str]]]:
+        if self._local_chunks_cache is not None and self._local_alias_map is not None:
+            return list(self._local_chunks_cache), dict(self._local_alias_map)
 
         chunks: list[dict[str, Any]] = []
-        buffer: list[str] = []
-        current_tokens = 0
-        overlap = ""
-
-        for section in sections:
-            section_text = self._normalize_text(section)
-            if not section_text:
-                continue
-            section_tokens = self._approx_token_count(section_text)
-            sentences = (
-                [part.strip() for part in _SENTENCE_BOUNDARY_PATTERN.split(section_text) if part.strip()]
-                if section_tokens > _MAX_CHUNK_TOKENS
-                else [section_text]
-            )
-
-            for sentence in sentences:
-                sentence_tokens = self._approx_token_count(sentence)
-                if buffer and current_tokens >= _MIN_CHUNK_TOKENS and current_tokens + sentence_tokens > _TARGET_CHUNK_TOKENS:
-                    chunk_text = "\n\n".join(buffer).strip()
-                    chunks.append(
-                        self._finalize_chunk(
-                            source=str(document["source"]),
-                            content=chunk_text,
-                            doc_type=str(document["type"]),
-                            metadata=dict(document["metadata"]),
-                        )
-                    )
-                    overlap = self._chunk_overlap_text(chunk_text)
-                    buffer = [overlap] if overlap else []
-                    current_tokens = self._approx_token_count(overlap)
-
-                buffer.append(sentence)
-                current_tokens += sentence_tokens
-
-                if current_tokens >= _MAX_CHUNK_TOKENS:
-                    chunk_text = "\n\n".join(buffer).strip()
-                    chunks.append(
-                        self._finalize_chunk(
-                            source=str(document["source"]),
-                            content=chunk_text,
-                            doc_type=str(document["type"]),
-                            metadata=dict(document["metadata"]),
-                        )
-                    )
-                    overlap = self._chunk_overlap_text(chunk_text)
-                    buffer = [overlap] if overlap else []
-                    current_tokens = self._approx_token_count(overlap)
-
-        if buffer:
-            chunk_text = "\n\n".join(buffer).strip()
-            chunks.append(
-                self._finalize_chunk(
-                    source=str(document["source"]),
-                    content=chunk_text,
-                    doc_type=str(document["type"]),
-                    metadata=dict(document["metadata"]),
-                )
-            )
-        return chunks
-
-    def _load_documents_and_chunks(self) -> tuple[list[dict[str, Any]], list[dict[str, Any]], dict[str, set[str]]]:
-        knowledge_files, fingerprints = self._iter_knowledge_files()
-        if self._cached_documents and self._cached_chunks and self._cached_file_fingerprints == fingerprints:
-            return self._cached_documents, self._cached_chunks, self._cached_alias_map
-
         alias_map: dict[str, set[str]] = {}
-        documents: list[dict[str, Any]] = []
 
-        for path in knowledge_files:
-            documents.extend(self._load_document_from_file(path, alias_map))
+        if self._chunks_path and self._chunks_path.exists():
+            try:
+                with self._chunks_path.open("r", encoding="utf-8", errors="replace") as handle:
+                    for line in handle:
+                        raw = line.strip()
+                        if not raw:
+                            continue
+                        payload = json.loads(raw)
+                        title = str(payload.get("title") or "").strip()
+                        heading_path = payload.get("heading_path") or []
+                        url = str(payload.get("url") or "").strip()
+                        page_type = str(payload.get("page_type") or "").strip()
+                        topic = str(payload.get("topic") or "").strip()
+                        content = str(payload.get("raw_text") or payload.get("normalized_text") or "").strip()
+                        if not content:
+                            continue
+                        if title:
+                            alias_map.setdefault(title.lower(), {title})
+                        chunks.append(
+                            self._chunk_payload(
+                                source=self._relative_source(self._chunks_path),
+                                content=content,
+                                metadata={
+                                    "title": title,
+                                    "section": " > ".join(str(item) for item in heading_path if str(item).strip()),
+                                    "url": url,
+                                    "type": page_type,
+                                    "topic": topic,
+                                    "date": str(payload.get("updated_date") or payload.get("publication_date") or "").strip(),
+                                },
+                            )
+                        )
+            except (OSError, json.JSONDecodeError) as exc:
+                logger.warning("Unable to read local chunk file %s (%s)", self._chunks_path, exc)
+                self._last_error = str(exc)
 
-        chunks = self._load_structured_chunks(alias_map)
-        for document in documents:
-            chunks.extend(self._chunk_document(document))
+        if self._legacy_json_path is not None and self._legacy_json_path.exists():
+            try:
+                payload = json.loads(self._legacy_json_path.read_text(encoding="utf-8", errors="replace"))
+                if isinstance(payload, dict):
+                    for key, value in payload.items():
+                        flattened = "\n".join(self._flatten_json(value, key_path=(str(key),))).strip()
+                        if not flattened:
+                            continue
+                        section = str(key).replace("_", " ").strip().title()
+                        chunks.append(
+                            self._chunk_payload(
+                                source=self._relative_source(self._legacy_json_path),
+                                content=flattened,
+                                metadata={"title": section, "section": section, "type": "legacy_json"},
+                            )
+                        )
+            except (OSError, json.JSONDecodeError) as exc:
+                logger.warning("Unable to read legacy JSON knowledge file %s (%s)", self._legacy_json_path, exc)
+                self._last_error = str(exc)
 
-        self._cached_documents = documents
-        self._cached_chunks = chunks
-        self._cached_alias_map = alias_map
-        self._cached_file_fingerprints = fingerprints
-
-        logger.info(
-            "Knowledge load complete. files_loaded=%s docs=%s chunks=%s",
-            len(knowledge_files),
-            len(documents),
-            len(chunks),
-        )
-        return documents, chunks, alias_map
-
-    def _load_chunks(self) -> tuple[list[dict[str, Any]], int | None]:
-        _, chunks, _ = self._load_documents_and_chunks()
-        latest_mtime = max(self._cached_file_fingerprints.values(), default=None)
-        return chunks, latest_mtime
-
-    def _load_markdown(self) -> tuple[str, int | None]:
-        try:
-            stat = self._markdown_path.stat()
-            mtime_ns = stat.st_mtime_ns
-        except OSError as exc:
-            self._last_error = str(exc)
-            return "", None
-
-        if self._cached_markdown and self._cached_markdown_mtime_ns == mtime_ns:
-            return self._cached_markdown, mtime_ns
-
-        try:
-            knowledge_base = self._markdown_path.read_text(encoding="utf-8", errors="replace").strip()
-        except OSError as exc:
-            self._last_error = str(exc)
-            return "", mtime_ns
-
-        self._cached_markdown = knowledge_base
-        self._cached_markdown_mtime_ns = mtime_ns
-        return knowledge_base, mtime_ns
-
-    def _query_prefers_time_sensitive(self, query: str) -> bool:
-        lowered = query.lower()
-        markers = ("latest", "recent", "today", "current", "new", "news", "announcement", "update")
-        return any(marker in lowered for marker in markers)
-
-    def _query_prefers_history(self, query: str) -> bool:
-        lowered = query.lower()
-        markers = (
-            "before",
-            "formerly",
-            "old name",
-            "called before",
-            "previous name",
-            "used to be",
-            "renamed",
-            "history",
-            "historical name",
-            "alias",
-        )
-        return any(marker in lowered for marker in markers)
-
-    def _query_prefers_identity(self, query: str) -> bool:
-        lowered = query.lower().strip()
-        markers = (
-            "what is nemsu",
-            "who is nemsu",
-            "what does nemsu stand for",
-            "define nemsu",
-        )
-        return any(marker in lowered for marker in markers)
-
-    def _query_prefers_leadership(self, query: str) -> bool:
-        lowered = query.lower()
-        markers = (
-            "president",
-            "university president",
-            "head of nemsu",
-            "leader of nemsu",
-            "who leads nemsu",
-        )
-        return any(marker in lowered for marker in markers)
-
-    def _query_prefers_programs(self, query: str) -> bool:
-        lowered = query.lower()
-        markers = (
-            "course",
-            "courses",
-            "program",
-            "programs",
-            "offered",
-            "available",
-            "degree",
-            "degrees",
-            "college offers",
-            "campus offers",
-        )
-        return any(marker in lowered for marker in markers)
+        self._local_chunks_cache = list(chunks)
+        self._local_alias_map = {key: set(value) for key, value in alias_map.items()}
+        return chunks, alias_map
 
     def _expand_query_tokens(self, query: str, alias_map: dict[str, set[str]]) -> tuple[set[str], set[str]]:
         lowered_query = query.lower()
         query_tokens = self._normalize_tokens(query)
         alias_tokens: set[str] = set()
-        for group in alias_map.values():
-            lowered_group = [item.lower() for item in group if item]
-            if any(item and item in lowered_query for item in lowered_group):
-                for item in group:
-                    alias_tokens.update(self._normalize_tokens(item))
+        for canonical, aliases in alias_map.items():
+            group = {canonical, *{alias.lower() for alias in aliases}}
+            if any(alias and alias in lowered_query for alias in group):
+                for alias in aliases:
+                    alias_tokens.update(self._normalize_tokens(alias))
+                alias_tokens.update(self._normalize_tokens(canonical))
         return query_tokens | alias_tokens, alias_tokens
 
     def _query_phrases(self, query: str) -> set[str]:
@@ -685,6 +254,18 @@ class KnowledgeBasePromptService:
                 if len(phrase) >= 5:
                     phrases.add(phrase)
         return phrases
+
+    def _query_prefers_history(self, query: str) -> bool:
+        lowered = query.lower()
+        return any(marker in lowered for marker in ("formerly", "called before", "old name", "previous", "history"))
+
+    def _query_prefers_programs(self, query: str) -> bool:
+        lowered = query.lower()
+        return any(marker in lowered for marker in ("course", "courses", "program", "programs", "offered", "available"))
+
+    def _query_prefers_leadership(self, query: str) -> bool:
+        lowered = query.lower()
+        return any(marker in lowered for marker in ("president", "dean", "director", "registrar"))
 
     def _score_chunk(
         self,
@@ -701,93 +282,69 @@ class KnowledgeBasePromptService:
 
         overlap_ratio = len(query_tokens & token_set) / max(1, len(query_tokens))
         score = overlap_ratio * 10.0
-        body = str(chunk.get("content") or "").lower()
         metadata = chunk.get("metadata") or {}
-        title_tokens = self._normalize_tokens(str(metadata.get("title") or ""))
-        section_tokens = self._normalize_tokens(str(metadata.get("section") or ""))
-        type_tokens = self._normalize_tokens(str(chunk.get("type") or metadata.get("type") or ""))
+        title = str(metadata.get("title") or "").lower()
+        section = str(metadata.get("section") or "").lower()
+        body = str(chunk.get("content") or "").lower()
 
-        score += (len(query_tokens & title_tokens) / max(1, len(query_tokens))) * 4.0
-        score += (len(query_tokens & section_tokens) / max(1, len(query_tokens))) * 2.5
-        score += (len(query_tokens & type_tokens) / max(1, len(query_tokens))) * 1.5
         if alias_tokens:
             score += (len(alias_tokens & token_set) / max(1, len(alias_tokens))) * 4.0
-
+        if query.lower().strip() and query.lower().strip() in body:
+            score += 4.5
         for phrase in query_phrases:
-            if phrase in body:
-                score += 3.5 if len(phrase.split()) >= 3 else 2.0
-
-        lowered_query = query.lower().strip()
-        if lowered_query and lowered_query in body:
-            score += 5.0
-
+            if phrase in body or phrase in title or phrase in section:
+                score += 2.0 if len(phrase.split()) == 2 else 3.5
         if self._query_prefers_history(query):
-            if any(token in body for token in ("formerly", "renamed", "previous name", "current official name", "former official name")):
+            if any(marker in body for marker in ("formerly", "old name", "previous", "renamed", "sdssu", "sspsc", "sspc", "besc")):
                 score += 4.0
-            if "history" in body or "timeline" in body:
-                score += 3.0
-            if str(metadata.get("title") or "").lower() in {"aliases", "name timeline", "entity history", "school info"}:
-                score += 3.0
-            if str(metadata.get("section") or "").lower() in {"history", "institution"}:
-                score += 2.5
-        elif self._query_prefers_leadership(query):
-            if any(
-                token in body
-                for token in (
-                    "current president",
-                    "university president",
-                    "designation: university president",
-                    "dr. nemesio g. loayon",
-                    "nemesio g. loayon",
-                    "op@nemsu.edu.ph",
-                )
-            ):
-                score += 6.0
-            if str(metadata.get("section") or "").lower() in {"history", "directory"}:
-                score += 3.0
-            if "president" in str(metadata.get("section") or "").lower():
-                score += 2.0
-        elif self._query_prefers_identity(query):
-            if any(
-                token in body
-                for token in (
-                    "north eastern mindanao state university",
-                    "stands for",
-                    "abbreviation",
-                    "institution > name",
-                )
-            ):
+        if self._query_prefers_programs(query):
+            if any(marker in body for marker in ("bachelor of", "master of", "doctor of", "program", "course")):
                 score += 4.0
-            if str(metadata.get("title") or "").lower() in {"school info", "aliases"}:
+            if "program" in section or "program" in title:
                 score += 2.0
-            if str(metadata.get("section") or "").lower() == "institution":
+        if self._query_prefers_leadership(query):
+            if any(marker in body for marker in ("president", "dean", "director", "registrar")):
                 score += 4.0
-        elif self._query_prefers_programs(query):
-            if any(
-                token in body
-                for token in (
-                    "what programs does",
-                    "programs:",
-                    "offers graduate and undergraduate programs",
-                    "main_campus_programs",
-                    "campuses > programs",
-                    "college_of_",
-                    "bachelor of science",
-                    "bachelor of",
-                    "master of",
-                    "doctor of",
-                )
-            ):
-                score += 5.0
-            if str(metadata.get("section") or "").lower() in {"main campus programs", "campuses"}:
-                score += 3.0
-            if "program" in str(metadata.get("title") or "").lower() or "program" in str(metadata.get("section") or "").lower():
-                score += 2.5
-        elif self._query_prefers_time_sensitive(query):
-            if any(token in body for token in ("current", "present", "as of", "today")):
-                score += 2.0
-
         return score
+
+    def _search_local_chunks(self, query: str) -> list[dict[str, Any]]:
+        chunks, alias_map = self._load_local_legacy_chunks()
+        if not chunks:
+            self._last_retrieval_summary = "local:no_chunks"
+            return []
+
+        query_tokens, alias_tokens = self._expand_query_tokens(query, alias_map)
+        query_phrases = self._query_phrases(query)
+        ranked: list[dict[str, Any]] = []
+        for chunk in chunks:
+            score = self._score_chunk(
+                chunk,
+                query=query,
+                query_tokens=query_tokens,
+                query_phrases=query_phrases,
+                alias_tokens=alias_tokens,
+            )
+            if score <= 0:
+                continue
+            ranked.append({**chunk, "_retrieval_score": round(score, 4)})
+        ranked.sort(key=lambda item: float(item.get("_retrieval_score", 0.0)), reverse=True)
+        self._last_retrieval_summary = "local:ranked" if ranked else "local:no_match"
+        return ranked[:6]
+
+    def _search_supabase_chunks(self, query: str) -> list[dict[str, Any]]:
+        if not self._uses_supabase() or self._supabase_client is None:
+            return []
+        rows = self._supabase_client.search_chunks(query, limit=6)
+        self._last_retrieval_summary = "supabase:ranked" if rows else "supabase:no_match"
+        return rows
+
+    def _select_relevant_chunks(self, query: str | None) -> list[dict[str, Any]]:
+        query_text = (query or "").strip()
+        if not query_text:
+            return []
+        if self._uses_supabase():
+            return self._search_supabase_chunks(query_text)
+        return self._search_local_chunks(query_text)
 
     def _format_chunk(self, chunk: dict[str, Any], *, max_chars: int) -> str:
         metadata = chunk.get("metadata") or {}
@@ -798,7 +355,7 @@ class KnowledgeBasePromptService:
         section = str(metadata.get("section") or "").strip()
         if section:
             parts.append(f"Section: {section}")
-        chunk_type = str(metadata.get("type") or chunk.get("type") or "").strip()
+        chunk_type = str(metadata.get("type") or "").strip()
         if chunk_type:
             parts.append(f"Type: {chunk_type}")
         date = str(metadata.get("date") or "").strip()
@@ -813,62 +370,13 @@ class KnowledgeBasePromptService:
             body = body[:max_chars].rstrip() + "..."
         return "[" + " | ".join(parts) + "]\n" + body
 
-    def _rank_lexical_chunks(self, query: str | None) -> list[dict[str, Any]]:
-        _, chunks, alias_map = self._load_documents_and_chunks()
-        if not chunks:
-            logger.warning("Knowledge retrieval fallback triggered: no chunks available.")
-            self._last_retrieval_summary = "fallback:no_chunks"
-            return []
-
-        query_text = (query or "").strip()
-        if not query_text:
-            return chunks[: min(3, len(chunks))]
-
-        query_tokens, alias_tokens = self._expand_query_tokens(query_text, alias_map)
-        query_phrases = self._query_phrases(query_text)
-        ranked: list[tuple[float, int, dict[str, Any]]] = []
-        for index, chunk in enumerate(chunks):
-            score = self._score_chunk(
-                chunk,
-                query=query_text,
-                query_tokens=query_tokens,
-                query_phrases=query_phrases,
-                alias_tokens=alias_tokens,
-            )
-            if score <= 0:
-                continue
-            chunk_with_score = {
-                **chunk,
-                "_retrieval_score": round(score, 4),
-            }
-            ranked.append((score, index, chunk_with_score))
-
-        if not ranked:
-            logger.warning("Knowledge retrieval fallback triggered: query=%r had no positive matches.", query_text)
-            self._last_retrieval_summary = "fallback:no_positive_matches"
-            return []
-
-        ranked.sort(key=lambda item: (item[0], -item[1]), reverse=True)
-        logger.info(
-            "Top knowledge matches for query=%r -> %s",
-            query_text,
-            ", ".join(
-                f"{item[2].get('source')} ({item[0]:.2f})"
-                for item in ranked[:_MAX_RETRIEVED_CHUNKS]
-            ),
-        )
-        self._last_retrieval_summary = "ranked"
-        return [chunk for _, _, chunk in ranked[:_MAX_RETRIEVED_CHUNKS]]
-
     def _format_selected_chunks(self, selected: list[dict[str, Any]]) -> str:
         if not selected:
             return ""
-
         budget = max(1200, self._max_knowledge_chars - 96)
         per_chunk_budget = max(500, min(1500, budget // max(1, len(selected))))
         blocks: list[str] = []
         total_chars = 0
-
         for chunk in selected:
             block = self._format_chunk(chunk, max_chars=per_chunk_budget)
             addition = ("\n\n" if blocks else "") + block
@@ -881,44 +389,9 @@ class KnowledgeBasePromptService:
             total_chars += len(addition)
             if total_chars >= budget:
                 break
-
         return "\n\n".join(blocks).strip()
 
-    def _select_relevant_chunks_excerpt(self, query: str | None) -> str:
-        selected = self._rank_lexical_chunks(query)
-        if not selected:
-            return ""
-
-        query_text = (query or "").strip()
-        if not query_text:
-            self._last_retrieval_summary = "fallback:no_query"
-        return self._format_selected_chunks(selected)
-
-    def _select_relevant_excerpt(self, knowledge_base: str, query: str | None) -> str:
-        chunk_excerpt = self._select_relevant_chunks_excerpt(query)
-        if chunk_excerpt:
-            return chunk_excerpt
-
-        trimmed_knowledge_base = knowledge_base.strip()
-        if not trimmed_knowledge_base:
-            return ""
-
-        if len(trimmed_knowledge_base) <= self._max_knowledge_chars:
-            return trimmed_knowledge_base
-
-        excerpt = trimmed_knowledge_base[: self._max_knowledge_chars].rstrip()
-        logger.info("Knowledge retrieval fallback triggered: using markdown excerpt.")
-        return excerpt + "\n\n[Knowledge base truncated for request size safety.]"
-
-    def _build_prompt(
-        self,
-        knowledge_base: str,
-        query: str | None = None,
-        *,
-        retrieved_context: str | None = None,
-    ) -> str:
-        trimmed_knowledge_base = retrieved_context or self._select_relevant_excerpt(knowledge_base, query)
-
+    def _build_prompt(self, retrieved_context: str) -> str:
         return (
             "You are Nemis, the assistant inside the Nemorax app.\n\n"
             "Answer clearly, accurately, and naturally.\n"
@@ -944,65 +417,14 @@ class KnowledgeBasePromptService:
             "- You may still handle greetings, brief clarifications, and natural follow-up conversation tied to your NEMSU help role.\n"
             "- Allowed topics include procedures, admissions, enrollment, offices, contacts, schedules, campuses, facilities, services, directory information, programs, university history, leadership, historical names, aliases, and related institutional information.\n"
             "- Do not answer academic tutoring requests such as solving problems, explaining lessons, doing homework, writing essays, generating code for assignments, or teaching subject matter.\n"
-            "- If the user asks for something clearly outside NEMSU scope, respond politely and redirect them to NEMSU-related help such as programs, campuses, offices, admissions, or history.\n\n"
+            "- If the user asks for something clearly outside NEMSU scope, respond politely and redirect them to NEMSU-related help.\n\n"
             "Source priority:\n"
             "- Use the retrieved knowledge context below first.\n"
             "- Treat the retrieved context as authoritative before any model background knowledge.\n"
             "- If the answer is not stated in the retrieved context, say clearly that it is not available in the current knowledge base.\n"
-            "- Do not hallucinate missing details.\n"
-            "- Do not override provided local KB data with general model knowledge.\n\n"
-            "Answering rules:\n"
-            "1. Base the answer on the provided retrieved context first.\n"
-            "2. If the requested information is not clearly stated in the retrieved context, say you cannot verify it from the current NEMSU data yet.\n"
-            "3. If partial information exists, answer only that part and state the limitation clearly.\n"
-            "4. If the user is probably asking about NEMSU but the data is weak, ask one short clarifying question instead of refusing.\n"
-            "5. Do not invent, guess, or present uncertain information as confirmed fact.\n"
-            "6. If a user asks for academic help or something clearly outside school information, politely redirect them back to NEMSU-related help.\n\n"
+            "- Do not hallucinate missing details.\n\n"
             "RETRIEVED KNOWLEDGE CONTEXT:\n"
-            f"{trimmed_knowledge_base}\n"
-        )
-
-    def _semantic_retrieval_allowed(self) -> bool:
-        service_root = Path(__file__).resolve().parents[4]
-        try:
-            self._markdown_path.resolve().relative_to(service_root.resolve())
-        except ValueError:
-            return False
-        return True
-
-    def _semantic_retrieval_preview(
-        self,
-        *,
-        query: str | None,
-        conversation_history: list[dict[str, str]] | None = None,
-    ) -> dict[str, Any]:
-        if not self._semantic_retrieval_allowed():
-            return {"strategy": "semantic", "chunks": [], "context": "", "max_score": 0.0}
-
-        chunks = retrieve(query or "", conversation_history=conversation_history or [])
-        return {
-            "strategy": "semantic",
-            "chunks": chunks,
-            "context": format_context(chunks),
-            "max_score": max((float(chunk.get("score", 0.0)) for chunk in chunks), default=0.0),
-        }
-
-    def _build_semantic_prompt_from_context(self, context: str) -> str:
-        return (
-            "You are Nemis, the official AI assistant of NEMSU "
-            "(Northeastern Mindanao State University). You answer questions about NEMSU "
-            "clearly and accurately based on the knowledge provided below.\n\n"
-            "IMPORTANT RULES:\n"
-            "- Answer from the provided knowledge context first whenever it contains the answer.\n"
-            "- If the answer is clearly in the context, state it directly and confidently.\n"
-            "- If the context is only partial, answer the verified part and briefly say what remains unclear.\n"
-            "- If the context does not contain enough information, say naturally that you cannot verify it yet from the current NEMSU data and, when helpful, ask one short clarifying question.\n"
-            "- Never make up names, dates, or facts not present in the context.\n"
-            "- Keep answers concise, helpful, and conversational.\n"
-            "- You may use conversation history to resolve follow-up questions.\n"
-            "- Do not use markdown emphasis or asterisks in normal replies.\n\n"
-            "RETRIEVED KNOWLEDGE CONTEXT:\n"
-            f"{context}"
+            f"{retrieved_context}\n"
         )
 
     def preview_retrieval(
@@ -1010,20 +432,14 @@ class KnowledgeBasePromptService:
         query: str | None,
         conversation_history: list[dict[str, str]] | None = None,
     ) -> dict[str, Any]:
+        del conversation_history
         with self._lock:
-            semantic_preview = self._semantic_retrieval_preview(
-                query=query,
-                conversation_history=conversation_history,
-            )
-            if semantic_preview["context"]:
-                return semantic_preview
-
-            lexical_chunks = self._rank_lexical_chunks(query)
+            chunks = self._select_relevant_chunks(query)
             return {
-                "strategy": "lexical" if lexical_chunks else "none",
-                "chunks": lexical_chunks,
-                "context": self._format_selected_chunks(lexical_chunks),
-                "max_score": max((float(chunk.get("_retrieval_score", 0.0)) for chunk in lexical_chunks), default=0.0),
+                "strategy": "supabase" if self._uses_supabase() else ("local" if chunks else "none"),
+                "chunks": chunks,
+                "context": self._format_selected_chunks(chunks),
+                "max_score": max((float(chunk.get("_retrieval_score", 0.0)) for chunk in chunks), default=0.0),
             }
 
     def get_system_prompt(self) -> str:
@@ -1036,44 +452,28 @@ class KnowledgeBasePromptService:
         query: str | None,
         conversation_history: list[dict[str, str]] | None = None,
     ) -> str:
+        del conversation_history
         with self._lock:
-            retrieval_preview = self._semantic_retrieval_preview(
-                query=query,
-                conversation_history=conversation_history,
-            )
-            if retrieval_preview["context"]:
-                return self._build_semantic_prompt_from_context(retrieval_preview["context"])
-            knowledge_base, _ = self._load_markdown()
-            self._last_error = ""
-            lexical_context = self._format_selected_chunks(self._rank_lexical_chunks(query))
-            return self._build_prompt(knowledge_base, query, retrieved_context=lexical_context)
+            chunks = self._select_relevant_chunks(query)
+            return self._build_prompt(self._format_selected_chunks(chunks))
 
     def health(self) -> dict[str, str | bool | None | int]:
-        rag_status = rag_health()
-        try:
-            markdown_available = self._markdown_path.exists() and bool(
-                self._markdown_path.read_text(encoding="utf-8", errors="replace").strip()
-            )
-        except OSError as exc:
-            markdown_available = False
-            if not self._last_error:
-                self._last_error = str(exc)
-
-        chunks, _ = self._load_chunks()
-        documents = self._cached_documents
-        scanned_files = len(self._cached_file_fingerprints)
-        chunks_available = bool(chunks)
-
-        prompt = self.get_system_prompt()
+        chunk_count = 0
+        detail: str | None = self._last_error or None
+        if self._uses_supabase() and self._supabase_client is not None:
+            status = self._supabase_client.health()
+            chunk_count = int(status.get("chunk_count", 0) or 0)
+            detail = str(status.get("detail") or detail or "") or None
+            available = bool(status.get("available"))
+            source_path = str(status.get("source_path") or "supabase://kb_chunks")
+        else:
+            local_chunks, _ = self._load_local_legacy_chunks()
+            chunk_count = len(local_chunks)
+            available = bool(local_chunks) or bool(self._markdown_path and self._markdown_path.exists())
+            source_path = str(self._chunks_path or self._markdown_path or "legacy://kb_unconfigured")
         return {
-            "available": bool(rag_status.get("available")) or markdown_available or chunks_available,
-            "source_path": str(rag_status.get("source_path") or self._chunks_path or self._markdown_path),
-            "markdown_path": str(self._markdown_path),
-            "chunks_path": str(self._chunks_path) if self._chunks_path else None,
-            "markdown_available": markdown_available,
-            "chunks_available": chunks_available,
-            "documents_loaded": len(documents),
-            "files_scanned": scanned_files,
-            "chunk_count": len(chunks),
-            "detail": rag_status.get("detail") or self._last_error or (None if prompt else "Prompt is empty."),
+            "available": available,
+            "source_path": source_path,
+            "detail": detail,
+            "chunk_count": chunk_count,
         }

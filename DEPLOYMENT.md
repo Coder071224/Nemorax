@@ -9,7 +9,7 @@
 
 ## Persistence
 
-Persistent app data now lives in Supabase. Apply the SQL in `supabase/migrations/202604140001_app_persistence.sql` before deploying the backend, and use `python -m nemorax.backend.migrate_legacy_storage --root data` if you need to import legacy JSON data.
+Persistent app data and KB runtime data now live in Supabase. Apply both SQL migrations in `supabase/migrations/` before deploying the backend, then run the import scripts if you need to migrate legacy local data.
 
 ## 1. Push code to GitHub
 
@@ -42,7 +42,7 @@ Review and keep:
 - `LLM_FALLBACK_MODEL=llama-3.1-8b-instant`
 - `LLM_BASE_URL=https://api.groq.com/openai/v1`
 - `LLM_PROMPT_KNOWLEDGE_CHARS=6000`
-- `NEMORAX_KB_SOURCE=supabase` or `hybrid`
+- `NEMORAX_KB_SOURCE=supabase`
 
 ## 4. Test the live API
 

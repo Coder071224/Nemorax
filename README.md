@@ -35,7 +35,7 @@ NEMORAXS/
 - `backend/api/`: FastAPI app factory, dependencies, and route modules.
 - `backend/core/`: settings, logging, and application error types.
 - `backend/llm/`: provider interface plus concrete adapters for Groq and other OpenAI-compatible backends.
-- `backend/repositories/`: Supabase-backed persistence for users, chat history, and feedback.
+- `backend/repositories/`: Supabase-backed persistence for users, chat history, feedback, and KB access.
 - `backend/services/`: business logic for auth, chat, prompt construction, history, and feedback.
 
 The rest of the app talks to `ChatService`, not directly to a specific model vendor. Provider selection is controlled by environment variables.
@@ -152,4 +152,6 @@ python -m unittest discover -s tests -v
 - Production backend entrypoint is `nemorax.backend.main:app`.
 - Keep secrets in environment variables, not in source files.
 - Set `CORS_ORIGINS` explicitly in production.
-- Persistent app data is stored in Supabase. Legacy JSON data can be imported with `python -m nemorax.backend.migrate_legacy_storage --root data`.
+- Persistent app data and runtime KB data are stored in Supabase.
+- Legacy app JSON can be imported with `python -m nemorax.backend.migrate_legacy_storage --root data`.
+- Legacy KB artifacts can be imported with `python -m nemorax.backend.migrate_kb_to_supabase --kb-root kb --data-root data`.
