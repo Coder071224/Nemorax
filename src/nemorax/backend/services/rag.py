@@ -91,8 +91,21 @@ _model: Any = None
 _client: Any = None
 _collection: Any = None
 _last_error = ""
+_rag_disabled = False
 
 IS_ANDROID = hasattr(sys, "getandroidapilevel")
+
+
+def _disable_semantic_rag(reason: str, *, exc: Exception | None = None) -> None:
+    global _rag_disabled, _last_error, _client, _collection
+    _rag_disabled = True
+    _last_error = reason
+    _client = None
+    _collection = None
+    if exc is None:
+        logger.warning("[RAG] Semantic retrieval disabled: %s", reason)
+    else:
+        logger.error("[RAG] Semantic retrieval disabled: %s", reason, exc_info=exc)
 
 
 def _normalize(text: str) -> str:
@@ -145,11 +158,17 @@ def _load_model() -> Any:
 
 def _load_collection(*, reset: bool = False) -> Any:
     global _client, _collection
+    if _rag_disabled:
+        raise RuntimeError(_last_error or "Semantic retrieval is disabled.")
     import chromadb
 
     _CHROMA_PATH.mkdir(parents=True, exist_ok=True)
     if _client is None:
-        _client = chromadb.PersistentClient(path=str(_CHROMA_PATH))
+        try:
+            _client = chromadb.PersistentClient(path=str(_CHROMA_PATH))
+        except Exception as exc:
+            _disable_semantic_rag(f"ChromaDB initialization failed at {_CHROMA_PATH}", exc=exc)
+            raise RuntimeError(_last_error) from exc
     if reset:
         try:
             _client.delete_collection(_COLLECTION_NAME)
@@ -397,7 +416,7 @@ def _chunk(text: str, *, source: str, section: str) -> list[dict[str, Any]]:
 
 def build_index(force: bool = False) -> None:
     global _last_error
-    if IS_ANDROID:
+    if IS_ANDROID or _rag_disabled:
         logger.info("[RAG] Android environment detected. Skipping local vector index.")
         return
 
@@ -421,8 +440,7 @@ def build_index(force: bool = False) -> None:
         logger.error("[RAG] Missing dependency: %s — run: pip install chromadb sentence-transformers", exc)
         return
     except Exception as exc:
-        _last_error = str(exc)
-        logger.error("[RAG] Failed to initialize ChromaDB: %s", exc, exc_info=True)
+        _disable_semantic_rag(str(exc), exc=exc)
         return
 
     if not force and current_count > 0 and state.get("fingerprint") == fingerprint:
@@ -437,8 +455,7 @@ def build_index(force: bool = False) -> None:
         logger.error("[RAG] Missing dependency: %s — run: pip install chromadb sentence-transformers", exc)
         return
     except Exception as exc:
-        _last_error = str(exc)
-        logger.error("[RAG] Failed to prepare semantic index: %s", exc, exc_info=True)
+        _disable_semantic_rag(str(exc), exc=exc)
         return
 
     all_chunks: list[dict[str, Any]] = []
@@ -494,7 +511,7 @@ def build_index(force: bool = False) -> None:
 
 def retrieve(query: str, conversation_history: list[dict[str, str]] | None = None, top_k: int = _TOP_K) -> list[dict[str, Any]]:
     global _last_error
-    if IS_ANDROID or not query or not query.strip():
+    if IS_ANDROID or _rag_disabled or not query or not query.strip():
         return []
 
     try:
@@ -511,8 +528,7 @@ def retrieve(query: str, conversation_history: list[dict[str, str]] | None = Non
         logger.error("[RAG] Missing dependency during retrieval: %s", exc)
         return []
     except Exception as exc:
-        _last_error = str(exc)
-        logger.error("[RAG] Retrieval initialization failed: %s", exc, exc_info=True)
+        _disable_semantic_rag(str(exc), exc=exc)
         return []
 
     history_bits = [
@@ -549,8 +565,7 @@ def retrieve(query: str, conversation_history: list[dict[str, str]] | None = Non
             include=["documents", "metadatas", "distances"],
         )
     except Exception as exc:
-        _last_error = str(exc)
-        logger.error("[RAG] Retrieval failed: %s", exc, exc_info=True)
+        _disable_semantic_rag(str(exc), exc=exc)
         return []
 
     documents = results.get("documents") or [[]]
@@ -637,6 +652,13 @@ def format_context(chunks: list[dict[str, Any]]) -> str:
 
 
 def health() -> dict[str, Any]:
+    if _rag_disabled:
+        return {
+            "available": any(path.exists() for path in _KB_DIRS),
+            "source_path": str(_CHROMA_PATH),
+            "detail": _last_error or "Semantic retrieval is disabled.",
+            "chunk_count": 0,
+        }
     try:
         count = _load_collection().count()
     except ImportError as exc:
