@@ -12,7 +12,7 @@ from typing import Any
 import flet as ft
 
 from nemorax.frontend import api_client
-from nemorax.frontend.config import current_theme
+from nemorax.frontend.config import current_theme, normalize_user_settings
 
 
 RECOVERY_QUESTIONS = [
@@ -70,9 +70,22 @@ class AccountDialog:
         self._login_password_value = ""
         self._login_locked = False
         self._login_loading = False
+        self._register_loading = False
+        self._forgot_email_loading = False
+        self._forgot_answers_loading = False
+        self._forgot_reset_loading = False
+
+        self._register_email_value = ""
+        self._register_password_value = ""
+        self._register_confirm_value = ""
+        self._register_recovery_values: dict[str, str] = {}
 
         self._fp_email = ""
         self._fp_questions: list[str] = []
+        self._forgot_email_value = ""
+        self._forgot_answers_values: dict[str, str] = {}
+        self._forgot_reset_password_value = ""
+        self._forgot_reset_confirm_value = ""
         self._display_name_value = self._normalize_display_name(
             current_user.get("display_name") if current_user else None
         )
@@ -133,6 +146,7 @@ class AccountDialog:
     def _show_history_info_dialog(self) -> None:
         theme = current_theme()
         dialog: ft.AlertDialog | None = None
+        page_width, _ = self._page_size()
 
         def close(e=None) -> None:
             self._close_dialog(dialog)
@@ -146,7 +160,7 @@ class AccountDialog:
                 weight=ft.FontWeight.W_800,
             ),
             content=ft.Container(
-                width=360,
+                width=min(page_width - 24, 360),
                 padding=ft.Padding.all(4),
                 content=ft.Column(
                     spacing=12,
@@ -229,11 +243,12 @@ class AccountDialog:
             self._safe_update(self._display_name_remove_ref.current)
 
     def _apply_profile(self, profile: UserInfo, *, notify_parent: bool) -> None:
+        previous_snapshot = self._user_snapshot(self._current_user)
         self._current_user = profile
         self._view = self._VIEW_LOGGED_IN
         self._display_name_value = self._normalize_display_name(profile.get("display_name"))
         self._saved_display_name_value = self._display_name_value
-        if notify_parent:
+        if notify_parent and self._user_snapshot(profile) != previous_snapshot:
             self._on_user_update(profile)
 
     def _load_user_profile(self) -> None:
@@ -258,6 +273,9 @@ class AccountDialog:
         self._run_in_thread(_worker)
 
     def _save_display_name(self, display_name: str | None, *, removed: bool = False) -> None:
+        if self._display_name_saving:
+            return
+
         user_id = str((self._current_user or {}).get("user_id", "")).strip()
         if not user_id:
             self._set_error("Unable to update nickname right now.")
@@ -307,11 +325,21 @@ class AccountDialog:
         self._error_text = ""
         self._refresh_content()
 
+    def _user_snapshot(self, user: UserInfo | None) -> tuple[str, str, str, tuple[tuple[str, Any], ...]]:
+        if not isinstance(user, dict):
+            return ("", "", "", ())
+
+        user_id = str(user.get("user_id", "")).strip()
+        email = str(user.get("email", "")).strip()
+        display_name = str(user.get("display_name", "") or "").strip()
+        settings = tuple(sorted(normalize_user_settings(user).items()))
+        return (user_id, email, display_name, settings)
+
     def _refresh_content(self) -> None:
         if self._content_ref.current is None:
             return
 
-        self._content_ref.current.content = self._build_view()
+        self._content_ref.current.content = self._build_content_host()
         self._safe_update(self._content_ref.current)
 
     def _page_size(self) -> tuple[float, float]:
@@ -328,9 +356,12 @@ class AccountDialog:
     def _build_overlay(self) -> ft.Container:
         theme = current_theme()
         page_width, page_height = self._page_size()
+        panel_padding = 18 if self._is_mobile else _PANEL_PADDING
+        panel_height = min(page_height - (8 if self._is_mobile else 40), 760)
 
         panel = ft.Container(
             width=self._panel_width(page_width),
+            height=panel_height,
             bgcolor=theme.dialog_bg,
             border_radius=self._panel_radius(),
             border=ft.Border.all(1, ft.Colors.with_opacity(0.20, theme.border)),
@@ -339,8 +370,8 @@ class AccountDialog:
                 color=ft.Colors.with_opacity(0.38, theme.shadow),
                 offset=ft.Offset(0, -6 if self._is_mobile else 12),
             ),
-            padding=ft.Padding.all(_PANEL_PADDING),
-            content=ft.Container(ref=self._content_ref, content=self._build_view()),
+            padding=ft.Padding.all(panel_padding),
+            content=ft.Container(ref=self._content_ref, expand=True, content=self._build_content_host()),
         )
 
         return ft.Container(
@@ -351,6 +382,14 @@ class AccountDialog:
             on_click=self._close,
             alignment=ft.Alignment(0, 1 if self._is_mobile else 0),
             content=ft.GestureDetector(on_tap=lambda _: None, content=panel),
+        )
+
+    def _build_content_host(self) -> ft.Control:
+        return ft.Column(
+            expand=True,
+            spacing=0,
+            scroll=ft.ScrollMode.AUTO,
+            controls=[self._build_view()],
         )
 
     def _build_view(self) -> ft.Control:
@@ -738,9 +777,27 @@ class AccountDialog:
 
     def _view_register(self) -> ft.Control:
         theme = current_theme()
-        email_field = self._field("Email address")
-        password_field = self._field("Password (min 6 chars)", password=True)
-        confirm_field = self._field("Confirm password", password=True)
+        loading = self._register_loading
+        email_field = self._field(
+            "Email address",
+            value=self._register_email_value,
+            disabled=loading,
+            on_change=lambda e: setattr(self, "_register_email_value", (e.control.value or "").strip()),
+        )
+        password_field = self._field(
+            "Password (min 6 chars)",
+            password=True,
+            value=self._register_password_value,
+            disabled=loading,
+            on_change=lambda e: setattr(self, "_register_password_value", e.control.value or ""),
+        )
+        confirm_field = self._field(
+            "Confirm password",
+            password=True,
+            value=self._register_confirm_value,
+            disabled=loading,
+            on_change=lambda e: setattr(self, "_register_confirm_value", e.control.value or ""),
+        )
 
         recovery_fields: dict[str, ft.TextField] = {}
         recovery_controls: list[ft.Control] = []
@@ -750,7 +807,12 @@ class AccountDialog:
                 f"Your {question} "
                 f"{'(required)' if index < REQUIRED_RECOVERY else '(optional)'}"
             )
-            field = self._field(hint)
+            field = self._field(
+                hint,
+                value=self._register_recovery_values.get(question, ""),
+                disabled=loading,
+                on_change=lambda e, q=question: self._register_recovery_values.__setitem__(q, e.control.value or ""),
+            )
             recovery_fields[question] = field
             recovery_controls.extend(
                 [
@@ -766,9 +828,15 @@ class AccountDialog:
             )
 
         def submit(e=None) -> None:
+            if self._register_loading:
+                return
+
             email = (email_field.value or "").strip()
             password = (password_field.value or "").strip()
             confirm = (confirm_field.value or "").strip()
+            self._register_email_value = email
+            self._register_password_value = password
+            self._register_confirm_value = confirm
 
             if not email or not password or not confirm:
                 self._set_error("Please fill in email and password fields.")
@@ -789,13 +857,23 @@ class AccountDialog:
                 )
                 return
 
+            self._register_loading = True
+            self._error_text = ""
+            self._success_text = ""
+            self._refresh_content()
+
             def _worker() -> None:
                 ok, message = api_client.auth_register(email, password, answers)
 
                 def _apply() -> None:
+                    self._register_loading = False
                     if ok:
                         self._login_email_value = email
                         self._login_password_value = ""
+                        self._register_email_value = ""
+                        self._register_password_value = ""
+                        self._register_confirm_value = ""
+                        self._register_recovery_values = {}
                         self._navigate(self._VIEW_LOGIN)
                         self._set_success("Account created. You can now log in.")
                         return
@@ -834,7 +912,7 @@ class AccountDialog:
                 *recovery_controls,
                 self._feedback_row(),
                 ft.Container(height=12),
-                self._primary_btn("Create Account", submit),
+                self._primary_btn("Creating..." if loading else "Create Account", submit, disabled=loading),
                 ft.Container(height=10),
                 ft.Row(
                     controls=[
@@ -852,23 +930,41 @@ class AccountDialog:
         )
 
     def _view_forgot_email(self) -> ft.Control:
-        email_field = self._field("Enter your account email")
+        loading = self._forgot_email_loading
+        email_field = self._field(
+            "Enter your account email",
+            value=self._forgot_email_value,
+            disabled=loading,
+            on_change=lambda e: setattr(self, "_forgot_email_value", (e.control.value or "").strip()),
+        )
 
         def next_step(e=None) -> None:
+            if self._forgot_email_loading:
+                return
+
             email = (email_field.value or "").strip()
+            self._forgot_email_value = email
             if not email:
                 self._set_error("Please enter your email address.")
                 return
+
+            self._forgot_email_loading = True
+            self._error_text = ""
+            self._success_text = ""
+            self._refresh_content()
 
             def _worker() -> None:
                 questions, error = api_client.auth_get_recovery_questions(email)
 
                 def _apply_error() -> None:
+                    self._forgot_email_loading = False
                     self._set_error(error or "No account found for this email.")
 
                 def _apply_success() -> None:
+                    self._forgot_email_loading = False
                     self._fp_email = email
                     self._fp_questions = questions
+                    self._forgot_answers_values = {}
                     self._navigate(self._VIEW_FORGOT_ANSWERS)
 
                 self._run_on_ui(_apply_success if questions else _apply_error)
@@ -886,7 +982,7 @@ class AccountDialog:
                 ft.Container(height=4),
                 self._feedback_row(),
                 ft.Container(height=12),
-                self._primary_btn("Continue", next_step),
+                self._primary_btn("Checking..." if loading else "Continue", next_step, disabled=loading),
             ],
             spacing=0,
             tight=True,
@@ -894,11 +990,17 @@ class AccountDialog:
 
     def _view_forgot_answers(self) -> ft.Control:
         theme = current_theme()
+        loading = self._forgot_answers_loading
         answer_fields: dict[str, ft.TextField] = {}
         field_controls: list[ft.Control] = []
 
         for question in self._fp_questions:
-            field = self._field(f"Your {question}")
+            field = self._field(
+                f"Your {question}",
+                value=self._forgot_answers_values.get(question, ""),
+                disabled=loading,
+                on_change=lambda e, q=question: self._forgot_answers_values.__setitem__(q, e.control.value or ""),
+            )
             answer_fields[question] = field
             field_controls.extend(
                 [
@@ -914,18 +1016,28 @@ class AccountDialog:
             )
 
         def verify(e=None) -> None:
+            if self._forgot_answers_loading:
+                return
+
             answers = {
                 question: (field.value or "").strip()
                 for question, field in answer_fields.items()
             }
+            self._forgot_answers_values = dict(answers)
             if sum(1 for value in answers.values() if value) < REQUIRED_RECOVERY:
                 self._set_error(f"Please answer at least {REQUIRED_RECOVERY} questions.")
                 return
+
+            self._forgot_answers_loading = True
+            self._error_text = ""
+            self._success_text = ""
+            self._refresh_content()
 
             def _worker() -> None:
                 ok, message = api_client.auth_verify_recovery(self._fp_email, answers)
 
                 def _apply() -> None:
+                    self._forgot_answers_loading = False
                     if ok:
                         self._navigate(self._VIEW_FORGOT_RESET)
                     else:
@@ -945,7 +1057,11 @@ class AccountDialog:
                 *field_controls,
                 self._feedback_row(),
                 ft.Container(height=12),
-                self._primary_btn("Verify Answers", verify),
+                self._primary_btn(
+                    "Verifying..." if loading else "Verify Answers",
+                    verify,
+                    disabled=loading,
+                ),
             ],
             spacing=0,
             tight=True,
@@ -954,12 +1070,30 @@ class AccountDialog:
         )
 
     def _view_forgot_reset(self) -> ft.Control:
-        new_password_field = self._field("New password (min 6 chars)", password=True)
-        confirm_field = self._field("Confirm new password", password=True)
+        loading = self._forgot_reset_loading
+        new_password_field = self._field(
+            "New password (min 6 chars)",
+            password=True,
+            value=self._forgot_reset_password_value,
+            disabled=loading,
+            on_change=lambda e: setattr(self, "_forgot_reset_password_value", e.control.value or ""),
+        )
+        confirm_field = self._field(
+            "Confirm new password",
+            password=True,
+            value=self._forgot_reset_confirm_value,
+            disabled=loading,
+            on_change=lambda e: setattr(self, "_forgot_reset_confirm_value", e.control.value or ""),
+        )
 
         def reset(e=None) -> None:
+            if self._forgot_reset_loading:
+                return
+
             password = (new_password_field.value or "").strip()
             confirm = (confirm_field.value or "").strip()
+            self._forgot_reset_password_value = password
+            self._forgot_reset_confirm_value = confirm
 
             if not password or not confirm:
                 self._set_error("Please fill in both fields.")
@@ -969,12 +1103,21 @@ class AccountDialog:
                 self._set_error("Passwords do not match.")
                 return
 
+            self._forgot_reset_loading = True
+            self._error_text = ""
+            self._success_text = ""
+            self._refresh_content()
+
             def _worker() -> None:
                 ok, message = api_client.auth_reset_password(self._fp_email, password)
 
                 def _apply() -> None:
+                    self._forgot_reset_loading = False
                     if ok:
                         self._login_email_value = self._fp_email
+                        self._forgot_reset_password_value = ""
+                        self._forgot_reset_confirm_value = ""
+                        self._forgot_answers_values = {}
                         self._navigate(self._VIEW_LOGIN)
                         self._set_success("Password reset! You can now log in.")
                     else:
@@ -997,7 +1140,11 @@ class AccountDialog:
                 ft.Container(height=4),
                 self._feedback_row(),
                 ft.Container(height=12),
-                self._primary_btn("Reset Password", reset),
+                self._primary_btn(
+                    "Resetting..." if loading else "Reset Password",
+                    reset,
+                    disabled=loading,
+                ),
             ],
             spacing=0,
             tight=True,

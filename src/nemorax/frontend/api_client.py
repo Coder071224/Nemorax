@@ -7,7 +7,7 @@ from typing import Any, Callable
 
 import httpx
 
-from nemorax.frontend.config import BACKEND_URL
+from nemorax.frontend.config import get_api_base_url, normalize_user_settings
 
 
 JsonDict = dict[str, Any]
@@ -16,31 +16,87 @@ _TIMEOUT = httpx.Timeout(connect=5.0, read=180.0, write=30.0, pool=5.0)
 
 
 class ApiClientError(Exception):
-    def __init__(self, message: str, *, status_code: int | None = None) -> None:
+    def __init__(
+        self,
+        message: str,
+        *,
+        status_code: int | None = None,
+        code: str | None = None,
+        details: Any | None = None,
+    ) -> None:
         super().__init__(message)
         self.status_code = status_code
+        self.code = code
+        self.details = details
 
 
 def _sanitize_reply_text(text: str) -> str:
     cleaned = (text or "").replace("**", "").replace("*", "")
+    cleaned = cleaned.replace("RETRIEVED KNOWLEDGE CONTEXT:", "")
+    cleaned = cleaned.replace("Retrieved knowledge context for this reply. Use it as the primary factual reference.", "")
     return cleaned.strip()
 
 
 def _client() -> httpx.Client:
-    return httpx.Client(base_url=BACKEND_URL.rstrip("/"), timeout=_TIMEOUT)
+    api_base_url = get_api_base_url()
+    if not api_base_url:
+        raise ApiClientError("Backend API URL is not configured. Set NEMORAX_API_URL for this frontend runtime.")
+    return httpx.Client(base_url=api_base_url.rstrip("/"), timeout=_TIMEOUT)
 
 
-def _read_http_error_detail(response: httpx.Response, default_message: str) -> str:
+def _friendly_error_message(
+    *,
+    status_code: int | None,
+    message: str,
+    code: str | None = None,
+) -> str:
+    if status_code in {500, 502, 503}:
+        return "The service is temporarily unavailable. Please try again."
+    if status_code == 401:
+        return message or "Authentication failed."
+    if status_code == 403:
+        return message or "You do not have permission to do that."
+    if status_code == 404:
+        return message or "The requested item was not found."
+    if status_code == 422:
+        return message or "The request is invalid."
+    if status_code == 429 or code == "rate_limit_error":
+        return message or "Too many requests right now. Please try again shortly."
+    return message or f"Backend error {status_code}."
+
+
+def _read_http_error_payload(response: httpx.Response, default_message: str) -> tuple[str, str | None, Any | None]:
     try:
         payload = response.json()
     except ValueError:
-        return default_message
+        return default_message, None, None
 
     if isinstance(payload, dict):
+        error = payload.get("error")
+        if isinstance(error, dict):
+            message = error.get("message")
+            code = error.get("code")
+            details = error.get("details")
+            if isinstance(message, str) and message.strip():
+                return message.strip(), str(code).strip() or None, details
         detail = payload.get("detail")
         if isinstance(detail, str) and detail.strip():
-            return detail.strip()
-    return default_message
+            return detail.strip(), None, None
+    return default_message, None, None
+
+
+def _unwrap_api_payload(payload: JsonValue, *, path: str) -> JsonValue:
+    if not isinstance(payload, dict):
+        raise ApiClientError(f"Invalid backend response for {path}: expected a JSON object envelope.")
+    ok = payload.get("ok")
+    if ok is not True:
+        error = payload.get("error")
+        if isinstance(error, dict):
+            message = str(error.get("message") or "").strip() or "Request failed."
+            code = str(error.get("code") or "").strip() or None
+            raise ApiClientError(message, code=code, details=error.get("details"))
+        raise ApiClientError(f"Invalid backend response for {path}: missing success envelope.")
+    return payload.get("data")
 
 
 def _request(
@@ -54,12 +110,15 @@ def _request(
         with _client() as client:
             response = client.request(method, path, json=payload, params=params)
             response.raise_for_status()
-            return response.json()
+            return _unwrap_api_payload(response.json(), path=path)
     except httpx.HTTPStatusError as exc:
         default_message = f"Backend error {exc.response.status_code}."
+        message, code, details = _read_http_error_payload(exc.response, default_message)
         raise ApiClientError(
-            _read_http_error_detail(exc.response, default_message),
+            _friendly_error_message(status_code=exc.response.status_code, message=message, code=code),
             status_code=exc.response.status_code,
+            code=code,
+            details=details,
         ) from exc
     except httpx.RequestError as exc:
         raise ApiClientError(
@@ -92,18 +151,12 @@ def check_health() -> JsonDict:
 
 
 def _normalize_public_user(result: JsonDict) -> JsonDict:
-    settings = result.get("settings", {})
     display_name = result.get("display_name")
-    normalized_settings: JsonDict = {}
-    if isinstance(settings, dict):
-        theme = settings.get("theme")
-        if isinstance(theme, str) and theme.strip():
-            normalized_settings["theme"] = theme.strip()
     return {
         "user_id": str(result.get("user_id", "") or ""),
         "email": str(result.get("email", "") or ""),
         "display_name": display_name.strip() if isinstance(display_name, str) and display_name.strip() else None,
-        "settings": normalized_settings,
+        "settings": normalize_user_settings(result),
     }
 
 
@@ -126,9 +179,9 @@ def send_message(
             else:
                 on_response("No reply received.")
         except ApiClientError as exc:
-            on_error(f"Warning: {exc}")
+            on_error(str(exc))
         except Exception as exc:  # pragma: no cover - defensive fallback
-            on_error(f"Unexpected error: {exc}")
+            on_error(f"Unexpected error while sending the message: {exc}")
 
     threading.Thread(target=_worker, daemon=True).start()
 
@@ -151,10 +204,10 @@ def load_conversation(session_id: str, user_id: str) -> JsonDict | None:
 
 def delete_conversation(session_id: str, user_id: str) -> bool:
     try:
-        _delete(f"/api/history/{session_id}", params={"user_id": user_id})
+        result = _request("DELETE", f"/api/history/{session_id}", params={"user_id": user_id})
     except ApiClientError:
         return False
-    return True
+    return isinstance(result, dict) and str(result.get("session_id", "")).strip() == session_id
 
 
 def submit_feedback(
@@ -186,15 +239,17 @@ def load_user_settings(user_id: str) -> JsonDict:
         result = _get(f"/api/settings/{user_id}")
     except ApiClientError:
         return {}
-    return result if isinstance(result, dict) else {}
+    if not isinstance(result, dict):
+        return {}
+    return normalize_user_settings(result.get("settings"))
 
 
 def save_user_settings(user_id: str, settings: JsonDict) -> bool:
     try:
-        _post(f"/api/settings/{user_id}", settings)
+        result = _post(f"/api/settings/{user_id}", settings)
     except ApiClientError:
         return False
-    return True
+    return isinstance(result.get("settings"), dict)
 
 
 def load_user_profile(user_id: str) -> JsonDict | None:

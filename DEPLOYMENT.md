@@ -1,137 +1,204 @@
 # Nemorax Deployment Guide
 
-## Current readiness
+This repo uses a static frontend on Vercel and persistent Python services on Oracle Cloud Always Free.
 
-- Local backend tests pass.
-- Groq is the active provider with a fallback model.
-- The public website can be bundled for static hosting.
-- GitHub Actions workflows are included for CI, website deploy, and release builds.
+## Target production topology
 
-## Persistence
+- `website/` -> Vercel static site
+- FastAPI backend -> Oracle Cloud Always Free VM as a persistent `systemd` service
+- Optional Flet browser app -> same Oracle VM as a persistent `systemd` service behind Nginx
 
-Persistent app data and KB runtime data now live in Supabase. Apply both SQL migrations in `supabase/migrations/` before deploying the backend, then run the import scripts if you need to migrate legacy local data.
+This is the safest migration path because:
 
-## 1. Push code to GitHub
+- Vercel serves the static website for free without sleeping
+- Oracle Always Free can keep the Python backend online continuously
+- The Flet web app keeps its existing behavior on Oracle instead of being forced into an incompatible serverless host
 
-1. Initialize Git locally if this folder is not yet a repository.
-2. Create a GitHub repository.
-3. Push the project to the default branch, ideally `main`.
+## Files added for the new deployment
 
-## 2. Deploy the FastAPI backend
+- `website/vercel.json`
+- `deploy/oracle/backend/nemorax-backend.service`
+- `deploy/oracle/frontend/nemorax-web.service`
+- `deploy/oracle/env/backend.env.example`
+- `deploy/oracle/env/web.env.example`
+- `deploy/oracle/nginx/nemorax.conf`
 
-Recommended free-first path: Render.
+## Legacy deployment files removed
 
-- `render.yaml` is included.
-- Backend entrypoint is `python -m uvicorn nemorax.backend.main:app --app-dir src --host 0.0.0.0 --port $PORT`
-- Health check path is `/api/health`
+- `.github/workflows/website-pages.yml`
 
-## 3. Add production environment variables
+## Production domains
 
-Set these in the Render service:
+Use three explicit origins:
 
-- `BACKEND_URL`
-- `CORS_ORIGINS`
-- `LLM_API_KEY`
+- `https://nemorax.vercel.app` or your Vercel custom domain for the public website
+- `https://api.nemorax.example.com` for FastAPI
+- `https://app.nemorax.example.com` for the browser-based Flet app if you want web access to the full app
+
+## 1. Prepare Supabase
+
+Apply the migrations in `supabase/migrations/` before deploying the backend.
+
+If you need to migrate older local data:
+
+```bash
+python -m nemorax.backend.migrate_legacy_storage --root data
+python -m nemorax.backend.migrate_kb_to_supabase --kb-root kb --data-root data
+```
+
+## 2. Provision the Oracle Cloud Always Free VM
+
+Recommended baseline:
+
+- Ubuntu 24.04
+- 1 public IP
+- ports `80` and `443` open in the Oracle security list
+
+Install runtime packages:
+
+```bash
+sudo apt update
+sudo apt install -y python3 python3-venv nginx
+```
+
+Clone the repo and install dependencies:
+
+```bash
+sudo mkdir -p /opt/nemorax
+sudo chown $USER:$USER /opt/nemorax
+git clone https://github.com/<your-account>/<your-repo>.git /opt/nemorax/NEMORAXS
+cd /opt/nemorax/NEMORAXS
+python3 -m venv .venv
+. .venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+## 3. Create backend and web env files on Oracle
+
+Backend:
+
+```bash
+sudo mkdir -p /etc/nemorax
+sudo cp deploy/oracle/env/backend.env.example /etc/nemorax/backend.env
+sudo nano /etc/nemorax/backend.env
+```
+
+Required backend values:
+
+- `NEMORAX_ENV=production`
+- `NEMORAX_API_URL=https://api.nemorax.example.com`
+- `CORS_ORIGINS=https://nemorax.vercel.app,https://app.nemorax.example.com`
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
+- `LLM_API_KEY`
 
-Review and keep:
-
-- `LLM_PROVIDER=groq`
-- `LLM_MODEL=openai/gpt-oss-120b`
-- `LLM_FALLBACK_MODEL=llama-3.1-8b-instant`
-- `LLM_BASE_URL=https://api.groq.com/openai/v1`
-- `LLM_PROMPT_KNOWLEDGE_CHARS=6000`
-- `NEMORAX_KB_SOURCE=supabase`
-
-## 4. Test the live API
-
-Check health:
+Optional browser app env:
 
 ```bash
-curl https://your-backend-domain/api/health
+sudo cp deploy/oracle/env/web.env.example /etc/nemorax/web.env
+sudo nano /etc/nemorax/web.env
 ```
 
-Expected:
+Keep:
 
-- status is `ok`
-- provider name is `groq`
-- provider is configured
+- `NEMORAX_API_URL=https://api.nemorax.example.com`
+- `FLET_SERVER_IP=127.0.0.1`
+- `FLET_SERVER_PORT=8550`
 
-Use a very small chat prompt for first live validation to avoid unnecessary Groq usage.
-
-## 5. Deploy the website / download portal
-
-Recommended path: GitHub Pages.
-
-- Workflow: `.github/workflows/website-pages.yml`
-- The workflow publishes `website/`
-
-## 6. Deploy the Flet web frontend
-
-Recommended free-first path: Render as a second web service.
-
-- `render.yaml` now includes `nemorax-web`
-- frontend entrypoint is `python serve_web.py`
-- expected URL is `https://nemorax-web.onrender.com`
-
-After creating or syncing the Blueprint:
-
-- confirm the `nemorax-web` service is created
-- keep `BACKEND_URL=https://nemorax-backend.onrender.com`
-- update the backend `CORS_ORIGINS` to include both:
-  - `https://coder071224.github.io`
-  - `https://nemorax-web.onrender.com`
-
-Then open:
+## 4. Install the Oracle services
 
 ```bash
-https://nemorax-web.onrender.com
+sudo cp deploy/oracle/backend/nemorax-backend.service /etc/systemd/system/
+sudo cp deploy/oracle/frontend/nemorax-web.service /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable nemorax-backend
+sudo systemctl enable nemorax-web
+sudo systemctl start nemorax-backend
+sudo systemctl start nemorax-web
 ```
 
-The public website web-app button is intended to point to that frontend URL.
+Check both services:
 
-## 7. Connect a custom domain
+```bash
+sudo systemctl status nemorax-backend
+sudo systemctl status nemorax-web
+```
 
-For GitHub Pages:
+## 5. Configure Nginx on Oracle
 
-1. Set Pages source to GitHub Actions.
-2. Add your custom domain in repository Pages settings.
-3. Add the DNS records requested by GitHub.
-4. If you want the custom domain tracked in source, add a `CNAME` file directly inside `website/`.
+Copy the provided config and replace the example hostnames:
 
-## 8. Build EXE / APK with Flet
+```bash
+sudo cp deploy/oracle/nginx/nemorax.conf /etc/nginx/sites-available/nemorax
+sudo nano /etc/nginx/sites-available/nemorax
+sudo ln -s /etc/nginx/sites-available/nemorax /etc/nginx/sites-enabled/nemorax
+sudo nginx -t
+sudo systemctl reload nginx
+```
 
-Release workflow:
+The Nginx file routes:
 
-- `.github/workflows/release-build.yml`
+- `api.nemorax.example.com` -> `127.0.0.1:8000`
+- `app.nemorax.example.com` -> `127.0.0.1:8550`
 
-Outputs:
+After DNS is live, add TLS with Certbot or your preferred ACME client.
 
-- Windows zip artifact
-- Android APK
+## 6. Deploy the static website on Vercel
 
-Before relying on release automation, verify that the chosen Flet CLI version in CI still matches the project.
+Vercel setup:
 
-## 9. Upload builds to GitHub Releases
+1. Import the GitHub repository into Vercel.
+2. Set the Vercel Root Directory to `website`.
+3. Leave the framework preset as `Other`.
+4. Deploy.
 
-This is handled by the release workflow when a GitHub Release is published.
+`website/vercel.json` already enables clean URLs and basic security headers.
 
-## 10. Connect download buttons to release files
+After the first Vercel deploy, edit `website/assets/js/site-config.js` and set:
 
-Edit `website/assets/js/site-config.js`:
+- `github.owner`
+- `github.repo`
+- `app.webUrl=https://app.nemorax.example.com`
 
-- set `github.owner`
-- set `github.repo`
-- optionally set `github.releaseTag`
-- confirm asset names:
-  - `Nemorax.exe`
-  - `Nemorax.apk`
+Then redeploy the `website/` project on Vercel.
 
-The website then generates direct GitHub release download links automatically.
+## 7. Validate frontend-to-backend connectivity
 
-## Final checks
+Backend health:
 
-- rotate the Groq API key before public deployment if it has been exposed
-- replace `CORS_ORIGINS=*` with exact production origins
-- verify live website links after the first release is published
+```bash
+curl https://api.nemorax.example.com/api/health
+```
+
+Expected result:
+
+- response envelope has `ok: true`
+- `provider.available` is `true`
+
+Browser app validation:
+
+1. Open `https://app.nemorax.example.com`
+2. Sign in or create a test account
+3. Send a short prompt
+4. Confirm chat history and feedback still persist
+
+Website validation:
+
+1. Open the Vercel site
+2. Confirm the download cards render
+3. Confirm the "Open web app" button points to `https://app.nemorax.example.com`
+
+## 8. Release builds
+
+The release workflow for Windows and Android remains in `.github/workflows/release-build.yml`.
+
+That workflow is independent from the hosting migration and can stay as-is.
+
+## Final production checklist
+
+- no legacy PaaS-specific deployment config remains
+- `NEMORAX_API_URL` is the only supported frontend API base URL variable
+- `CORS_ORIGINS` contains exact production origins only
+- backend and optional Flet web runtime both restart under `systemd`
+- public website is static on Vercel and does not go offline after inactivity

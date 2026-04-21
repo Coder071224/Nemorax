@@ -171,6 +171,17 @@ class AuthService:
                 current_settings.pop("theme", None)
                 changed = True
 
+        if "show_splash" in updates:
+            show_splash = updates.get("show_splash")
+            current_show_splash = current_settings.get("show_splash")
+            if isinstance(show_splash, bool):
+                if current_show_splash is not show_splash:
+                    current_settings["show_splash"] = show_splash
+                    changed = True
+            elif "show_splash" in current_settings:
+                current_settings.pop("show_splash", None)
+                changed = True
+
         if changed:
             user["settings"] = current_settings
             user["updated_at"] = _now()

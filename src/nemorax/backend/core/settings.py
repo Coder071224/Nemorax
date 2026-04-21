@@ -42,6 +42,11 @@ def _read_float(*names: str, default: float) -> float:
         return default
 
 
+def _read_bool(*names: str, default: bool) -> bool:
+    raw = _read_str(*names, default="true" if default else "false")
+    return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
 def _resolve_path(raw: str, *, base: Path) -> Path:
     candidate = Path(raw)
     return candidate if candidate.is_absolute() else (base / candidate).resolve()
@@ -55,6 +60,48 @@ def _normalize_provider(value: str) -> str:
         "openai_compatible": "openai_compatible",
     }
     return aliases.get(normalized, normalized or "groq")
+
+
+def _normalize_environment(value: str) -> str:
+    normalized = value.strip().lower()
+    aliases = {
+        "prod": "production",
+        "production": "production",
+        "dev": "development",
+        "development": "development",
+        "test": "test",
+        "testing": "test",
+    }
+    return aliases.get(normalized, normalized or "development")
+
+
+def _normalize_origin(value: str) -> str:
+    return value.strip().rstrip("/")
+
+
+def _normalize_url(value: str) -> str:
+    return value.strip().rstrip("/")
+
+
+def _default_api_url(port: int) -> str:
+    return f"http://127.0.0.1:{port}"
+
+
+def _default_cors_origins(environment: str) -> str:
+    if environment != "development":
+        return ""
+    return ",".join(
+        [
+            "http://127.0.0.1:8550",
+            "http://localhost:8550",
+            "http://127.0.0.1:3000",
+            "http://localhost:3000",
+            "http://127.0.0.1:5173",
+            "http://localhost:5173",
+            "http://127.0.0.1:8000",
+            "http://localhost:8000",
+        ]
+    )
 
 
 @dataclass(frozen=True, slots=True)
@@ -85,9 +132,21 @@ class ApiSettings:
 
     @property
     def cors_origins(self) -> list[str]:
-        if self.cors_origins_raw == "*":
-            return ["*"]
-        return [item.strip() for item in self.cors_origins_raw.split(",") if item.strip()]
+        origins: list[str] = []
+        seen: set[str] = set()
+        for item in self.cors_origins_raw.split(","):
+            normalized = _normalize_origin(item)
+            if not normalized or normalized == "*":
+                continue
+            if normalized in seen:
+                continue
+            seen.add(normalized)
+            origins.append(normalized)
+        return origins
+
+    @property
+    def cors_allow_credentials(self) -> bool:
+        return False
 
 
 @dataclass(frozen=True, slots=True)
@@ -122,7 +181,6 @@ class LLMSettings:
 @dataclass(frozen=True, slots=True)
 class SupabaseSettings:
     url: str
-    anon_key: str | None
     service_role_key: str | None
     kb_source: str
     timeout_seconds: float
@@ -180,7 +238,12 @@ class Settings:
 
 
 def load_settings() -> Settings:
+    environment = _normalize_environment(_read_str("NEMORAX_ENV", default="development"))
     provider = _normalize_provider(_read_str("LLM_PROVIDER", default="groq"))
+    backend_port = _read_int("PORT", "BACKEND_PORT", default=8000)
+    backend_public_url = _normalize_url(
+        _read_str("NEMORAX_API_URL", default=_default_api_url(backend_port))
+    )
 
     data_dir = _resolve_path(
         _read_str("NEMORAX_DATA_DIR", default="data"),
@@ -207,33 +270,29 @@ def load_settings() -> Settings:
     )
 
     if provider == "groq":
-        llm_base_url = _read_str("LLM_BASE_URL", "GROQ_BASE_URL", default="https://api.groq.com/openai/v1")
-        llm_model = _read_str("LLM_MODEL", "GROQ_MODEL", default="")
-        llm_api_key = _read_str("LLM_API_KEY", "GROQ_API_KEY", default="") or None
+        llm_base_url = _read_str("LLM_BASE_URL", default="https://api.groq.com/openai/v1")
+        llm_model = _read_str("LLM_MODEL", default="")
+        llm_api_key = _read_str("LLM_API_KEY", default="") or None
     else:
-        llm_base_url = _read_str(
-            "LLM_BASE_URL",
-            "OPENAI_COMPAT_BASE_URL",
-            default="https://api.openai.com/v1",
-        )
-        llm_model = _read_str("LLM_MODEL", "OPENAI_COMPAT_MODEL", default="")
-        llm_api_key = _read_str("LLM_API_KEY", "OPENAI_API_KEY", default="") or None
+        llm_base_url = _read_str("LLM_BASE_URL", default="https://api.openai.com/v1")
+        llm_model = _read_str("LLM_MODEL", default="")
+        llm_api_key = _read_str("LLM_API_KEY", default="") or None
 
     api = ApiSettings(
         app_name=_read_str("NEMORAX_APP_NAME", default="Nemorax API"),
         app_version=_read_str("NEMORAX_APP_VERSION", default="1.0.0"),
-        environment=_read_str("NEMORAX_ENV", default="development"),
+        environment=environment,
         log_level=_read_str("LOG_LEVEL", default="INFO"),
         backend_host=_read_str("BACKEND_HOST", default="0.0.0.0"),
-        backend_port=_read_int("BACKEND_PORT", default=8000),
-        backend_url=_read_str("BACKEND_URL", default="http://127.0.0.1:8000"),
-        cors_origins_raw=_read_str("CORS_ORIGINS", default="*"),
+        backend_port=backend_port,
+        backend_url=backend_public_url,
+        cors_origins_raw=_read_str("CORS_ORIGINS", default=_default_cors_origins(environment)),
     )
     llm = LLMSettings(
         provider=provider,
         model=llm_model or "openai/gpt-oss-20b",
-        fallback_model=_read_str("LLM_FALLBACK_MODEL", "GROQ_FALLBACK_MODEL", default="") or None,
-        base_url=llm_base_url,
+        fallback_model=_read_str("LLM_FALLBACK_MODEL", default="") or None,
+        base_url=_normalize_url(llm_base_url),
         api_key=llm_api_key,
         request_timeout_seconds=_read_float("REQUEST_TIMEOUT_SECONDS", default=180.0),
         health_timeout_seconds=_read_float("HEALTH_TIMEOUT_SECONDS", default=4.0),
@@ -241,8 +300,8 @@ def load_settings() -> Settings:
         top_p=_read_float("LLM_TOP_P", default=1.0),
         max_completion_tokens=_read_int("LLM_MAX_COMPLETION_TOKENS", default=900),
         reasoning_effort=_read_str("LLM_REASONING_EFFORT", default="medium").lower() or "medium",
-        include_reasoning=_read_str("LLM_INCLUDE_REASONING", default="false").lower() in {"1", "true", "yes", "on"},
-        stream=_read_str("LLM_STREAM", default="true").lower() in {"1", "true", "yes", "on"},
+        include_reasoning=_read_bool("LLM_INCLUDE_REASONING", default=False),
+        stream=_read_bool("LLM_STREAM", default=True),
         seed=(
             None
             if _read_str("LLM_SEED", default="7").strip().lower() in {"", "none", "null"}
@@ -253,8 +312,7 @@ def load_settings() -> Settings:
         prompt_knowledge_chars=_read_int("LLM_PROMPT_KNOWLEDGE_CHARS", default=6000),
     )
     supabase = SupabaseSettings(
-        url=_read_str("SUPABASE_URL", default=""),
-        anon_key=_read_str("SUPABASE_ANON_KEY", default="") or None,
+        url=_normalize_url(_read_str("SUPABASE_URL", default="")),
         service_role_key=_read_str("SUPABASE_SERVICE_ROLE_KEY", default="") or None,
         kb_source=_read_str("NEMORAX_KB_SOURCE", default="supabase").strip().lower() or "supabase",
         timeout_seconds=_read_float("SUPABASE_TIMEOUT_SECONDS", default=10.0),

@@ -20,6 +20,30 @@ _BOT_BUBBLE_RADIUS = (6, 22, 22, 22)
 _TYPING_BUBBLE_RADIUS = (6, 18, 18, 18)
 
 
+def _size_tokens(*, compact: bool) -> dict[str, int]:
+    if compact:
+        return {
+            "bubble_text": 13,
+            "meta_text": 10,
+            "avatar_size": 30,
+            "avatar_radius": 15,
+            "row_spacing": 8,
+            "meta_spacing": 4,
+            "pad_h": 13,
+            "pad_v": 10,
+        }
+    return {
+        "bubble_text": _BUBBLE_TEXT_SIZE,
+        "meta_text": _META_TEXT_SIZE,
+        "avatar_size": _AVATAR_SIZE,
+        "avatar_radius": _AVATAR_RADIUS,
+        "row_spacing": _ROW_SPACING,
+        "meta_spacing": _META_SPACING,
+        "pad_h": 16,
+        "pad_v": 12,
+    }
+
+
 def _bubble_shadow() -> ft.BoxShadow:
     theme = current_theme()
     return ft.BoxShadow(
@@ -52,30 +76,31 @@ def _bubble_border_radius(
     )
 
 
-def _meta_text(label: str, *, color: str, weight: ft.FontWeight) -> ft.Text:
+def _meta_text(label: str, *, color: str, weight: ft.FontWeight, compact: bool = False) -> ft.Text:
     return ft.Text(
         label,
         color=color,
-        size=_META_TEXT_SIZE,
+        size=_size_tokens(compact=compact)["meta_text"],
         weight=weight,
     )
 
 
-def _message_text(text: str, *, color: str) -> ft.Text:
+def _message_text(text: str, *, color: str, compact: bool = False) -> ft.Text:
     return ft.Text(
         text,
         color=color,
-        size=_BUBBLE_TEXT_SIZE,
+        size=_size_tokens(compact=compact)["bubble_text"],
         selectable=True,
     )
 
 
-def _avatar() -> ft.Container:
+def _avatar(*, compact: bool = False) -> ft.Container:
     theme = current_theme()
+    tokens = _size_tokens(compact=compact)
     return ft.Container(
-        width=_AVATAR_SIZE,
-        height=_AVATAR_SIZE,
-        border_radius=_AVATAR_RADIUS,
+        width=tokens["avatar_size"],
+        height=tokens["avatar_size"],
+        border_radius=tokens["avatar_radius"],
         bgcolor=theme.accent,
         alignment=ft.Alignment(0, 0),
         shadow=ft.BoxShadow(
@@ -86,7 +111,7 @@ def _avatar() -> ft.Container:
         content=ft.Text(
             CHATBOT_NAME[:1].upper(),
             color="#081018",
-            size=14,
+            size=13 if compact else 14,
             weight=ft.FontWeight.W_800,
         ),
     )
@@ -100,10 +125,11 @@ def _bubble_container(
     border_color: str,
     radius: tuple[int, int, int, int],
     padding: ft.Padding,
+    compact: bool = False,
 ) -> ft.Container:
     return ft.Container(
         expand=True,
-        content=_message_text(text, color=text_color),
+        content=_message_text(text, color=text_color, compact=compact),
         bgcolor=bgcolor,
         border_radius=_bubble_border_radius(*radius),
         padding=padding,
@@ -112,8 +138,9 @@ def _bubble_container(
     )
 
 
-def user_bubble(text: str, timestamp: datetime | None = None) -> ft.Row:
+def user_bubble(text: str, timestamp: datetime | None = None, *, compact: bool = False) -> ft.Row:
     theme = current_theme()
+    tokens = _size_tokens(compact=compact)
     meta_label = f"You - {_time_label(timestamp)}" if timestamp else "You"
 
     bubble = _bubble_container(
@@ -122,36 +149,39 @@ def user_bubble(text: str, timestamp: datetime | None = None) -> ft.Row:
         text_color=theme.text_primary,
         border_color=ft.Colors.with_opacity(0.18, theme.text_primary),
         radius=_USER_BUBBLE_RADIUS,
-        padding=ft.Padding.symmetric(horizontal=16, vertical=12),
+        padding=ft.Padding.symmetric(horizontal=tokens["pad_h"], vertical=tokens["pad_v"]),
+        compact=compact,
     )
 
     return ft.Row(
         controls=[
             ft.Container(expand=True),
             ft.Container(
-                expand=4,
+                expand=5 if compact else 4,
                 content=ft.Column(
                     controls=[
                         _meta_text(
                             meta_label,
                             color=theme.text_muted,
                             weight=ft.FontWeight.W_600,
+                            compact=compact,
                         ),
                         bubble,
                     ],
-                    spacing=_META_SPACING,
+                    spacing=tokens["meta_spacing"],
                     horizontal_alignment=ft.CrossAxisAlignment.END,
                     tight=True,
                 ),
             ),
         ],
-        spacing=_ROW_SPACING,
+        spacing=tokens["row_spacing"],
         vertical_alignment=ft.CrossAxisAlignment.START,
     )
 
 
-def assistant_bubble(text: str, timestamp: datetime | None = None) -> ft.Row:
+def assistant_bubble(text: str, timestamp: datetime | None = None, *, compact: bool = False) -> ft.Row:
     theme = current_theme()
+    tokens = _size_tokens(compact=compact)
     meta_label = f"{CHATBOT_NAME} - {_time_label(timestamp)}" if timestamp else CHATBOT_NAME
 
     bubble = _bubble_container(
@@ -160,12 +190,13 @@ def assistant_bubble(text: str, timestamp: datetime | None = None) -> ft.Row:
         text_color=theme.text_primary,
         border_color=ft.Colors.with_opacity(0.10, theme.accent),
         radius=_BOT_BUBBLE_RADIUS,
-        padding=ft.Padding.symmetric(horizontal=16, vertical=12),
+        padding=ft.Padding.symmetric(horizontal=tokens["pad_h"], vertical=tokens["pad_v"]),
+        compact=compact,
     )
 
     return ft.Row(
         controls=[
-            _avatar(),
+            _avatar(compact=compact),
             ft.Container(
                 expand=True,
                 content=ft.Column(
@@ -174,21 +205,23 @@ def assistant_bubble(text: str, timestamp: datetime | None = None) -> ft.Row:
                             meta_label,
                             color=theme.accent,
                             weight=ft.FontWeight.W_700,
+                            compact=compact,
                         ),
                         bubble,
                     ],
-                    spacing=_META_SPACING,
+                    spacing=tokens["meta_spacing"],
                     tight=True,
                 ),
             ),
         ],
-        spacing=_ROW_SPACING,
+        spacing=tokens["row_spacing"],
         vertical_alignment=ft.CrossAxisAlignment.START,
     )
 
 
-def typing_indicator() -> ft.Row:
+def typing_indicator(*, compact: bool = False) -> ft.Row:
     theme = current_theme()
+    tokens = _size_tokens(compact=compact)
 
     typing_bubble = ft.Container(
         expand=True,
@@ -198,18 +231,18 @@ def typing_indicator() -> ft.Row:
             1,
             ft.Colors.with_opacity(0.10, theme.accent),
         ),
-        padding=ft.Padding.symmetric(horizontal=14, vertical=10),
+        padding=ft.Padding.symmetric(horizontal=tokens["pad_h"], vertical=10),
         content=ft.Row(
             controls=[
                 ft.Text(
                     f"{CHATBOT_NAME} is typing",
                     color=theme.text_muted,
-                    size=12,
+                    size=11 if compact else 12,
                     italic=True,
                 ),
                 ft.ProgressRing(
-                    width=14,
-                    height=14,
+                    width=13 if compact else 14,
+                    height=13 if compact else 14,
                     stroke_width=2,
                     color=theme.accent,
                 ),
@@ -221,10 +254,10 @@ def typing_indicator() -> ft.Row:
 
     return ft.Row(
         controls=[
-            _avatar(),
+            _avatar(compact=compact),
             typing_bubble,
         ],
-        spacing=_ROW_SPACING,
+        spacing=tokens["row_spacing"],
         vertical_alignment=ft.CrossAxisAlignment.CENTER,
     )
 

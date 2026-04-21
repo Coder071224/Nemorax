@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from difflib import SequenceMatcher
 import re
@@ -25,6 +26,7 @@ from nemorax.backend.llm.models import LLMMessage
 from nemorax.backend.schemas import ChatRequest, ChatResponse, MessageSchema
 from nemorax.backend.services.history import HistoryService
 from nemorax.backend.services.prompt import KnowledgeBasePromptService
+from nemorax.backend.services.time_context import is_time_sensitive_query, time_sensitive_fallback_guidance
 
 
 logger = get_logger("nemorax.chat")
@@ -32,6 +34,12 @@ logger = get_logger("nemorax.chat")
 _FOLLOW_UP_HISTORY_WINDOW = 6
 _MIN_RETRIEVAL_EVIDENCE_SCORE = 3.0
 _GREETING_PATTERN = re.compile(r"\b(hi|hello|hey|good morning|good afternoon|good evening|kumusta|musta|yo|hola)\b")
+_LINK_INTENT_PATTERN = re.compile(
+    r"\b("
+    r"link|url|website|web ?site|portal|page|site|access|open|visit|find|where can i find|where do i find|"
+    r"where can i access|where do i access|send me the link|give me the link|what is the link|how do i access"
+    r")\b"
+)
 _INSTITUTION_ALIASES: dict[str, tuple[str, ...]] = {
     "nemsu": (
         "north eastern mindanao state university",
@@ -238,11 +246,28 @@ class _DomainAssessment(dict[str, Any]):
     pass
 
 
+@dataclass(frozen=True)
+class _ChatContext:
+    conversation_window: list[MessageSchema]
+    history_messages: list[MessageSchema]
+    latest_user_message: str
+    history_payload: list[dict[str, str]]
+
+
 def clean_nemis_reply(text: str) -> str:
     if not text:
         return text
 
     cleaned = text.replace("**", "").replace("*", "")
+    cleaned = cleaned.replace("RETRIEVED KNOWLEDGE CONTEXT:", "")
+    cleaned = cleaned.replace("Retrieved knowledge context for this reply. Use it as the primary factual reference.", "")
+    
+    # Remove raw KB metadata patterns if they leaked
+    cleaned = re.sub(r"\[Source:\s*[^\]|]+(?:\|[^\]]+)*\]", "", cleaned)
+    cleaned = re.sub(r"URL:\s*(https?://\S+)", r"\1", cleaned)
+    cleaned = re.sub(r"Title:\s*", "", cleaned)
+    cleaned = re.sub(r"Section:\s*", "", cleaned)
+    
     cleaned = re.sub(r"[ \t]+", " ", cleaned)
     cleaned = re.sub(r"\n{3,}", "\n\n", cleaned)
     return cleaned.strip()
@@ -284,16 +309,22 @@ def _build_greeting_reply() -> str:
     )
 
 
-def _build_uncertain_reply(alias_hits: Sequence[str]) -> str:
+def _build_uncertain_reply(alias_hits: Sequence[str], user_message: str) -> str:
+    time_guidance = f" {time_sensitive_fallback_guidance()}" if is_time_sensitive_query(user_message) else ""
     if alias_hits:
         return (
-            f"I'm not fully sure yet based on my current NEMSU data. If you mean {alias_hits[0]}, "
-            "try adding the campus, office, or college name and I'll narrow it down."
+            f"I'm not fully sure yet based on the current NEMSU knowledge base. If you mean {alias_hits[0]}, "
+            f"try adding the campus, office, or college name and I'll narrow it down.{time_guidance}"
         )
     return (
-        "I'm not fully sure yet based on my current NEMSU data. "
-        "Try mentioning the campus, office, college, or program so I can narrow it down."
+        "I'm not fully sure yet based on the current NEMSU knowledge base. "
+        f"Try mentioning the campus, office, college, or program so I can narrow it down.{time_guidance}"
     )
+
+
+def _is_explicit_link_request(user_message: str) -> bool:
+    normalized = " ".join((user_message or "").lower().split())
+    return bool(_LINK_INTENT_PATTERN.search(normalized))
 
 
 def _is_greeting(user_message: str) -> bool:
@@ -362,6 +393,16 @@ class ChatService:
         combined = [*stored_messages, *trimmed_request_messages]
         return [message for message in combined if message.content][- _FOLLOW_UP_HISTORY_WINDOW :]
 
+    def _build_context(self, request: ChatRequest) -> _ChatContext:
+        conversation_window = self._conversation_window(request)
+        history_messages = conversation_window[:-1] if conversation_window else []
+        return _ChatContext(
+            conversation_window=conversation_window,
+            history_messages=history_messages,
+            latest_user_message=_extract_last_user_message(conversation_window),
+            history_payload=_history_to_dicts(history_messages[-_FOLLOW_UP_HISTORY_WINDOW:]),
+        )
+
     def _assess_domain(self, user_message: str, conversation_history: Sequence[MessageSchema]) -> _DomainAssessment:
         normalized = _normalize_topic_message(user_message)
         tokens = set(normalized.split())
@@ -423,85 +464,287 @@ class ChatService:
             ),
         )
 
-    def _provider_messages(self, messages: Sequence[MessageSchema], query_for_retrieval: str | None = None) -> list[LLMMessage]:
-        trimmed_messages = [message for message in messages if message.content][-self._settings.llm.message_window :]
+    def _empty_prompt_payload(self, *, strategy: str = "skipped") -> dict[str, Any]:
+        return {
+            "system_prompt": self._prompt_service.get_system_prompt_for_query(None),
+            "retrieved_context": "",
+            "retrieval_message": "",
+            "strategy": strategy,
+            "chunks": [],
+            "max_score": 0.0,
+        }
+
+    def _retrieve_prompt_payload(self, query: str, history_payload: list[dict[str, str]]) -> dict[str, Any]:
+        try:
+            return self._prompt_service.build_prompt_payload(
+                query,
+                conversation_history=history_payload,
+            )
+        except Exception as exc:
+            logger.exception("Retrieval precheck failed for query=%r", query, exc_info=exc)
+            return self._empty_prompt_payload(strategy="error")
+
+    def _has_retrieval_evidence(self, prompt_payload: dict[str, Any]) -> bool:
+        chunks = prompt_payload.get("chunks") or []
+        if not chunks:
+            return False
+        diagnostics = prompt_payload.get("retrieval_diagnostics") or {}
+        if diagnostics.get("evidence") is True:
+            return True
+
+        max_score = float(prompt_payload.get("max_score") or 0.0)
+
+        # If we have a very strong match, it's definitely evidence.
+        if max_score >= 12.0:
+            return True
+
+        if max_score >= _MIN_RETRIEVAL_EVIDENCE_SCORE:
+            return True
+
+        scores = sorted((float(chunk.get("_retrieval_score") or 0.0) for chunk in chunks), reverse=True)
+        return sum(scores[:3]) >= 4.5 or len([score for score in scores if score >= 1.5]) >= 2
+
+    def _provider_messages(
+        self,
+        context: _ChatContext,
+        *,
+        prompt_payload: dict[str, Any],
+    ) -> list[LLMMessage]:
+        trimmed_messages = [message for message in context.conversation_window if message.content][
+            -self._settings.llm.message_window :
+        ]
         latest_user_message = _extract_last_user_message(trimmed_messages)
         history_messages = trimmed_messages[:-1] if trimmed_messages else []
-        prompt = self._prompt_service.get_system_prompt_for_query(
-            query_for_retrieval or latest_user_message,
-            conversation_history=_history_to_dicts(history_messages[-_FOLLOW_UP_HISTORY_WINDOW:]),
-        )
-        provider_messages = [LLMMessage(role="system", content=prompt)]
+        provider_messages = [LLMMessage(role="system", content=str(prompt_payload["system_prompt"]))]
+        retrieval_message = str(prompt_payload.get("retrieval_message") or "").strip()
+        if retrieval_message:
+            provider_messages.append(LLMMessage(role="assistant", content=retrieval_message))
         provider_messages.extend(LLMMessage(role=message.role, content=message.content) for message in history_messages)
         if latest_user_message:
             provider_messages.append(LLMMessage(role="user", content=latest_user_message))
         return provider_messages
 
-    async def chat(self, request: ChatRequest) -> ChatResponse:
-        conversation_window = self._conversation_window(request)
-        latest_user_message = _extract_last_user_message(conversation_window)
-        history_messages = conversation_window[:-1] if conversation_window else []
-        assessment = self._assess_domain(latest_user_message, history_messages)
-        retrieval_preview: dict[str, Any] = {"strategy": "skipped", "chunks": [], "context": "", "max_score": 0.0}
-
-        if assessment["confidence"] in {"high", "medium", "low"}:
-            try:
-                retrieval_preview = self._prompt_service.preview_retrieval(
-                    assessment["expanded_query"],
-                    conversation_history=_history_to_dicts(history_messages[-_FOLLOW_UP_HISTORY_WINDOW:]),
-                )
-            except Exception as exc:
-                logger.exception("Retrieval precheck failed for query=%r", latest_user_message, exc_info=exc)
-                retrieval_preview = {"strategy": "error", "chunks": [], "context": "", "max_score": 0.0}
-
-        has_retrieval_evidence = (
-            len(retrieval_preview["chunks"]) > 0
-            and float(retrieval_preview["max_score"]) >= _MIN_RETRIEVAL_EVIDENCE_SCORE
-        )
-
+    def _log_query_analysis(
+        self,
+        *,
+        user_message: str,
+        assessment: _DomainAssessment,
+        prompt_payload: dict[str, Any],
+    ) -> None:
+        diagnostics = prompt_payload.get("retrieval_diagnostics") or {}
         logger.info(
             (
                 "Chat query analysis | raw=%r normalized=%r aliases=%s confidence=%s "
-                "score=%.3f retrieval=%s retrieved=%d top_score=%.3f reason=%s"
+                "score=%.3f retrieval=%s retrieved=%d top_score=%.3f evidence=%s passes=%s reason=%s"
             ),
-            latest_user_message,
+            user_message,
             assessment["normalized_query"],
             assessment["alias_hits"],
             assessment["confidence"],
             assessment["score"],
-            retrieval_preview["strategy"],
-            len(retrieval_preview["chunks"]),
-            float(retrieval_preview["max_score"]),
+            prompt_payload["strategy"],
+            len(prompt_payload["chunks"]),
+            float(prompt_payload["max_score"]),
+            diagnostics.get("evidence"),
+            diagnostics.get("passes"),
             assessment["refusal_reason"],
         )
 
-        if assessment["confidence"] == "greeting":
-            reply = _build_greeting_reply()
-        elif assessment["confidence"] == "very_low":
-            reply = _build_rejection_reply(history_messages)
-        elif not has_retrieval_evidence and not history_messages:
-            reply = _build_uncertain_reply(assessment["alias_hits"])
-        else:
-            completion = await self._provider.chat(
-                self._provider_messages(conversation_window, query_for_retrieval=assessment["expanded_query"])
+    def preview_retrieval(self, request: ChatRequest) -> dict[str, Any]:
+        context = self._build_context(request)
+        assessment = self._assess_domain(context.latest_user_message, context.history_messages)
+        explicit_link_request = _is_explicit_link_request(context.latest_user_message)
+        prompt_payload = self._empty_prompt_payload()
+        short_circuit_reply = self._resolve_short_circuit_reply(
+            assessment=assessment,
+            history_messages=context.history_messages,
+            explicit_link_request=explicit_link_request,
+        )
+        if short_circuit_reply is None:
+            prompt_payload = self._retrieve_prompt_payload(
+                assessment["expanded_query"],
+                context.history_payload,
             )
-            reply = clean_nemis_reply(completion.content)
+        evidence = self._has_retrieval_evidence(prompt_payload)
+        diagnostics = prompt_payload.get("retrieval_diagnostics") or {}
+        if short_circuit_reply is not None:
+            decision = "short_circuit"
+        elif evidence:
+            decision = "use_model"
+        elif prompt_payload.get("chunks"):
+            decision = "use_model_low_confidence"
+        elif context.history_messages:
+            decision = "model_with_low_evidence"
+        else:
+            decision = "fallback_reply"
+        return {
+            "query": {
+                "raw": context.latest_user_message,
+                "normalized": assessment["normalized_query"],
+                "expanded": assessment["expanded_query"],
+                "domain_confidence": assessment["confidence"],
+                "domain_score": assessment["score"],
+                "alias_hits": list(assessment["alias_hits"]),
+            },
+            "decision": {
+                "path": decision,
+                "short_circuit_reason": "link_or_scope" if short_circuit_reply is not None else None,
+                "explicit_link_request": explicit_link_request,
+                "retrieval_evidence": evidence,
+            },
+            "retrieval": {
+                "strategy": prompt_payload.get("strategy"),
+                "max_score": float(prompt_payload.get("max_score") or 0.0),
+                "selected_count": len(prompt_payload.get("chunks") or []),
+                "diagnostics": diagnostics,
+            },
+            "reply_preview": short_circuit_reply,
+        }
 
-        if request.user_id:
-            try:
-                self._history.append_messages(
-                    request.session_id,
-                    latest_user_message,
-                    reply,
-                    request.user_id,
+    def _shape_reply(self, reply: str) -> str:
+        return clean_nemis_reply(reply)
+
+    def _resolve_short_circuit_reply(
+        self,
+        *,
+        assessment: _DomainAssessment,
+        history_messages: Sequence[MessageSchema],
+        explicit_link_request: bool,
+    ) -> str | None:
+        if assessment["confidence"] == "greeting":
+            return _build_greeting_reply()
+        if explicit_link_request:
+            return self._reply_with_source_link(assessment["expanded_query"]) or self._fallback_link_reply()
+        if assessment["confidence"] == "very_low":
+            return self._reply_with_source_link(assessment["expanded_query"], uncertain=True) or _build_rejection_reply(
+                history_messages
+            )
+        return None
+
+    def _resolve_low_evidence_reply(
+        self,
+        *,
+        assessment: _DomainAssessment,
+        latest_user_message: str,
+        history_messages: Sequence[MessageSchema],
+    ) -> str | None:
+        del history_messages
+        return self._reply_with_source_link(
+            assessment["expanded_query"],
+            uncertain=True,
+        ) or _build_uncertain_reply(
+            assessment["alias_hits"],
+            latest_user_message,
+        )
+
+    async def _generate_model_reply(
+        self,
+        *,
+        context: _ChatContext,
+        prompt_payload: dict[str, Any],
+    ) -> str:
+        completion = await self._provider.chat(
+            self._provider_messages(
+                context,
+                prompt_payload=prompt_payload,
+            )
+        )
+        return completion.content
+
+    def _persist_history(self, request: ChatRequest, latest_user_message: str, reply: str) -> None:
+        if not request.user_id:
+            return
+        try:
+            self._history.append_messages(
+                request.session_id,
+                latest_user_message,
+                reply,
+                request.user_id,
+            )
+        except Exception as exc:
+            logger.exception(
+                "Failed to persist conversation history for user_id=%s session_id=%s",
+                request.user_id,
+                request.session_id,
+                exc_info=exc,
+            )
+
+    @staticmethod
+    def _fallback_link_reply() -> str:
+        return "You can find the main website here: https://www.nemsu.edu.ph"
+
+    def _reply_with_source_link(self, query: str, *, uncertain: bool = False) -> str | None:
+        match = self._prompt_service.best_source_link(query)
+        if match is None:
+            return None
+        url = str(match.get("base_url") or "").strip()
+        if not url:
+            return None
+            
+        name = str(match.get("source_name") or "").strip()
+        
+        if uncertain:
+            if name:
+                return f"I'm not fully sure about that yet, but you might find it on the {name} page here: {url}"
+            return f"I'm not fully sure, but the official NEMSU page here should help: {url}"
+            
+        lowered = query.lower()
+        if any(token in lowered for token in ("access", "login", "portal", "open")):
+            if name:
+                return f"You can access the {name} here: {url}"
+            return f"You can access that here: {url}"
+            
+        if name:
+            return f"You can find the {name} page here: {url}"
+        return f"You can find that here: {url}"
+
+    async def chat(self, request: ChatRequest) -> ChatResponse:
+        context = self._build_context(request)
+        assessment = self._assess_domain(context.latest_user_message, context.history_messages)
+        explicit_link_request = _is_explicit_link_request(context.latest_user_message)
+        prompt_payload = self._empty_prompt_payload()
+
+        reply = self._resolve_short_circuit_reply(
+            assessment=assessment,
+            history_messages=context.history_messages,
+            explicit_link_request=explicit_link_request,
+        )
+
+        if reply is None:
+            prompt_payload = self._retrieve_prompt_payload(
+                assessment["expanded_query"],
+                context.history_payload,
+            )
+            if self._has_retrieval_evidence(prompt_payload) or prompt_payload.get("chunks"):
+                reply = await self._generate_model_reply(
+                    context=context,
+                    prompt_payload=prompt_payload,
                 )
-            except Exception as exc:
-                logger.exception(
-                    "Failed to persist conversation history for user_id=%s session_id=%s",
-                    request.user_id,
-                    request.session_id,
-                    exc_info=exc,
-                )
+            else:
+                if context.history_messages:
+                    reply = await self._generate_model_reply(
+                        context=context,
+                        prompt_payload=prompt_payload,
+                    )
+                else:
+                    reply = self._resolve_low_evidence_reply(
+                        assessment=assessment,
+                        latest_user_message=context.latest_user_message,
+                        history_messages=context.history_messages,
+                    )
+                    if reply is None:
+                        reply = await self._generate_model_reply(
+                            context=context,
+                            prompt_payload=prompt_payload,
+                        )
+
+        self._log_query_analysis(
+            user_message=context.latest_user_message,
+            assessment=assessment,
+            prompt_payload=prompt_payload,
+        )
+        reply = self._shape_reply(reply)
+        self._persist_history(request, context.latest_user_message, reply)
 
         return ChatResponse(
             session_id=request.session_id,

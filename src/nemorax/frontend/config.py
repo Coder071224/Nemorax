@@ -10,32 +10,37 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass
-from pathlib import Path
+from typing import Any
 
 
-PRODUCTION_BACKEND_URL = "https://nemorax-backend.onrender.com"
 LOCAL_BACKEND_URL = "http://127.0.0.1:8000"
+_PRODUCTION_ENVIRONMENTS = {"production"}
+
+
+def _normalize_api_url(value: str) -> str:
+    return value.strip().rstrip("/")
+
+
+def _environment_name() -> str:
+    return os.getenv("NEMORAX_ENV", "development").strip().lower() or "development"
 
 
 def _resolve_backend_url() -> str:
-    configured = os.getenv("BACKEND_URL", "").strip()
+    configured = os.getenv("NEMORAX_API_URL", "").strip()
     if configured:
-        return configured
-    return PRODUCTION_BACKEND_URL
+        return _normalize_api_url(configured)
+    if _environment_name() in _PRODUCTION_ENVIRONMENTS:
+        return ""
+    return LOCAL_BACKEND_URL
 
 
-BACKEND_URL: str = _resolve_backend_url()
+_API_BASE_URL: str = _resolve_backend_url()
 
 BRAND_NAME = "Nemorax"
 APP_NAME = "Nemis"
 CHATBOT_NAME = "Nemis"
 USER_NAME = "User"
 LOGO_ASSET = "Nemorax.png"
-
-BASE_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = BASE_DIR.parents[3]
-PREFS_FILE = PROJECT_ROOT / ".prefs"
-
 
 @dataclass(frozen=True)
 class ThemePalette:
@@ -168,6 +173,7 @@ THEMES: dict[str, ThemePalette] = {
 }
 
 DEFAULT_THEME = "aurora_luxe"
+DEFAULT_SHOW_SPLASH = True
 
 SUGGESTED_QUESTIONS = [
     "How do I get my grades?",
@@ -212,52 +218,52 @@ Colors = _Colors()
 _CURRENT_THEME: ThemePalette = THEMES[DEFAULT_THEME]
 
 
-def read_prefs() -> dict[str, str]:
-    prefs: dict[str, str] = {}
+def normalize_user_settings(source: Any) -> dict[str, Any]:
+    if isinstance(source, dict) and isinstance(source.get("settings"), dict):
+        raw_settings = source.get("settings", {})
+    elif isinstance(source, dict):
+        raw_settings = source
+    else:
+        raw_settings = {}
 
-    try:
-        if not PREFS_FILE.exists():
-            return prefs
+    result: dict[str, Any] = {}
 
-        for line in PREFS_FILE.read_text(encoding="utf-8").splitlines():
-            if "=" not in line:
-                continue
-            key, value = line.split("=", 1)
-            prefs[key.strip()] = value.strip()
-    except OSError:
-        return {}
+    theme = raw_settings.get("theme")
+    if isinstance(theme, str) and theme in THEMES:
+        result["theme"] = theme
 
-    return prefs
+    show_splash = raw_settings.get("show_splash")
+    if isinstance(show_splash, bool):
+        result["show_splash"] = show_splash
 
-
-def write_prefs(prefs: dict[str, str]) -> None:
-    try:
-        lines = [f"{key}={value}" for key, value in prefs.items()]
-        PREFS_FILE.write_text("\n".join(lines) + "\n", encoding="utf-8")
-    except OSError:
-        pass
+    return result
 
 
-def get_saved_theme_key() -> str:
-    saved_key = read_prefs().get("theme", DEFAULT_THEME)
-    return saved_key if saved_key in THEMES else DEFAULT_THEME
+def get_api_base_url() -> str:
+    return _API_BASE_URL
 
 
-def save_theme_key(key: str) -> None:
-    prefs = read_prefs()
-    prefs["theme"] = key if key in THEMES else DEFAULT_THEME
-    write_prefs(prefs)
+def has_api_base_url() -> bool:
+    return bool(_API_BASE_URL)
 
 
-def should_show_splash() -> bool:
-    dont_show_splash = read_prefs().get("dont_show_splash", "0")
-    return dont_show_splash != "1"
+def set_api_base_url(value: str | None) -> str:
+    global _API_BASE_URL
+    normalized = _normalize_api_url(value or "") if value else ""
+    _API_BASE_URL = normalized
+    return _API_BASE_URL
 
 
-def set_show_splash(show: bool) -> None:
-    prefs = read_prefs()
-    prefs["dont_show_splash"] = "0" if show else "1"
-    write_prefs(prefs)
+def resolve_theme_name(source: Any = None) -> str:
+    settings = normalize_user_settings(source)
+    theme = settings.get("theme")
+    return theme if isinstance(theme, str) and theme in THEMES else DEFAULT_THEME
+
+
+def should_show_splash(source: Any = None) -> bool:
+    settings = normalize_user_settings(source)
+    show_splash = settings.get("show_splash")
+    return show_splash if isinstance(show_splash, bool) else DEFAULT_SHOW_SPLASH
 
 
 def apply_theme(name: str) -> ThemePalette:

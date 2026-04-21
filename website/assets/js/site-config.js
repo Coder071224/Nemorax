@@ -18,6 +18,7 @@ window.NEMORAX_SITE_CONFIG = {
     customDomain: ""
   },
   app: {
-    webUrl: "https://nemorax-web.onrender.com"
+    // Point this to the Oracle-hosted Flet web app if you want the website's "Open web app" button enabled.
+    webUrl: ""
   }
 };

@@ -15,9 +15,14 @@ dist/
 website-dist/
 data/HISTORY/
 data/USERS/
+data/FEEDBACK/
 kb/raw/
+kb/chunks.jsonl
+kb/pages.jsonl
 .pytest_cache/
 .mypy_cache/
+.vercel/
+logs/
 *.egg-info/
 .DS_Store
 Thumbs.db

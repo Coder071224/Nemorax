@@ -16,6 +16,8 @@ _DESKTOP_PLATFORMS = {
     ft.PagePlatform.MACOS,
 }
 _MOBILE_WEB_MAX_WIDTH = 800
+_MOBILE_WEB_MAX_SHORTEST_SIDE = 500
+_MOBILE_WEB_MAX_LANDSCAPE_HEIGHT = 520
 
 
 LayoutConfig = dict[str, Any]
@@ -34,6 +36,22 @@ def _page_size(page: ft.Page) -> tuple[float, float]:
     width = _positive_float(page.width or getattr(page, "window_width", None), 1320.0)
     height = _positive_float(page.height or getattr(page, "window_height", None), 860.0)
     return max(width, 320.0), max(height, 568.0)
+
+
+def _viewport_size(page: ft.Page) -> tuple[float, float]:
+    width = _positive_float(page.width or getattr(page, "window_width", None), 1320.0)
+    height = _positive_float(page.height or getattr(page, "window_height", None), 860.0)
+    return width, height
+
+
+def _is_mobileish_web_bounds(width: float, height: float) -> bool:
+    shortest_side = min(width, height)
+    landscape_phone = width > height and height <= _MOBILE_WEB_MAX_LANDSCAPE_HEIGHT
+    return (
+        width < _MOBILE_WEB_MAX_WIDTH
+        or shortest_side <= _MOBILE_WEB_MAX_SHORTEST_SIDE
+        or landscape_phone
+    )
 
 
 def _ios_safe_top(height: float) -> int:
@@ -157,7 +175,15 @@ def is_desktop_or_web(page: ft.Page) -> bool:
 
 
 def _is_mobile_web(page: ft.Page, width: float) -> bool:
-    return is_web(page) and width < _MOBILE_WEB_MAX_WIDTH
+    _, height = _viewport_size(page)
+    return is_web(page) and _is_mobileish_web_bounds(width, height)
+
+
+def should_use_mobile_layout(page: ft.Page) -> bool:
+    width, height = _viewport_size(page)
+    if is_web(page):
+        return _is_mobileish_web_bounds(width, height)
+    return is_mobile(page) or width < _MOBILE_WEB_MAX_WIDTH
 
 
 def get_layout_config(page: ft.Page) -> LayoutConfig:
@@ -411,7 +437,8 @@ def _ios_config(width: float, height: float) -> LayoutConfig:
 
 def _mobile_web_config(width: float, height: float) -> LayoutConfig:
     compact = width < 380
-    top_padding = max(_android_safe_top(height), _ios_safe_top(height))
+    is_landscape = width > height
+    top_padding = 12 if is_landscape else 18 if height < 760 else 24
 
     return _base_config(
         width=width,
@@ -422,27 +449,27 @@ def _mobile_web_config(width: float, height: float) -> LayoutConfig:
         compact=compact,
         sidebar_visible=False,
         top_padding=top_padding,
-        font_size_title=15 if compact else 17,
-        font_size_subtitle=9,
-        font_size_body=12 if compact else 13,
-        font_size_small=10,
-        font_size_hero_title=20 if compact else 22,
+        font_size_title=14 if compact and is_landscape else 15 if compact else 17,
+        font_size_subtitle=9 if not is_landscape else 8.5,
+        font_size_body=11.5 if compact and is_landscape else 12 if compact else 13,
+        font_size_small=9.5 if is_landscape else 10,
+        font_size_hero_title=18 if compact and is_landscape else 20 if compact else 22,
         font_size_splash_title=22 if compact else 28,
         font_size_splash_sub=12 if compact else 14,
         font_size_splash_body=11 if compact else 12,
-        padding_horizontal=6 if compact else 8,
-        padding_vertical=6 if compact else 8,
-        padding_card_h=10 if compact else 12,
-        padding_card_v=8 if compact else 10,
-        button_height=48,
+        padding_horizontal=8 if compact else 10,
+        padding_vertical=6 if is_landscape else 8 if compact else 10,
+        padding_card_h=10 if compact else 14,
+        padding_card_v=8 if is_landscape else 10,
+        button_height=46 if is_landscape else 48,
         logo_size_header=32 if compact else 36,
         logo_size_hero=44 if compact else 50,
-        avatar_size=30 if compact else 32,
+        avatar_size=28 if compact and is_landscape else 30 if compact else 32,
         input_font_size=12 if compact else 13,
         chip_font_size=10 if compact else 11,
-        gap_header_body=6 if compact else 8,
-        gap_body_composer=6 if compact else 8,
-        drawer_width=min(width * 0.84, 320),
+        gap_header_body=6 if is_landscape else 8,
+        gap_body_composer=6 if is_landscape else 8,
+        drawer_width=min(width * 0.82, 340),
         splash_card_width=width * 0.92,
         splash_padding_h=14 if compact else 18,
         splash_padding_v=14 if compact else 18,

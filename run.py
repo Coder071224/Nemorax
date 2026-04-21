@@ -27,7 +27,7 @@ def _is_port_in_use(host: str, port: int) -> bool:
 
 def _start_backend() -> None:
     host = os.getenv("BACKEND_HOST", "0.0.0.0")
-    port = os.getenv("BACKEND_PORT", "8000")
+    port = os.getenv("PORT", os.getenv("BACKEND_PORT", "8000"))
     subprocess.run(
         [
             sys.executable,
@@ -65,8 +65,8 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    port = int(os.getenv("BACKEND_PORT", "8000"))
-    os.environ.setdefault("BACKEND_URL", f"http://127.0.0.1:{port}")
+    port = int(os.getenv("PORT", os.getenv("BACKEND_PORT", "8000")))
+    os.environ.setdefault("NEMORAX_API_URL", f"http://127.0.0.1:{port}")
 
     if not args.no_backend:
         if _is_port_in_use("127.0.0.1", port):

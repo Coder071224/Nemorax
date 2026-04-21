@@ -2,9 +2,25 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Any
+from typing import Any, Generic, TypeVar
 
 from pydantic import BaseModel, ConfigDict, Field, RootModel, field_validator
+
+
+PayloadT = TypeVar("PayloadT")
+
+
+class ApiErrorPayload(BaseModel):
+    code: str
+    message: str
+    details: Any | None = None
+    request_id: str | None = None
+
+
+class ApiResponse(BaseModel, Generic[PayloadT]):
+    ok: bool
+    data: PayloadT | None = None
+    error: ApiErrorPayload | None = None
 
 
 class MessageSchema(BaseModel):
@@ -53,6 +69,27 @@ class ChatResponse(BaseModel):
     session_id: str
     reply: str
     timestamp: datetime
+
+
+class RetrievalPreviewRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    session_id: str = Field(..., min_length=1)
+    messages: list[MessageSchema] = Field(default_factory=list)
+    user_id: str | None = None
+
+    @field_validator("session_id")
+    @classmethod
+    def normalize_preview_session_id(cls, value: str) -> str:
+        return value.strip()
+
+    @field_validator("user_id")
+    @classmethod
+    def normalize_preview_user_id(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        cleaned = value.strip()
+        return cleaned or None
 
 
 class ConversationRecord(BaseModel):
@@ -134,7 +171,6 @@ class ResetPasswordRequest(BaseModel):
 
 
 class AuthResponse(BaseModel):
-    success: bool
     message: str
     user_id: str | None = None
     email: str | None = None
@@ -167,9 +203,27 @@ class DisplayNameUpdateRequest(BaseModel):
         return cleaned
 
 
-class SettingsUpdateRequest(RootModel[dict[str, Any]]):
+class SettingsUpdateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    theme: str | None = None
+    show_splash: bool | None = None
+
     def to_dict(self) -> dict[str, Any]:
-        return dict(self.root)
+        data: dict[str, Any] = {}
+        if "theme" in self.model_fields_set:
+            data["theme"] = self.theme
+        if "show_splash" in self.model_fields_set:
+            data["show_splash"] = self.show_splash
+        return data
+
+
+class DeleteConversationResponse(BaseModel):
+    session_id: str
+
+
+class UserSettingsResponse(BaseModel):
+    settings: dict[str, Any] = Field(default_factory=dict)
 
 
 class ProviderHealthResponse(BaseModel):

@@ -16,6 +16,7 @@ import flet as ft
 
 from nemorax.frontend import api_client
 from nemorax.frontend.account_dialog import AccountDialog
+from nemorax.frontend.auth_session import clear_auth_session, finalize_login_auth_session
 from nemorax.frontend.config import (
     APP_NAME,
     DEFAULT_THEME,
@@ -25,12 +26,14 @@ from nemorax.frontend.config import (
     THEMES,
     apply_theme,
     current_theme,
-    set_show_splash,
+    normalize_user_settings,
+    resolve_theme_name,
     should_show_splash,
 )
 from nemorax.frontend.history_service import Conversation, HistoryService, Message
 from nemorax.frontend.message_bubble import assistant_bubble, typing_indicator, user_bubble
-from nemorax.frontend.responsive import get_layout_config
+from nemorax.frontend.native_auth import save_native_auth_session
+from nemorax.frontend.responsive import get_layout_config, should_use_mobile_layout
 from nemorax.frontend.sidebar import SidebarPanel
 from nemorax.frontend.splash_page import SplashPage
 from nemorax.frontend.time_utils import ph_now
@@ -41,18 +44,28 @@ UserInfo = dict[str, Any]
 _SIDEBAR_EXPANDED_WIDTH = 272
 _SIDEBAR_COLLAPSED_WIDTH = 76
 _SETTINGS_PANEL_WIDTH = 360
-_MOBILE_BREAKPOINT = 800
 _THEME_SAVE_DELAY_SECONDS = 0.08
 _AUTH_BANNER_SECONDS = 4.0
 _MOBILE_WEB_RESIZE_WIDTH_DELTA = 12.0
 
 
+def _user_state_snapshot(user: UserInfo | None) -> tuple[str, str, str, tuple[tuple[str, Any], ...]]:
+    if not isinstance(user, dict):
+        return ("", "", "", ())
+
+    user_id = str(user.get("user_id", "")).strip()
+    email = str(user.get("email", "")).strip()
+    display_name = str(user.get("display_name", "") or "").strip()
+    settings = tuple(sorted(normalize_user_settings(user).items()))
+    return (user_id, email, display_name, settings)
+
+
 class ChatPage(ft.Container):
-    def __init__(self, page: ft.Page) -> None:
+    def __init__(self, page: ft.Page, initial_user: UserInfo | None = None) -> None:
         super().__init__()
         self._page = page
-        self._history = HistoryService()
-        self._history.new_conversation()
+        initial_user_id = str((initial_user or {}).get("user_id", "")).strip() or None
+        self._history = HistoryService(initial_user_id)
 
         apply_theme(DEFAULT_THEME)
         self._sending = False
@@ -64,12 +77,13 @@ class ChatPage(ft.Container):
         self._mobile_backdrop: ft.Container | None = None
         self._mobile_drawer_container: ft.Container | None = None
 
-        self._current_user: UserInfo | None = None
+        self._current_user: UserInfo | None = initial_user
         self._auth_banner: tuple[str, str] | None = None
         self._banner_clear_task = None
         self._typing_session_id: str | None = None
         self._pending_request_session_id: str | None = None
         self._inline_error: tuple[str, str] | None = None
+        self._auth_transition_id = 0
 
         self._backend_available = False
         self._provider_available = False
@@ -97,6 +111,9 @@ class ChatPage(ft.Container):
         self.padding = 0
         self.margin = 0
 
+        if initial_user is not None:
+            self._set_theme_runtime(self._resolved_theme_name(initial_user))
+        self._history.new_conversation()
         self._update_mobile_state()
         self._refresh()
 
@@ -188,8 +205,8 @@ class ChatPage(ft.Container):
         return float(self._page.height or getattr(self._page, "window_height", None) or 860)
 
     def _is_mobile_web_view(self, width: float | None = None) -> bool:
-        resolved_width = self._page_width() if width is None else float(width)
-        return bool(getattr(self._page, "web", False)) and resolved_width < _MOBILE_BREAKPOINT
+        del width
+        return bool(getattr(self._page, "web", False)) and should_use_mobile_layout(self._page)
 
     def _current_conversation_has_messages(self) -> bool:
         conversation = self._history.current_conversation
@@ -246,23 +263,63 @@ class ChatPage(ft.Container):
         return self._session_greeting_name
 
     def _resolved_theme_name(self, user: UserInfo | None = None) -> str:
-        source = user if user is not None else self._current_user
-        if not source:
-            return DEFAULT_THEME
+        return resolve_theme_name(user if user is not None else self._current_user)
 
-        settings = source.get("settings", {})
-        if not isinstance(settings, dict):
-            return DEFAULT_THEME
-
-        theme = settings.get("theme")
-        if isinstance(theme, str) and theme in THEMES:
-            return theme
-        return DEFAULT_THEME
+    def _resolved_show_splash(self, user: UserInfo | None = None) -> bool:
+        return should_show_splash(user if user is not None else self._current_user)
 
     def _set_theme_runtime(self, name: str) -> None:
         theme_name = name if name in THEMES else DEFAULT_THEME
         apply_theme(theme_name)
         self._theme_name = theme_name
+
+    def _persist_user_settings(self, updates: dict[str, Any], user: UserInfo | None = None) -> None:
+        target_user = user if user is not None else self._current_user
+        if not target_user:
+            return
+
+        user_id = str(target_user.get("user_id", "")).strip()
+        if not user_id:
+            return
+
+        current_settings = normalize_user_settings(target_user)
+        for key, value in updates.items():
+            if key == "theme":
+                if isinstance(value, str) and value in THEMES:
+                    current_settings["theme"] = value
+                else:
+                    current_settings.pop("theme", None)
+            elif key == "show_splash":
+                if isinstance(value, bool):
+                    current_settings["show_splash"] = value
+                else:
+                    current_settings.pop("show_splash", None)
+
+        target_user["settings"] = current_settings
+        if self._current_user is not None and self._current_user.get("user_id") == user_id:
+            self._current_user["settings"] = current_settings
+
+        self._run_in_thread(
+            lambda: api_client.save_user_settings(
+                user_id,
+                dict(updates),
+            )
+        )
+
+    def _show_authenticated_splash(self, user: UserInfo) -> None:
+        def open_chat_again() -> None:
+            self._replace_page_content(ChatPage(self._page, initial_user=user))
+
+        self._replace_page_content(
+            SplashPage(
+                self._page,
+                on_continue=open_chat_again,
+                on_splash_preference_change=lambda show_splash: self._persist_user_settings(
+                    {"show_splash": show_splash},
+                    user=user,
+                ),
+            )
+        )
 
     def _find_conversation(self, conversation_id: str) -> Conversation | None:
         current = self._history.current_conversation
@@ -332,7 +389,7 @@ class ChatPage(ft.Container):
 
     def _update_mobile_state(self) -> None:
         was_mobile = self._is_mobile
-        self._is_mobile = self._page_width() < _MOBILE_BREAKPOINT
+        self._is_mobile = should_use_mobile_layout(self._page)
 
         if self._is_mobile and not was_mobile:
             self._settings_open = False
@@ -616,7 +673,7 @@ class ChatPage(ft.Container):
                             color=theme.text_muted,
                         ),
                         self._build_welcome_toggle_card(
-                            on_change=lambda event: set_show_splash(bool(event.control.value))
+                            on_change=self._handle_welcome_toggle
                         ),
                     ],
                 ),
@@ -658,17 +715,7 @@ class ChatPage(ft.Container):
         self._set_theme_runtime(theme_name)
 
         if self._current_user:
-            current_settings = self._current_user.get("settings", {})
-            if not isinstance(current_settings, dict):
-                current_settings = {}
-            current_settings["theme"] = theme_name
-            self._current_user["settings"] = current_settings
-            self._run_in_thread(
-                lambda: api_client.save_user_settings(
-                    self._current_user["user_id"],
-                    {"theme": theme_name},
-                )
-            )
+            self._persist_user_settings({"theme": theme_name})
 
         if self._is_mobile:
             self._custom_drawer_open = False
@@ -934,13 +981,14 @@ class ChatPage(ft.Container):
         )
 
     def _build_message_list(self) -> ft.ListView:
+        horizontal_padding = 2 if self._is_mobile else 4
         return ft.ListView(
             controls=[],
             expand=True,
             auto_scroll=False,
             build_controls_on_demand=False,
-            spacing=12,
-            padding=ft.Padding.only(top=8, bottom=8, left=4, right=4),
+            spacing=10 if self._is_mobile else 12,
+            padding=ft.Padding.only(top=8, bottom=8, left=horizontal_padding, right=horizontal_padding),
         )
 
     async def _deferred_scroll_to_latest(self) -> None:
@@ -1026,19 +1074,20 @@ class ChatPage(ft.Container):
             ),
             content=ft.Row(
                 controls=[self._input, self._send_button],
-                spacing=10,
+                spacing=8 if self._is_mobile else 10,
                 vertical_alignment=ft.CrossAxisAlignment.END,
             ),
         )
 
     def _build_composer_section(self, cfg: dict[str, Any]) -> ft.Control:
         return ft.Column(
-            spacing=12,
+            spacing=10 if self._is_mobile else 12,
             controls=[
                 self._build_input_box(cfg),
                 ft.Row(
                     spacing=8,
                     scroll=ft.ScrollMode.AUTO,
+                    wrap=False,
                     controls=[self._build_chip(question, cfg) for question in SUGGESTED_QUESTIONS],
                 ),
             ],
@@ -1150,6 +1199,7 @@ class ChatPage(ft.Container):
         on_change: Callable[[ft.ControlEvent], None],
     ) -> ft.Control:
         theme = current_theme()
+        is_authenticated = self._current_user is not None
 
         return ft.Container(
             padding=ft.Padding.all(14),
@@ -1159,9 +1209,10 @@ class ChatPage(ft.Container):
             content=ft.Row(
                 controls=[
                     ft.Checkbox(
-                        value=should_show_splash(),
+                        value=self._resolved_show_splash(),
                         fill_color={ft.ControlState.SELECTED: theme.accent},
                         on_change=on_change,
+                        disabled=not is_authenticated,
                     ),
                     ft.Column(
                         expand=True,
@@ -1175,7 +1226,9 @@ class ChatPage(ft.Container):
                                 color=theme.text_primary,
                             ),
                             ft.Text(
-                                "Display the intro screen before opening chat.",
+                                "Display the intro screen before opening chat."
+                                if is_authenticated
+                                else "Guests always start with the intro screen.",
                                 size=11,
                                 color=theme.text_secondary,
                             ),
@@ -1262,7 +1315,7 @@ class ChatPage(ft.Container):
             left=cfg["padding_horizontal"],
             right=cfg["padding_horizontal"],
             top=cfg["padding_vertical"] + cfg["top_padding"],
-            bottom=cfg["padding_vertical"],
+            bottom=cfg["padding_vertical"] + (10 if self._is_mobile else 0),
         )
 
         center = ft.Container(
@@ -1349,20 +1402,31 @@ class ChatPage(ft.Container):
     def _handle_login(self, user: UserInfo) -> None:
         self._dismiss_history_context_menu()
         self._dismiss_history_delete_sheet()
-        self._current_user = user
+        self._auth_transition_id += 1
+        transition_id = self._auth_transition_id
         self._cancel_pending_chat_request()
         self._reset_session_greeting_name()
-        self._set_theme_runtime(self._resolved_theme_name(user))
-        user_id = user["user_id"]
+        self._set_theme_runtime(DEFAULT_THEME)
 
         def _background_work() -> None:
-            profile = api_client.load_user_profile(user_id) or user
-
-            self._history.reload(user_id)
+            profile = asyncio.run(finalize_login_auth_session(self._page, user))
 
             async def _apply_on_ui() -> None:
+                if transition_id != self._auth_transition_id:
+                    return
+                if profile is None:
+                    self._set_theme_runtime(DEFAULT_THEME)
+                    self._show_auth_banner("Unable to restore this account right now.", "error")
+                    self._refresh()
+                    self._safe_update(self)
+                    return
+
                 self._current_user = profile
                 self._set_theme_runtime(self._resolved_theme_name(profile))
+                self._history.reload(profile["user_id"])
+                if self._resolved_show_splash(profile):
+                    self._show_authenticated_splash(profile)
+                    return
 
                 self._history.current_conversation = None
                 self._history.new_conversation()
@@ -1387,6 +1451,7 @@ class ChatPage(ft.Container):
     def _handle_logout(self) -> None:
         self._dismiss_history_context_menu()
         self._dismiss_history_delete_sheet()
+        self._auth_transition_id += 1
         self._current_user = None
         self._cancel_pending_chat_request()
         self._reset_session_greeting_name()
@@ -1399,6 +1464,10 @@ class ChatPage(ft.Container):
         self._refresh()
         self._safe_update(self)
         self._refresh_sidebar()
+        async def _clear_native_session() -> None:
+            await clear_auth_session(self._page)
+
+        self._page.run_task(_clear_native_session)
         self._show_auth_banner(
             "Signed out successfully. Continuing as guest.",
             "success",
@@ -1412,12 +1481,18 @@ class ChatPage(ft.Container):
         self._show_auth_banner("Continuing as guest.", "success")
 
     def _handle_user_update(self, user: UserInfo) -> None:
+        if _user_state_snapshot(user) == _user_state_snapshot(self._current_user):
+            return
         self._current_user = user
         self._set_theme_runtime(self._resolved_theme_name(user))
         self._refresh()
         self._safe_update(self)
         self._safe_page_update()
         self._refresh_sidebar()
+        async def _save_native_session() -> None:
+            await save_native_auth_session(self._page, user)
+
+        self._page.run_task(_save_native_session)
 
     # Message flow
 
@@ -1432,6 +1507,12 @@ class ChatPage(ft.Container):
         self._typing_session_id = None
         self._set_send_enabled(True)
         self._safe_page_update()
+
+    async def _apply_response_on_ui_thread(self, response: str, session_id: str) -> None:
+        self._on_response(response, session_id)
+
+    async def _apply_error_on_ui_thread(self, error: str, session_id: str) -> None:
+        self._on_error(error, session_id)
 
     def _send_message(self, text: str) -> None:
         if self._sending:
@@ -1461,8 +1542,16 @@ class ChatPage(ft.Container):
             api_client.send_message(
                 session_id=session_id,
                 messages=self._history.get_chat_messages(),
-                on_response=lambda response: self._on_response(response, session_id),
-                on_error=lambda error: self._on_error(error, session_id),
+                on_response=lambda response: self._page.run_task(
+                    self._apply_response_on_ui_thread,
+                    response,
+                    session_id,
+                ),
+                on_error=lambda error: self._page.run_task(
+                    self._apply_error_on_ui_thread,
+                    error,
+                    session_id,
+                ),
                 user_id=user_id,
             )
         except Exception:
@@ -1540,9 +1629,13 @@ class ChatPage(ft.Container):
                 if not (message.content or "").strip():
                     continue
                 if message.role == "user":
-                    self._message_list.controls.append(user_bubble(message.content, message.timestamp))
+                    self._message_list.controls.append(
+                        user_bubble(message.content, message.timestamp, compact=self._is_mobile)
+                    )
                 else:
-                    self._message_list.controls.append(assistant_bubble(message.content, message.timestamp))
+                    self._message_list.controls.append(
+                        assistant_bubble(message.content, message.timestamp, compact=self._is_mobile)
+                    )
 
             if self._inline_error and self._inline_error[0] == conversation.id:
                 theme = current_theme()
@@ -1561,7 +1654,7 @@ class ChatPage(ft.Container):
                 )
 
             if self._typing_session_id == conversation.id:
-                self._message_list.controls.append(typing_indicator())
+                self._message_list.controls.append(typing_indicator(compact=self._is_mobile))
 
             self._message_list.controls.append(self._chat_bottom_anchor)
             self._chat_host.content = self._message_list
@@ -1836,16 +1929,31 @@ class ChatPage(ft.Container):
         self._page.run_task(_restore)
 
     def _handle_welcome_toggle(self, event: ft.ControlEvent) -> None:
-        set_show_splash(bool(event.control.value))
+        if self._current_user is None:
+            self._refresh()
+            self._safe_update(self)
+            return
+        self._persist_user_settings({"show_splash": bool(event.control.value)})
+        self._refresh()
+        self._safe_update(self)
 
     def _handle_show_splash(self, e=None) -> None:
-        set_show_splash(True)
         self._custom_drawer_open = False
 
         def open_chat_again() -> None:
-            self._replace_page_content(ChatPage(self._page))
+            self._replace_page_content(ChatPage(self._page, initial_user=self._current_user))
 
-        self._replace_page_content(SplashPage(self._page, on_continue=open_chat_again))
+        self._replace_page_content(
+            SplashPage(
+                self._page,
+                on_continue=open_chat_again,
+                on_splash_preference_change=(
+                    lambda show_splash: self._persist_user_settings({"show_splash": show_splash})
+                )
+                if self._current_user
+                else None,
+            )
+        )
 
     def _open_dialog(self, dialog: ft.AlertDialog) -> None:
         self._page.overlay.append(dialog)
@@ -1883,7 +1991,7 @@ class ChatPage(ft.Container):
                 weight=ft.FontWeight.W_800,
             ),
             content=ft.Container(
-                width=360,
+                width=min(self._page_width() - 24, 360),
                 padding=ft.Padding.all(4),
                 content=ft.Column(
                     spacing=10,
@@ -1978,7 +2086,7 @@ class ChatPage(ft.Container):
                 color=theme.text_primary,
                 weight=ft.FontWeight.W_800,
             ),
-            content=ft.Container(width=380, content=feedback_box),
+            content=ft.Container(width=min(self._page_width() - 24, 380), content=feedback_box),
             actions=[
                 ft.TextButton(
                     "Cancel",

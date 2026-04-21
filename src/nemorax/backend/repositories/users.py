@@ -40,6 +40,9 @@ def public_settings(user: UserRecord) -> dict[str, Any]:
     theme = raw_settings.get("theme")
     if isinstance(theme, str) and theme.strip():
         result["theme"] = theme.strip()
+    show_splash = raw_settings.get("show_splash")
+    if isinstance(show_splash, bool):
+        result["show_splash"] = show_splash
     return result
 
 

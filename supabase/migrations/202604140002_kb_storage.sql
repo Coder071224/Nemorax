@@ -270,19 +270,19 @@ as $$
         c.updated_date,
         c.metadata,
         greatest(
-            ts_rank_cd(c.search_vector, prepared.ts_query),
+            ts_rank_cd(c.search_vector, prepared.ts_query) * 1.5,
             similarity(c.normalized_text, prepared.raw_query),
-            similarity(lower(c.title), prepared.raw_query),
-            similarity(lower(c.topic), prepared.raw_query)
+            similarity(lower(c.title), prepared.raw_query) * 2.0,
+            similarity(lower(c.topic), prepared.raw_query) * 1.5
         ) as rank
     from public.kb_chunks c
     cross join prepared
     where prepared.raw_query <> ''
       and (
         c.search_vector @@ prepared.ts_query
-        or similarity(c.normalized_text, prepared.raw_query) > 0.08
-        or similarity(lower(c.title), prepared.raw_query) > 0.08
-        or similarity(lower(c.topic), prepared.raw_query) > 0.08
+        or similarity(c.normalized_text, prepared.raw_query) > 0.15
+        or similarity(lower(c.title), prepared.raw_query) > 0.15
+        or similarity(lower(c.topic), prepared.raw_query) > 0.15
       )
     order by rank desc, coalesce(c.updated_at, c.created_at) desc
     limit greatest(1, least(coalesce(p_limit, 6), 20));

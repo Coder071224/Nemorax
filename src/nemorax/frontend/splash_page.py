@@ -8,7 +8,7 @@ from flet.controls.control_event import Event
 import flet as ft
 
 from nemorax.frontend import api_client
-from nemorax.frontend.config import APP_NAME, BRAND_NAME, ThemePalette, current_theme, set_show_splash
+from nemorax.frontend.config import APP_NAME, BRAND_NAME, ThemePalette, current_theme
 from nemorax.frontend.responsive import get_layout_config
 
 
@@ -26,10 +26,12 @@ class SplashPage(ft.Container):
         self,
         page: ft.Page,
         on_continue: Callable[[], None] | None = None,
+        on_splash_preference_change: Callable[[bool], None] | None = None,
     ) -> None:
         super().__init__()
         self._page = page
         self._on_continue = on_continue
+        self._on_splash_preference_change = on_splash_preference_change
         self._dont_show = False
         self._loading = False
 
@@ -352,6 +354,15 @@ class SplashPage(ft.Container):
             ),
         )
 
+        if cfg["is_mobile"]:
+            return ft.Column(
+                spacing=12 if not compact else 10,
+                controls=[
+                    checkbox_row,
+                    ft.Container(alignment=ft.Alignment(1, 0), content=cta_button),
+                ],
+            )
+
         return ft.Row(
             controls=[checkbox_row, cta_button],
             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
@@ -444,7 +455,8 @@ class SplashPage(ft.Container):
             return
 
         self._loading = True
-        set_show_splash(not self._dont_show)
+        if self._on_splash_preference_change is not None:
+            self._on_splash_preference_change(not self._dont_show)
         self._swap_footer_to_loading()
         self._page.run_task(self._run_loading_sequence)
 

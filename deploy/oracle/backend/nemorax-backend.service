@@ -1,0 +1,18 @@
+[Unit]
+Description=Nemorax FastAPI backend
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+Group=ubuntu
+WorkingDirectory=/opt/nemorax/NEMORAXS
+EnvironmentFile=/etc/nemorax/backend.env
+ExecStart=/opt/nemorax/NEMORAXS/.venv/bin/python -m uvicorn nemorax.backend.main:app --app-dir src --host 127.0.0.1 --port 8000
+Restart=always
+RestartSec=5
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target

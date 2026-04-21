@@ -2,6 +2,12 @@
 
 Nemorax is a Flet frontend with a FastAPI backend for the Nemis campus assistant. The backend is structured around services, repositories, and a provider-neutral LLM adapter so the app can run on Groq by default and still switch to other OpenAI-compatible providers with minimal code changes.
 
+Production deployment is now split as follows:
+
+- Static website / download portal: Vercel (`website/`)
+- Persistent API backend: Oracle Cloud Always Free VM
+- Optional browser-based Flet app: Oracle Cloud VM behind Nginx
+
 ## Current layout
 
 ```text
@@ -40,9 +46,26 @@ NEMORAXS/
 
 The rest of the app talks to `ChatService`, not directly to a specific model vendor. Provider selection is controlled by environment variables.
 
+## Runtime config contract
+
+Use these canonical variables:
+
+- `NEMORAX_ENV`: `development`, `production`, or `test`
+- `NEMORAX_API_URL`: frontend-facing backend API base URL
+- `BACKEND_HOST`: backend bind host
+- `BACKEND_PORT`: backend bind port for local/manual runs
+- `PORT`: deployment-provided bind port override
+- `CORS_ORIGINS`: comma-separated frontend origins; set exact origins in production
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `NEMORAX_KB_SOURCE`
+- `LLM_*`
+
+Legacy duplicates such as `SUPABASE_ANON_KEY` and provider-specific `GROQ_*` shortcuts are no longer part of the supported config surface.
+
 ## Provider switching
 
-The backend supports three provider modes through `LLM_PROVIDER`:
+The backend supports two provider modes through `LLM_PROVIDER`:
 
 - `groq`
 - `openai_compatible`
@@ -60,9 +83,10 @@ LLM_REASONING_EFFORT=medium
 LLM_INCLUDE_REASONING=false
 LLM_STREAM=true
 LLM_SEED=7
-GROQ_API_KEY=your-key
+LLM_API_KEY=your-key
 ```
 
+```env
 LLM_PROVIDER=openai_compatible
 LLM_MODEL=gpt-4o-mini
 LLM_BASE_URL=https://api.openai.com/v1
@@ -120,7 +144,8 @@ Swagger UI:
 
 Desktop:
 
-```bash
+```powershell
+$env:NEMORAX_API_URL="http://127.0.0.1:8000"
 python app.py
 ```
 
@@ -134,7 +159,8 @@ python run.py
 
 Web:
 
-```bash
+```powershell
+$env:NEMORAX_API_URL="http://127.0.0.1:8000"
 python run.py --web
 ```
 
@@ -151,7 +177,21 @@ python -m unittest discover -s tests -v
 - `run.py` is for local development convenience.
 - Production backend entrypoint is `nemorax.backend.main:app`.
 - Keep secrets in environment variables, not in source files.
+- Set `NEMORAX_API_URL` explicitly for deployed frontends.
 - Set `CORS_ORIGINS` explicitly in production.
+- Recommended production split:
+  - Vercel for `website/`
+  - Oracle Cloud Always Free for the FastAPI backend
+  - Oracle Cloud for the Flet web runtime if you need the browser app, because Flet requires a persistent Python service and is not a good fit for Cloudflare Pages or Vercel serverless hosting
+- Development defaults already allow the common local frontend origins:
+  - `http://127.0.0.1:8550`
+  - `http://localhost:8550`
+  - `http://127.0.0.1:3000`
+  - `http://localhost:3000`
+  - `http://127.0.0.1:5173`
+  - `http://localhost:5173`
 - Persistent app data and runtime KB data are stored in Supabase.
 - Legacy app JSON can be imported with `python -m nemorax.backend.migrate_legacy_storage --root data`.
 - Legacy KB artifacts can be imported with `python -m nemorax.backend.migrate_kb_to_supabase --kb-root kb --data-root data`.
+- Structured NEMSU KB ingestion is available with `python -m nemorax.backend.ingest_nemsu_kb --max-pages 180`.
+- Apply `supabase/migrations/202604140004_nemsu_structured_kb.sql` before running the structured KB ingest command.

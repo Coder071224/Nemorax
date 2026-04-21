@@ -223,7 +223,6 @@ class KbMigrationTests(unittest.TestCase):
         client = SupabasePersistenceClient(
             SupabaseSettings(
                 url="https://stub-supabase.local",
-                anon_key="anon",
                 service_role_key="service-role",
                 kb_source="supabase",
                 timeout_seconds=5.0,
@@ -242,7 +241,6 @@ class KbMigrationTests(unittest.TestCase):
                 {
                     "supabase": SupabaseSettings(
                         url="https://stub-supabase.local",
-                        anon_key="anon",
                         service_role_key="service-role",
                         kb_source="supabase",
                         timeout_seconds=5.0,

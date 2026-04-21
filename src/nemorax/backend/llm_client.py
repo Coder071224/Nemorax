@@ -19,8 +19,11 @@ async def is_available() -> bool:
 
 async def chat(messages: Sequence[dict[str, str]]) -> str:
     provider = get_runtime_services().llm_provider
-    system_prompt = get_runtime_services().prompt_service.get_system_prompt()
-    normalized_messages = [LLMMessage(role="system", content=system_prompt)]
+    prompt_payload = get_runtime_services().prompt_service.build_prompt_payload(None)
+    normalized_messages = [LLMMessage(role="system", content=str(prompt_payload["system_prompt"]))]
+    retrieval_message = str(prompt_payload.get("retrieval_message") or "").strip()
+    if retrieval_message:
+        normalized_messages.append(LLMMessage(role="assistant", content=retrieval_message))
     normalized_messages.extend(
         LLMMessage(role=str(item.get("role", "")), content=str(item.get("content", "")))
         for item in messages
