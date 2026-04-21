@@ -8,6 +8,7 @@ from datetime import datetime, timezone
 from difflib import SequenceMatcher
 import re
 from typing import Any
+import uuid
 
 try:
     from rapidfuzz import fuzz
@@ -292,6 +293,17 @@ def _history_to_dicts(messages: Sequence[MessageSchema]) -> list[dict[str, str]]
     return [{"role": message.role, "content": message.content} for message in messages if message.content]
 
 
+def _is_uuid_like(value: str | None) -> bool:
+    cleaned = (value or "").strip()
+    if not cleaned:
+        return False
+    try:
+        uuid.UUID(cleaned)
+    except ValueError:
+        return False
+    return True
+
+
 def _build_rejection_reply(conversation_history: Sequence[MessageSchema]) -> str:
     if conversation_history:
         return (
@@ -382,12 +394,12 @@ class ChatService:
     def _conversation_window(self, request: ChatRequest) -> list[MessageSchema]:
         non_empty_messages = [message for message in request.messages if message.content]
         trimmed_request_messages = non_empty_messages[-_FOLLOW_UP_HISTORY_WINDOW:]
-        if len(trimmed_request_messages) > 1 or not request.user_id:
+        if len(trimmed_request_messages) > 1 or not _is_uuid_like(request.user_id):
             return trimmed_request_messages
 
         stored_messages = self._history.recent_messages(
             request.session_id,
-            request.user_id,
+            str(request.user_id),
             limit=_FOLLOW_UP_HISTORY_WINDOW,
         )
         combined = [*stored_messages, *trimmed_request_messages]
