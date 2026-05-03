@@ -18,8 +18,8 @@ window.NEMORAX_SITE_CONFIG = {
     customDomain: ""
   },
   app: {
-    // Point this to the Oracle-hosted Flet web app if you want the website's "Open web app" button enabled.
-    webUrl: "https://welcoming-achievement-production-15fc.up.railway.app"
+    // Railway-hosted Flet web app used by the website's "Open web app" button.
+    webUrl: "https://nemoraxweb-production.up.railway.app"
   },
   api: {
     localBaseUrl: "http://localhost:8000",
