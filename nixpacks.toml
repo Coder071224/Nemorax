@@ -2,3 +2,4 @@ providers = ["python"]
 
 [variables]
 NIXPACKS_PYTHON_PACKAGE_MANAGER = "requirements"
+NIXPACKS_PYTHON_VERSION = "3.12"

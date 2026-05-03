@@ -33,6 +33,7 @@ if __name__ == "__main__":
 
     host = os.environ.get("FLET_SERVER_IP", "0.0.0.0")
     port = int(os.environ.get("FLET_SERVER_PORT", os.environ.get("PORT", "8550")))
+    print(f"[serve_web] Starting Flet web server on {host}:{port}", flush=True)
     ft.run(
         main,
         assets_dir="assets",
