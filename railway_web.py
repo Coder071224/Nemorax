@@ -21,7 +21,12 @@ from nemorax.frontend.main import main
 
 if __name__ == "__main__":
     host = "0.0.0.0"
-    port = int(os.environ["PORT"])
+    port = int(
+        os.environ.get("WEB_PORT")
+        or os.environ.get("FLET_SERVER_PORT")
+        or os.environ.get("PORT")
+        or "8000"
+    )
     print(f"[railway_web] Starting Flet on {host}:{port}", flush=True)
     ft.run(
         main,
