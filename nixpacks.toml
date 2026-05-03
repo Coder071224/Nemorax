@@ -1,8 +1,4 @@
-[phases.setup]
-nixPkgs = ["python312Full"]
+providers = ["python"]
 
-[phases.install]
-cmds = [
-  "python -m pip install --upgrade pip",
-  "python -m pip install -r requirements.txt"
-]
+[variables]
+NIXPACKS_PYTHON_PACKAGE_MANAGER = "requirements"
