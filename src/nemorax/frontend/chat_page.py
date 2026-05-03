@@ -652,13 +652,13 @@ class ChatPage(ft.Container):
                         ),
                         ft.Text(
                             "Choose theme and behavior",
-                            size=12,
+                            size=14,
                             color=theme.text_secondary,
                         ),
                         ft.Divider(height=1),
                         ft.Text(
                             "Appearance",
-                            size=12,
+                            size=14,
                             weight=ft.FontWeight.W_700,
                             color=theme.text_muted,
                         ),
@@ -668,7 +668,7 @@ class ChatPage(ft.Container):
                         ),
                         ft.Text(
                             "Behavior",
-                            size=12,
+                            size=14,
                             weight=ft.FontWeight.W_700,
                             color=theme.text_muted,
                         ),
@@ -783,8 +783,8 @@ class ChatPage(ft.Container):
                     icon=ft.Icons.MENU_ROUNDED,
                     icon_color=theme.accent,
                     tooltip="Menu",
-                    width=cfg["button_height"] - 2,
-                    height=cfg["button_height"] - 2,
+                    width=max(44, cfg["button_height"] - 2),
+                    height=max(44, cfg["button_height"] - 2),
                     style=ft.ButtonStyle(
                         shape=ft.RoundedRectangleBorder(radius=14),
                         padding=ft.Padding.all(0),
@@ -865,7 +865,7 @@ class ChatPage(ft.Container):
                                     ft.Icon(ft.Icons.CIRCLE, size=10, color=status_color),
                                     ft.Text(
                                         status_text,
-                                        size=12,
+                                        size=max(14, cfg["font_size_small"]),
                                         color=theme.text_primary,
                                         weight=ft.FontWeight.W_600,
                                     ),
@@ -876,8 +876,8 @@ class ChatPage(ft.Container):
                             icon=account_icon,
                             icon_color=account_color,
                             tooltip=account_tooltip,
-                            width=cfg["button_height"] - 2,
-                            height=cfg["button_height"] - 2,
+                            width=max(44, cfg["button_height"] - 2),
+                            height=max(44, cfg["button_height"] - 2),
                             style=ft.ButtonStyle(
                                 bgcolor=ft.Colors.with_opacity(0.10, account_color),
                                 shape=ft.RoundedRectangleBorder(radius=14),
@@ -903,6 +903,7 @@ class ChatPage(ft.Container):
                     controls=[
                         ft.Text(
                             message,
+                            size=cfg["font_size_body"],
                             color=theme.text_primary,
                             weight=ft.FontWeight.W_700,
                             expand=True,
@@ -1048,12 +1049,12 @@ class ChatPage(ft.Container):
             on_submit=self._handle_send,
         )
 
-        button_size = cfg["button_height"] - 4
+        button_size = max(44, cfg["button_height"] - 4)
         self._send_button = ft.IconButton(
             icon=ft.Icons.ARROW_UPWARD_ROUNDED,
             icon_color=theme.text_primary,
             bgcolor=theme.send_btn,
-            icon_size=18,
+            icon_size=20,
             width=button_size,
             height=button_size,
             tooltip="Send",
@@ -1164,7 +1165,7 @@ class ChatPage(ft.Container):
                             ft.Text(
                                 palette.name,
                                 color=active_theme.text_primary,
-                                size=13.5,
+                                size=14,
                                 weight=ft.FontWeight.W_700,
                             ),
                             ft.Container(expand=True),
@@ -1221,7 +1222,7 @@ class ChatPage(ft.Container):
                         controls=[
                             ft.Text(
                                 "Show welcome screen on launch",
-                                size=13,
+                                size=14,
                                 weight=ft.FontWeight.W_600,
                                 color=theme.text_primary,
                             ),
@@ -1229,7 +1230,7 @@ class ChatPage(ft.Container):
                                 "Display the intro screen before opening chat."
                                 if is_authenticated
                                 else "Guests always start with the intro screen.",
-                                size=11,
+                                size=14,
                                 color=theme.text_secondary,
                             ),
                         ],
@@ -1272,13 +1273,13 @@ class ChatPage(ft.Container):
                     ),
                     ft.Text(
                         "Choose a theme and tweak launch behavior.",
-                        size=13,
+                        size=14,
                         color=theme.text_secondary,
                     ),
                     ft.Container(height=10),
                     ft.Text(
                         "Appearance",
-                        size=12,
+                        size=14,
                         weight=ft.FontWeight.W_700,
                         color=theme.text_muted,
                     ),
@@ -1289,7 +1290,7 @@ class ChatPage(ft.Container):
                     ft.Container(height=8),
                     ft.Text(
                         "Behavior",
-                        size=12,
+                        size=14,
                         weight=ft.FontWeight.W_700,
                         color=theme.text_muted,
                     ),
@@ -1648,7 +1649,7 @@ class ChatPage(ft.Container):
                         content=ft.Text(
                             self._inline_error[1],
                             color=theme.text_primary,
-                            size=13,
+                            size=14,
                         ),
                     )
                 )
@@ -1768,7 +1769,7 @@ class ChatPage(ft.Container):
                         ),
                         ft.Text(
                             "Delete conversation",
-                            size=12.5,
+                            size=14,
                             weight=ft.FontWeight.W_600,
                             color=theme.text_primary,
                         ),
@@ -2002,13 +2003,13 @@ class ChatPage(ft.Container):
                                 ft.Text(
                                     label,
                                     color=theme.text_muted,
-                                    size=12,
+                                    size=14,
                                     width=82,
                                 ),
                                 ft.Text(
                                     value,
                                     color=theme.text_primary,
-                                    size=12.5,
+                                    size=14,
                                     expand=True,
                                 ),
                             ]
@@ -2033,7 +2034,8 @@ class ChatPage(ft.Container):
 
         feedback_box = ft.TextField(
             hint_text="Tell us what to improve...",
-            hint_style=ft.TextStyle(color=theme.text_muted),
+            hint_style=ft.TextStyle(color=theme.text_muted, size=16),
+            text_size=16,
             multiline=True,
             min_lines=4,
             max_lines=6,
@@ -2096,6 +2098,7 @@ class ChatPage(ft.Container):
                 ft.Button(
                     content=ft.Text(
                         "Submit",
+                        size=14,
                         color="#081018",
                         weight=ft.FontWeight.W_700,
                     ),

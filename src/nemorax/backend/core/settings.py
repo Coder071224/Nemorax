@@ -12,6 +12,11 @@ from dotenv import load_dotenv
 PACKAGE_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = PACKAGE_DIR.parents[3]
 ENV_FILE = PROJECT_ROOT / ".env"
+HEALTH_REQUIRED_ENV_NAMES = (
+    "SUPABASE_URL",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "LLM_API_KEY",
+)
 
 load_dotenv(ENV_FILE)
 
@@ -45,6 +50,14 @@ def _read_float(*names: str, default: float) -> float:
 def _read_bool(*names: str, default: bool) -> bool:
     raw = _read_str(*names, default="true" if default else "false")
     return raw.strip().lower() in {"1", "true", "yes", "on"}
+
+
+def missing_health_env_var_names() -> list[str]:
+    return [
+        name
+        for name in HEALTH_REQUIRED_ENV_NAMES
+        if not (os.getenv(name) or "").strip()
+    ]
 
 
 def _resolve_path(raw: str, *, base: Path) -> Path:
@@ -87,21 +100,17 @@ def _default_api_url(port: int) -> str:
     return f"http://127.0.0.1:{port}"
 
 
+def _local_cors_origins(*ports: int) -> list[str]:
+    origins: list[str] = []
+    for port in ports:
+        origins.extend([f"http://localhost:{port}", f"http://127.0.0.1:{port}"])
+    return origins
+
+
 def _default_cors_origins(environment: str) -> str:
     if environment != "development":
         return ""
-    return ",".join(
-        [
-            "http://127.0.0.1:8550",
-            "http://localhost:8550",
-            "http://127.0.0.1:3000",
-            "http://localhost:3000",
-            "http://127.0.0.1:5173",
-            "http://localhost:5173",
-            "http://127.0.0.1:8000",
-            "http://localhost:8000",
-        ]
-    )
+    return ",".join(_local_cors_origins(8550, 3000, 5173, 8000))
 
 
 @dataclass(frozen=True, slots=True)
@@ -286,7 +295,7 @@ def load_settings() -> Settings:
         backend_host=_read_str("BACKEND_HOST", default="0.0.0.0"),
         backend_port=backend_port,
         backend_url=backend_public_url,
-        cors_origins_raw=_read_str("CORS_ORIGINS", default=_default_cors_origins(environment)),
+        cors_origins_raw=_read_str("ALLOWED_ORIGINS", "CORS_ORIGINS", default=_default_cors_origins(environment)),
     )
     llm = LLMSettings(
         provider=provider,
@@ -327,6 +336,7 @@ settings = load_settings()
 
 __all__ = [
     "ENV_FILE",
+    "HEALTH_REQUIRED_ENV_NAMES",
     "PROJECT_ROOT",
     "ApiSettings",
     "LLMSettings",
@@ -334,5 +344,6 @@ __all__ = [
     "Settings",
     "SupabaseSettings",
     "load_settings",
+    "missing_health_env_var_names",
     "settings",
 ]

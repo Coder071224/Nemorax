@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from dataclasses import replace
+import os
 import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 
@@ -14,7 +16,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from nemorax.backend.api.app import create_app
-from nemorax.backend.core.settings import ApiSettings
+from nemorax.backend.core.settings import ApiSettings, load_settings
 from tests.test_backend_app import FakeSupabaseTransport, StubProvider, build_test_services, build_test_settings
 
 
@@ -36,6 +38,18 @@ class BackendCorsTests(unittest.TestCase):
             ["https://web.example.com", "http://localhost:8550"],
         )
         self.assertFalse(settings.cors_allow_credentials)
+
+    def test_load_settings_prefers_allowed_origins_env_var(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            env = {
+                "NEMORAX_DATA_DIR": tempdir,
+                "ALLOWED_ORIGINS": "https://your-project.vercel.app",
+                "CORS_ORIGINS": "https://legacy.example.com",
+            }
+            with patch.dict(os.environ, env, clear=False):
+                settings = load_settings()
+
+        self.assertEqual(settings.cors_origins, ["https://your-project.vercel.app"])
 
     def test_allowed_origin_receives_preflight_headers(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:

@@ -55,7 +55,7 @@ Use these canonical variables:
 - `BACKEND_HOST`: backend bind host
 - `BACKEND_PORT`: backend bind port for local/manual runs
 - `PORT`: deployment-provided bind port override
-- `CORS_ORIGINS`: comma-separated frontend origins; set exact origins in production
+- `ALLOWED_ORIGINS`: comma-separated frontend origins; set exact origins in production
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `NEMORAX_KB_SOURCE`
@@ -178,7 +178,7 @@ python -m unittest discover -s tests -v
 - Production backend entrypoint is `nemorax.backend.main:app`.
 - Keep secrets in environment variables, not in source files.
 - Set `NEMORAX_API_URL` explicitly for deployed frontends.
-- Set `CORS_ORIGINS` explicitly in production.
+- Set `ALLOWED_ORIGINS` explicitly in production.
 - Recommended production split:
   - Vercel for `website/`
   - Oracle Cloud Always Free for the FastAPI backend

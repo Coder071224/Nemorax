@@ -21,7 +21,7 @@ except ImportError:
     fuzz = _FuzzFallback()
 
 from nemorax.backend.core.logging import get_logger
-from nemorax.backend.core.settings import Settings
+from nemorax.backend.core.settings import Settings, missing_health_env_var_names
 from nemorax.backend.llm.base import ChatProvider
 from nemorax.backend.llm.models import LLMMessage
 from nemorax.backend.schemas import ChatRequest, ChatResponse, MessageSchema
@@ -35,6 +35,11 @@ logger = get_logger("nemorax.chat")
 _FOLLOW_UP_HISTORY_WINDOW = 6
 _MIN_RETRIEVAL_EVIDENCE_SCORE = 3.0
 _GREETING_PATTERN = re.compile(r"\b(hi|hello|hey|good morning|good afternoon|good evening|kumusta|musta|yo|hola)\b")
+_FORMER_NAME_PATTERN = re.compile(
+    r"\b("
+    r"called before|former name|previous name|old name|used to be called|renamed from|formerly known"
+    r")\b"
+)
 _LINK_INTENT_PATTERN = re.compile(
     r"\b("
     r"link|url|website|web ?site|portal|page|site|access|open|visit|find|where can i find|where do i find|"
@@ -48,6 +53,8 @@ _INSTITUTION_ALIASES: dict[str, tuple[str, ...]] = {
         "surigao del sur state university",
         "sdssu",
     ),
+    "besc": ("bukidnon external studies center",),
+    "sdssu": ("surigao del sur state university",),
     "cite": (
         "college of information technology education",
         "college of it education",
@@ -325,11 +332,11 @@ def _build_uncertain_reply(alias_hits: Sequence[str], user_message: str) -> str:
     time_guidance = f" {time_sensitive_fallback_guidance()}" if is_time_sensitive_query(user_message) else ""
     if alias_hits:
         return (
-            f"I'm not fully sure yet based on the current NEMSU knowledge base. If you mean {alias_hits[0]}, "
+            f"I couldn't find a reliable match in the current NEMSU knowledge base. If you mean {alias_hits[0]}, "
             f"try adding the campus, office, or college name and I'll narrow it down.{time_guidance}"
         )
     return (
-        "I'm not fully sure yet based on the current NEMSU knowledge base. "
+        "I couldn't find a reliable match in the current NEMSU knowledge base. "
         f"Try mentioning the campus, office, college, or program so I can narrow it down.{time_guidance}"
     )
 
@@ -343,19 +350,24 @@ def _is_greeting(user_message: str) -> bool:
     return bool(_GREETING_PATTERN.search((user_message or "").lower()))
 
 
+def _is_former_name_query(user_message: str) -> bool:
+    return bool(_FORMER_NAME_PATTERN.search((user_message or "").lower()))
+
+
 def _alias_hits(normalized_query: str) -> list[str]:
     hits: list[str] = []
     tokens = normalized_query.split()
     for alias, expansions in _INSTITUTION_ALIASES.items():
-        if alias in normalized_query:
-            hits.append(expansions[0])
+        alias_matches = alias in tokens if " " not in alias else alias in normalized_query
+        if alias_matches:
+            hits.extend(expansions)
             continue
         for token in tokens:
             if len(token) < 3:
                 continue
             threshold = 75 if len(alias) <= 4 else 86
             if fuzz.ratio(token, alias) >= threshold:
-                hits.append(expansions[0])
+                hits.extend(expansions)
                 break
     deduped: list[str] = []
     seen: set[str] = set()
@@ -503,6 +515,8 @@ class ChatService:
         diagnostics = prompt_payload.get("retrieval_diagnostics") or {}
         if diagnostics.get("evidence") is True:
             return True
+        if diagnostics.get("evidence") is False:
+            return False
 
         max_score = float(prompt_payload.get("max_score") or 0.0)
 
@@ -536,28 +550,86 @@ class ChatService:
             provider_messages.append(LLMMessage(role="user", content=latest_user_message))
         return provider_messages
 
+    @staticmethod
+    def _direct_former_name_reply(prompt_payload: dict[str, Any]) -> str | None:
+        for chunk in prompt_payload.get("chunks") or []:
+            content = str(chunk.get("content") or "")
+            if "former_official_name" not in content:
+                continue
+
+            name_match = re.search(r"canonical_name:\s*(.+?)\s+entity_type:", content)
+            name = name_match.group(1).strip() if name_match else str((chunk.get("metadata") or {}).get("title") or "").strip()
+            if not name:
+                continue
+
+            alias_match = re.search(r"\baliases:\s*([^{}]+?)\s+metadata:", content)
+            alias = ""
+            if alias_match:
+                alias = alias_match.group(1).strip().split(",")[0].strip()
+
+            date_match = re.search(r'"valid_from":\s*"([^"]+)".*?"valid_to":\s*"([^"]+)"', content)
+            name_text = f"{name} ({alias})" if alias and alias.lower() not in name.lower() else name
+            if date_match:
+                return (
+                    f"NEMSU was formerly known as {name_text}. "
+                    f"The knowledge base lists this as the former official name from "
+                    f"{date_match.group(1)} to {date_match.group(2)}."
+                )
+            return f"NEMSU was formerly known as {name_text}."
+
+        return None
+
     def _log_query_analysis(
         self,
         *,
         user_message: str,
         assessment: _DomainAssessment,
         prompt_payload: dict[str, Any],
+        used_kb_context: bool,
     ) -> None:
         diagnostics = prompt_payload.get("retrieval_diagnostics") or {}
+        top_chunks = diagnostics.get("top_chunks") or []
+        embedding_status = ((diagnostics.get("stages") or {}).get("embedding") or {}).get("status")
+        embedding_generated = embedding_status not in {None, "", "not_used", "skipped"}
+        top_scores = [
+            round(float(chunk.get("score") or 0.0), 3)
+            for chunk in top_chunks
+            if isinstance(chunk, dict)
+        ]
+        selected_chunk_refs = [
+            {
+                "chunk_id": str(chunk.get("chunk_id") or "").strip(),
+                "title": str(chunk.get("title") or "").strip(),
+                "source": str(chunk.get("source") or "").strip(),
+            }
+            for chunk in top_chunks
+            if isinstance(chunk, dict)
+        ]
+        selected_sources = [
+            str(chunk.get("source") or chunk.get("title") or "").strip()
+            for chunk in top_chunks
+            if isinstance(chunk, dict) and str(chunk.get("source") or chunk.get("title") or "").strip()
+        ]
         logger.info(
             (
                 "Chat query analysis | raw=%r normalized=%r aliases=%s confidence=%s "
-                "score=%.3f retrieval=%s retrieved=%d top_score=%.3f evidence=%s passes=%s reason=%s"
+                "score=%.3f embedding_generated=%s retrieval=%s retrieved=%d top_score=%.3f "
+                "top_scores=%s selected=%s selected_chunks=%s evidence=%s used_kb_context=%s passes=%s reason=%s"
             ),
             user_message,
             assessment["normalized_query"],
             assessment["alias_hits"],
             assessment["confidence"],
             assessment["score"],
+            embedding_generated,
             prompt_payload["strategy"],
             len(prompt_payload["chunks"]),
             float(prompt_payload["max_score"]),
+            top_scores,
+            selected_sources[:5],
+            selected_chunk_refs[:5],
             diagnostics.get("evidence"),
+            used_kb_context,
             diagnostics.get("passes"),
             assessment["refusal_reason"],
         )
@@ -565,6 +637,7 @@ class ChatService:
     def preview_retrieval(self, request: ChatRequest) -> dict[str, Any]:
         context = self._build_context(request)
         assessment = self._assess_domain(context.latest_user_message, context.history_messages)
+        logger.info("Chat user query received | raw=%r", context.latest_user_message)
         explicit_link_request = _is_explicit_link_request(context.latest_user_message)
         prompt_payload = self._empty_prompt_payload()
         short_circuit_reply = self._resolve_short_circuit_reply(
@@ -584,7 +657,7 @@ class ChatService:
         elif evidence:
             decision = "use_model"
         elif prompt_payload.get("chunks"):
-            decision = "use_model_low_confidence"
+            decision = "fallback_low_confidence"
         elif context.history_messages:
             decision = "model_with_low_evidence"
         else:
@@ -713,8 +786,10 @@ class ChatService:
     async def chat(self, request: ChatRequest) -> ChatResponse:
         context = self._build_context(request)
         assessment = self._assess_domain(context.latest_user_message, context.history_messages)
+        logger.info("Chat user query received | raw=%r", context.latest_user_message)
         explicit_link_request = _is_explicit_link_request(context.latest_user_message)
         prompt_payload = self._empty_prompt_payload()
+        used_kb_context = False
 
         reply = self._resolve_short_circuit_reply(
             assessment=assessment,
@@ -727,13 +802,17 @@ class ChatService:
                 assessment["expanded_query"],
                 context.history_payload,
             )
-            if self._has_retrieval_evidence(prompt_payload) or prompt_payload.get("chunks"):
-                reply = await self._generate_model_reply(
-                    context=context,
-                    prompt_payload=prompt_payload,
-                )
+            if self._has_retrieval_evidence(prompt_payload):
+                used_kb_context = bool(prompt_payload.get("retrieval_message"))
+                if _is_former_name_query(context.latest_user_message):
+                    reply = self._direct_former_name_reply(prompt_payload)
+                if reply is None:
+                    reply = await self._generate_model_reply(
+                        context=context,
+                        prompt_payload=prompt_payload,
+                    )
             else:
-                if context.history_messages:
+                if context.history_messages and not prompt_payload.get("chunks"):
                     reply = await self._generate_model_reply(
                         context=context,
                         prompt_payload=prompt_payload,
@@ -745,15 +824,13 @@ class ChatService:
                         history_messages=context.history_messages,
                     )
                     if reply is None:
-                        reply = await self._generate_model_reply(
-                            context=context,
-                            prompt_payload=prompt_payload,
-                        )
+                        reply = _build_uncertain_reply(assessment["alias_hits"], context.latest_user_message)
 
         self._log_query_analysis(
             user_message=context.latest_user_message,
             assessment=assessment,
             prompt_payload=prompt_payload,
+            used_kb_context=used_kb_context,
         )
         reply = self._shape_reply(reply)
         self._persist_history(request, context.latest_user_message, reply)
@@ -767,18 +844,44 @@ class ChatService:
     async def health(self) -> dict[str, Any]:
         provider_status = await self._provider.health()
         prompt_status = self._prompt_service.health()
+        missing_env_vars = missing_health_env_var_names()
+        environment_loaded = not missing_env_vars
+        provider_ready = bool(provider_status.available and provider_status.configured)
+        supabase_configured = self._settings.supabase.configured
+        supabase_reachable = bool(prompt_status.get("supabase_reachable"))
+        kb_table_reachable = bool(prompt_status.get("table_reachable"))
+        kb_chunk_count = int(prompt_status.get("chunk_count", 0) or 0)
+        kb_chunk_count_positive = kb_chunk_count > 0
+        healthy = (
+            environment_loaded
+            and provider_ready
+            and supabase_configured
+            and supabase_reachable
+            and kb_table_reachable
+            and kb_chunk_count_positive
+        )
         return {
-            "status": "ok",
+            "status": "ok" if healthy else "degraded",
+            "backend": {"running": True},
             "environment": self._settings.environment,
+            "environment_variables": {
+                "loaded": environment_loaded,
+                "missing_variables": missing_env_vars,
+            },
+            "supabase": {
+                "configured": supabase_configured,
+                "reachable": supabase_reachable,
+                "kb_source": self._settings.supabase.kb_source,
+            },
             "provider_name": provider_status.name,
             "provider_model": provider_status.model,
-            "provider_available": provider_status.available,
+            "provider_available": provider_ready,
             "provider": {
                 "name": provider_status.name,
                 "label": provider_status.label,
                 "model": provider_status.model,
                 "base_url": provider_status.base_url,
-                "available": provider_status.available,
+                "available": provider_ready,
                 "configured": provider_status.configured,
                 "detail": provider_status.detail,
             },

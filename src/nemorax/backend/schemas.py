@@ -236,15 +236,36 @@ class ProviderHealthResponse(BaseModel):
     detail: str | None = None
 
 
+class BackendProcessHealthResponse(BaseModel):
+    running: bool
+
+
+class EnvironmentVariablesHealthResponse(BaseModel):
+    loaded: bool
+    missing_variables: list[str] = Field(default_factory=list)
+
+
+class SupabaseHealthResponse(BaseModel):
+    configured: bool
+    reachable: bool
+    kb_source: str
+
+
 class KnowledgeBaseHealthResponse(BaseModel):
     available: bool
     source_path: str
     detail: str | None = None
+    chunk_count: int = 0
+    table_reachable: bool = False
+    chunk_count_positive: bool = False
 
 
 class HealthResponse(BaseModel):
     status: str
+    backend: BackendProcessHealthResponse
     environment: str
+    environment_variables: EnvironmentVariablesHealthResponse
+    supabase: SupabaseHealthResponse
     provider_name: str
     provider_model: str
     provider_available: bool

@@ -101,7 +101,7 @@ class SidebarPanel(ft.Container):
             controls.append(
                 ft.Text(
                     label,
-                    size=13,
+                    size=14,
                     weight=ft.FontWeight.W_600,
                     color=theme.text_primary,
                 )
@@ -238,7 +238,7 @@ class SidebarPanel(ft.Container):
                             ft.Text(
                                 conversation.title,
                                 color=theme.text_primary,
-                                size=12.5,
+                                size=14,
                                 weight=ft.FontWeight.W_600,
                                 max_lines=1,
                                 overflow=ft.TextOverflow.ELLIPSIS,
@@ -246,7 +246,7 @@ class SidebarPanel(ft.Container):
                             ft.Text(
                                 subtitle,
                                 color=theme.text_muted,
-                                size=10.5,
+                                size=14,
                             ),
                         ],
                         spacing=3,
@@ -308,7 +308,7 @@ class SidebarPanel(ft.Container):
                     content=ft.Text(
                         "No conversations yet.",
                         color=theme.text_muted,
-                        size=12,
+                        size=14,
                     ),
                 )
             return ft.Container()
@@ -347,7 +347,7 @@ class SidebarPanel(ft.Container):
                             ft.Text(
                                 f"AI assistant by {BRAND_NAME}",
                                 color=theme.text_muted,
-                                size=10.5,
+                                size=14,
                             ),
                         ],
                         spacing=0,
@@ -380,7 +380,7 @@ class SidebarPanel(ft.Container):
             controls=[
                 ft.Text(
                     "Recent chats",
-                    size=11,
+                    size=14,
                     weight=ft.FontWeight.W_700,
                     color=theme.text_muted,
                 )

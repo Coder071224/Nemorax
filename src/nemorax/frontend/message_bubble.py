@@ -10,7 +10,7 @@ from nemorax.frontend.time_utils import PH_TZ
 
 
 _BUBBLE_TEXT_SIZE = 14
-_META_TEXT_SIZE = 11
+_META_TEXT_SIZE = 14
 _AVATAR_SIZE = 34
 _AVATAR_RADIUS = 17
 _ROW_SPACING = 10
@@ -23,8 +23,8 @@ _TYPING_BUBBLE_RADIUS = (6, 18, 18, 18)
 def _size_tokens(*, compact: bool) -> dict[str, int]:
     if compact:
         return {
-            "bubble_text": 13,
-            "meta_text": 10,
+            "bubble_text": 14,
+            "meta_text": 14,
             "avatar_size": 30,
             "avatar_radius": 15,
             "row_spacing": 8,
@@ -111,7 +111,7 @@ def _avatar(*, compact: bool = False) -> ft.Container:
         content=ft.Text(
             CHATBOT_NAME[:1].upper(),
             color="#081018",
-            size=13 if compact else 14,
+            size=14,
             weight=ft.FontWeight.W_800,
         ),
     )
@@ -237,7 +237,7 @@ def typing_indicator(*, compact: bool = False) -> ft.Row:
                 ft.Text(
                     f"{CHATBOT_NAME} is typing",
                     color=theme.text_muted,
-                    size=11 if compact else 12,
+                    size=14,
                     italic=True,
                 ),
                 ft.ProgressRing(

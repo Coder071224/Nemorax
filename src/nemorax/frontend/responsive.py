@@ -18,6 +18,9 @@ _DESKTOP_PLATFORMS = {
 _MOBILE_WEB_MAX_WIDTH = 800
 _MOBILE_WEB_MAX_SHORTEST_SIDE = 500
 _MOBILE_WEB_MAX_LANDSCAPE_HEIGHT = 520
+_MIN_READABLE_TEXT_SIZE = 14
+_MIN_INPUT_TEXT_SIZE = 16
+_MIN_TOUCH_TARGET = 44
 
 
 LayoutConfig = dict[str, Any]
@@ -114,24 +117,24 @@ def _base_config(
     return {
         "top_padding": top_padding,
         "font_size_title": font_size_title,
-        "font_size_subtitle": font_size_subtitle,
-        "font_size_body": font_size_body,
-        "font_size_small": font_size_small,
+        "font_size_subtitle": max(_MIN_READABLE_TEXT_SIZE, font_size_subtitle),
+        "font_size_body": max(_MIN_READABLE_TEXT_SIZE, font_size_body),
+        "font_size_small": max(_MIN_READABLE_TEXT_SIZE, font_size_small),
         "font_size_hero_title": font_size_hero_title,
         "font_size_splash_title": font_size_splash_title,
-        "font_size_splash_sub": font_size_splash_sub,
-        "font_size_splash_body": font_size_splash_body,
+        "font_size_splash_sub": max(_MIN_READABLE_TEXT_SIZE, font_size_splash_sub),
+        "font_size_splash_body": max(_MIN_READABLE_TEXT_SIZE, font_size_splash_body),
         "padding_horizontal": padding_horizontal,
         "padding_vertical": padding_vertical,
         "padding_card_h": padding_card_h,
         "padding_card_v": padding_card_v,
-        "button_height": button_height,
+        "button_height": max(_MIN_TOUCH_TARGET, button_height),
         "sidebar_visible": sidebar_visible,
         "logo_size_header": logo_size_header,
         "logo_size_hero": logo_size_hero,
         "avatar_size": avatar_size,
-        "input_font_size": input_font_size,
-        "chip_font_size": chip_font_size,
+        "input_font_size": max(_MIN_INPUT_TEXT_SIZE, input_font_size),
+        "chip_font_size": max(_MIN_READABLE_TEXT_SIZE, chip_font_size),
         "gap_header_body": gap_header_body,
         "gap_body_composer": gap_body_composer,
         "compact": compact,

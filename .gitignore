@@ -26,3 +26,6 @@ logs/
 *.egg-info/
 .DS_Store
 Thumbs.db
+
+.env*
+node_modules/

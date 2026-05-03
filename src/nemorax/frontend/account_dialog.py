@@ -169,29 +169,29 @@ class AccountDialog:
                         ft.Text(
                             "Your conversations are saved automatically and accessible from the sidebar. "
                             "To manage or remove a conversation, see the instructions below based on your device.",
-                            size=12.5,
+                            size=14,
                             color=theme.text_secondary,
                         ),
                         ft.Text(
                             "Desktop & Web",
-                            size=12.5,
+                            size=14,
                             weight=ft.FontWeight.W_700,
                             color=theme.text_primary,
                         ),
                         ft.Text(
                             "Right-click any conversation in the sidebar to reveal options.",
-                            size=12,
+                            size=14,
                             color=theme.text_secondary,
                         ),
                         ft.Text(
                             "Mobile (Android & iOS)",
-                            size=12.5,
+                            size=14,
                             weight=ft.FontWeight.W_700,
                             color=theme.text_primary,
                         ),
                         ft.Text(
                             "Press and hold any conversation in the sidebar to reveal options.",
-                            size=12,
+                            size=14,
                             color=theme.text_secondary,
                         ),
                     ],
@@ -426,7 +426,7 @@ class AccountDialog:
             value=value,
             label=label,
             hint_text=hint,
-            hint_style=ft.TextStyle(color=theme.text_muted),
+            hint_style=ft.TextStyle(color=theme.text_muted, size=16),
             password=password,
             can_reveal_password=password,
             bgcolor=ft.Colors.with_opacity(0.18, theme.surface_alt),
@@ -435,7 +435,7 @@ class AccountDialog:
             border_color=ft.Colors.with_opacity(0.22, theme.border),
             focused_border_color=theme.accent,
             cursor_color=theme.accent,
-            text_size=14,
+            text_size=16,
             content_padding=ft.Padding.symmetric(horizontal=16, vertical=14),
             disabled=disabled,
             on_change=on_change,
@@ -454,7 +454,7 @@ class AccountDialog:
         return ft.Button(
             content=ft.Text(
                 label,
-                size=13,
+                size=14,
                 weight=ft.FontWeight.W_700,
                 color="#081018",
             ),
@@ -465,6 +465,7 @@ class AccountDialog:
                 padding=ft.Padding.symmetric(horizontal=24, vertical=14),
             ),
             on_click=on_click,
+            height=44,
             width=float("inf"),
             disabled=disabled,
         )
@@ -478,7 +479,7 @@ class AccountDialog:
         return ft.OutlinedButton(
             content=ft.Text(
                 label,
-                size=13,
+                size=14,
                 weight=ft.FontWeight.W_600,
                 color=theme.text_primary,
             ),
@@ -488,6 +489,7 @@ class AccountDialog:
                 padding=ft.Padding.symmetric(horizontal=24, vertical=14),
             ),
             on_click=on_click,
+            height=44,
             width=float("inf"),
         )
 
@@ -500,7 +502,7 @@ class AccountDialog:
         )
 
     def _subtitle(self, text: str) -> ft.Text:
-        return ft.Text(text, size=13, color=current_theme().text_secondary)
+        return ft.Text(text, size=14, color=current_theme().text_secondary)
 
     def _feedback_row(self) -> ft.Control:
         theme = current_theme()
@@ -514,7 +516,7 @@ class AccountDialog:
                 content=ft.Row(
                     controls=[
                         ft.Icon(ft.Icons.ERROR_OUTLINE, size=16, color=theme.error),
-                        ft.Text(self._error_text, size=12, color=theme.error, expand=True),
+                        ft.Text(self._error_text, size=14, color=theme.error, expand=True),
                     ],
                     spacing=8,
                 ),
@@ -535,7 +537,7 @@ class AccountDialog:
                         ),
                         ft.Text(
                             self._success_text,
-                            size=13,
+                            size=14,
                             color=theme.success,
                             weight=ft.FontWeight.W_600,
                             expand=True,
@@ -557,7 +559,7 @@ class AccountDialog:
                         size=13,
                         color=theme.accent,
                     ),
-                    ft.Text(label, size=12, color=theme.accent),
+                    ft.Text(label, size=14, color=theme.accent),
                 ],
                 spacing=4,
                 tight=True,
@@ -571,7 +573,7 @@ class AccountDialog:
         on_click: Callable[..., None],
     ) -> ft.TextButton:
         return ft.TextButton(
-            content=ft.Text(label, size=12, color=current_theme().accent),
+            content=ft.Text(label, size=14, color=current_theme().accent),
             on_click=on_click,
         )
 
@@ -715,7 +717,7 @@ class AccountDialog:
                     ),
                     ft.Text(
                         button_label,
-                        size=13,
+                        size=14,
                         weight=ft.FontWeight.W_700,
                         color="#081018",
                     ),
@@ -730,6 +732,7 @@ class AccountDialog:
                 padding=ft.Padding.symmetric(horizontal=24, vertical=14),
             ),
             on_click=submit,
+            height=44,
             width=float("inf"),
             disabled=locked or loading,
         )
@@ -818,7 +821,7 @@ class AccountDialog:
                 [
                     ft.Text(
                         question.title(),
-                        size=12,
+                        size=14,
                         color=theme.text_muted,
                         weight=ft.FontWeight.W_600,
                     ),
@@ -899,13 +902,13 @@ class AccountDialog:
                 ft.Container(height=16),
                 ft.Text(
                     "Recovery Answers",
-                    size=13,
+                    size=14,
                     weight=ft.FontWeight.W_700,
                     color=theme.text_secondary,
                 ),
                 ft.Text(
                     f"Fill at least {REQUIRED_RECOVERY} - used if you forget your password.",
-                    size=11,
+                    size=14,
                     color=theme.text_muted,
                 ),
                 ft.Container(height=10),
@@ -1006,7 +1009,7 @@ class AccountDialog:
                 [
                     ft.Text(
                         question.title(),
-                        size=12,
+                        size=14,
                         color=theme.text_muted,
                         weight=ft.FontWeight.W_600,
                     ),
@@ -1195,7 +1198,7 @@ class AccountDialog:
             ref=self._display_name_save_ref,
             content=ft.Text(
                 "Saving..." if self._display_name_saving else "Save",
-                size=12,
+                size=14,
                 weight=ft.FontWeight.W_700,
                 color="#081018",
             ),
@@ -1206,6 +1209,7 @@ class AccountDialog:
                 padding=ft.Padding.symmetric(horizontal=18, vertical=10),
             ),
             on_click=save_display_name,
+            height=44,
             disabled=(
                 self._profile_loading
                 or self._display_name_saving
@@ -1215,7 +1219,7 @@ class AccountDialog:
 
         remove_button = ft.TextButton(
             ref=self._display_name_remove_ref,
-            content=ft.Text("Remove", size=12, color=theme.error),
+            content=ft.Text("Remove", size=14, color=theme.error),
             on_click=remove_display_name,
             visible=bool(self._display_name_value),
             disabled=self._profile_loading or self._display_name_saving,
@@ -1230,7 +1234,7 @@ class AccountDialog:
                             controls=[
                                 ft.Text(
                                     "Signed In",
-                                    size=12,
+                                    size=14,
                                     weight=ft.FontWeight.W_700,
                                     color=theme.success,
                                 ),
@@ -1267,10 +1271,10 @@ class AccountDialog:
                                         size=14,
                                         color=theme.text_muted,
                                     ),
-                                    ft.Text("Email", size=11, color=theme.text_muted, width=56),
+                                    ft.Text("Email", size=14, color=theme.text_muted, width=56),
                                     ft.Text(
                                         email,
-                                        size=12,
+                                        size=14,
                                         color=theme.text_primary,
                                         expand=True,
                                         overflow=ft.TextOverflow.ELLIPSIS,
@@ -1285,10 +1289,10 @@ class AccountDialog:
                                         size=14,
                                         color=theme.text_muted,
                                     ),
-                                    ft.Text("ID", size=11, color=theme.text_muted, width=56),
+                                    ft.Text("ID", size=14, color=theme.text_muted, width=56),
                                     ft.Text(
                                         f"{user_id[:16]}..." if len(user_id) > 16 else user_id,
-                                        size=12,
+                                        size=14,
                                         color=theme.text_secondary,
                                         expand=True,
                                     ),
@@ -1305,10 +1309,10 @@ class AccountDialog:
                                             size=14,
                                             color=theme.success,
                                         ),
-                                        ft.Text("", size=11, color=theme.text_muted, width=56),
+                                        ft.Text("", size=14, color=theme.text_muted, width=56),
                                         ft.Text(
                                             "History is being saved",
-                                            size=12,
+                                            size=14,
                                             color=theme.success,
                                             expand=True,
                                         ),
@@ -1323,7 +1327,7 @@ class AccountDialog:
                                             ),
                                             content=ft.Text(
                                                 "?",
-                                                size=10,
+                                                size=14,
                                                 weight=ft.FontWeight.W_700,
                                                 color=theme.success,
                                             ),
@@ -1349,7 +1353,7 @@ class AccountDialog:
                                 controls=[
                                     ft.Text(
                                         "What should we call you?",
-                                        size=13,
+                                        size=14,
                                         weight=ft.FontWeight.W_700,
                                         color=theme.text_primary,
                                     ),
@@ -1359,7 +1363,7 @@ class AccountDialog:
                                         bgcolor=ft.Colors.with_opacity(0.12, theme.accent),
                                         content=ft.Text(
                                             "Optional",
-                                            size=10,
+                                            size=14,
                                             weight=ft.FontWeight.W_700,
                                             color=theme.accent,
                                         ),
@@ -1382,7 +1386,7 @@ class AccountDialog:
                                             ft.ProgressRing(width=14, height=14, stroke_width=2),
                                             ft.Text(
                                                 "Loading profile...",
-                                                size=11,
+                                                size=14,
                                                 color=theme.text_muted,
                                             ),
                                         ],
@@ -1411,7 +1415,7 @@ class AccountDialog:
                             ),
                             ft.Text(
                                 "Log Out",
-                                size=13,
+                                size=14,
                                 weight=ft.FontWeight.W_700,
                                 color=theme.error,
                             ),

@@ -338,7 +338,7 @@ class SplashPage(ft.Container):
         cta_button = ft.Button(
             content=ft.Text(
                 "TALK TO NEMIS",
-                size=11 if compact else 12,
+                size=14,
                 weight=ft.FontWeight.W_800,
                 color=theme.sidebar_bg,
             ),
@@ -376,7 +376,7 @@ class SplashPage(ft.Container):
         status_text = ft.Text(
             ref=self._status_ref,
             value=_LOADING_STEPS[0][0],
-            size=11 if compact else 12,
+            size=14,
             weight=ft.FontWeight.W_700,
             color=ft.Colors.with_opacity(0.85, theme.accent),
             italic=True,

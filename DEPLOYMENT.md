@@ -88,7 +88,7 @@ Required backend values:
 
 - `NEMORAX_ENV=production`
 - `NEMORAX_API_URL=https://api.nemorax.example.com`
-- `CORS_ORIGINS=https://nemorax.vercel.app,https://app.nemorax.example.com`
+- `ALLOWED_ORIGINS=https://your-project.vercel.app`
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `LLM_API_KEY`
@@ -199,6 +199,6 @@ That workflow is independent from the hosting migration and can stay as-is.
 
 - no legacy PaaS-specific deployment config remains
 - `NEMORAX_API_URL` is the only supported frontend API base URL variable
-- `CORS_ORIGINS` contains exact production origins only
+- `ALLOWED_ORIGINS` contains exact production origins only
 - backend and optional Flet web runtime both restart under `systemd`
 - public website is static on Vercel and does not go offline after inactivity

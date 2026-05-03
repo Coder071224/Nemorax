@@ -25,21 +25,34 @@ class _FakePage:
 class FrontendResponsiveTests(unittest.TestCase):
     def test_mobile_web_portrait_uses_mobile_layout(self) -> None:
         page = _FakePage(width=390, height=844, platform=ft.PagePlatform.WINDOWS, web=True)
+        cfg = get_layout_config(page)
 
         self.assertTrue(should_use_mobile_layout(page))
-        self.assertTrue(get_layout_config(page)["is_mobile"])
+        self.assertTrue(cfg["is_mobile"])
+        self.assertGreaterEqual(cfg["font_size_body"], 14)
+        self.assertGreaterEqual(cfg["font_size_small"], 14)
+        self.assertGreaterEqual(cfg["input_font_size"], 16)
+        self.assertGreaterEqual(cfg["button_height"], 44)
 
     def test_mobile_web_landscape_phone_still_uses_mobile_layout(self) -> None:
         page = _FakePage(width=844, height=390, platform=ft.PagePlatform.WINDOWS, web=True)
+        cfg = get_layout_config(page)
 
         self.assertTrue(should_use_mobile_layout(page))
-        self.assertTrue(get_layout_config(page)["is_mobile"])
+        self.assertTrue(cfg["is_mobile"])
+        self.assertGreaterEqual(cfg["font_size_body"], 14)
+        self.assertGreaterEqual(cfg["font_size_small"], 14)
+        self.assertGreaterEqual(cfg["input_font_size"], 16)
+        self.assertGreaterEqual(cfg["button_height"], 44)
 
     def test_desktop_web_keeps_desktop_layout(self) -> None:
         page = _FakePage(width=1280, height=800, platform=ft.PagePlatform.WINDOWS, web=True)
+        cfg = get_layout_config(page)
 
         self.assertFalse(should_use_mobile_layout(page))
-        self.assertFalse(get_layout_config(page)["is_mobile"])
+        self.assertFalse(cfg["is_mobile"])
+        self.assertGreaterEqual(cfg["input_font_size"], 16)
+        self.assertGreaterEqual(cfg["button_height"], 44)
 
 
 if __name__ == "__main__":

@@ -19,6 +19,14 @@ window.NEMORAX_SITE_CONFIG = {
   },
   app: {
     // Point this to the Oracle-hosted Flet web app if you want the website's "Open web app" button enabled.
-    webUrl: ""
+    webUrl: "https://welcoming-achievement-production-15fc.up.railway.app"
+  },
+  api: {
+    localBaseUrl: "http://localhost:8000",
+    // Production backend URL (Railway)
+    productionBaseUrl: "https://nemorax-production.up.railway.app",
+    baseUrl: ["localhost", "127.0.0.1"].includes(window.location.hostname)
+      ? "http://localhost:8000"
+      : "https://nemorax-production.up.railway.app"
   }
 };

@@ -44,6 +44,19 @@ _QUERY_STOP_TOKENS = _SOURCE_STOP_TOKENS | {
     "more",
     "tell",
 }
+_INSTITUTION_EVIDENCE_STOP_TOKENS = {
+    "del",
+    "eastern",
+    "mindanao",
+    "nemsu",
+    "north",
+    "northeastern",
+    "sdssu",
+    "state",
+    "sur",
+    "surigao",
+    "university",
+}
 
 
 class SupabaseKnowledgeBaseClient:
@@ -109,6 +122,14 @@ class SupabaseKnowledgeBaseClient:
         ordered = list(dict.fromkeys(tokens))
         return " ".join(ordered[:8]).strip() or expanded
 
+    def _simplified_query(self, query: str) -> str:
+        tokens = [
+            token
+            for token in _SOURCE_TOKEN_PATTERN.findall((query or "").lower())
+            if len(token) >= 3 and token not in _QUERY_STOP_TOKENS
+        ]
+        return " ".join(list(dict.fromkeys(tokens))[:10]).strip()
+
     @staticmethod
     def _dedupe_rows(rows: list[dict[str, Any]], *, max_rows: int) -> list[dict[str, Any]]:
         deduped: list[dict[str, Any]] = []
@@ -149,11 +170,109 @@ class SupabaseKnowledgeBaseClient:
         total_score = sum(scores[:3])
         return max_score >= 6.0 or total_score >= 10.0 or len([score for score in scores if score >= 4.0]) >= 2
 
+    def _evidence_tokens(self, query: str) -> set[str]:
+        return {
+            token
+            for token in _SOURCE_TOKEN_PATTERN.findall((query or "").lower())
+            if len(token) >= 3
+            and token not in _QUERY_STOP_TOKENS
+            and token not in _INSTITUTION_EVIDENCE_STOP_TOKENS
+        }
+
+    def _row_tokens(self, row: dict[str, Any]) -> set[str]:
+        metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
+        searchable = " ".join(
+            item
+            for item in (
+                str(row.get("content") or ""),
+                str(metadata.get("title") or ""),
+                str(metadata.get("section") or ""),
+                str(metadata.get("topic") or ""),
+            )
+            if item
+        )
+        return set(_SOURCE_TOKEN_PATTERN.findall(searchable.lower()))
+
+    def _evidence_summary(self, *, query: str, rows: list[dict[str, Any]]) -> dict[str, Any]:
+        if not rows:
+            return {
+                "evidence": False,
+                "query_token_count": 0,
+                "matched_token_count": 0,
+                "coverage": 0.0,
+                "reason": "no_rows",
+            }
+
+        scores = [float(row.get("_retrieval_score") or 0.0) for row in rows]
+        max_score = max(scores, default=0.0)
+        if max_score >= 12.0:
+            return {
+                "evidence": True,
+                "query_token_count": 0,
+                "matched_token_count": 0,
+                "coverage": 1.0,
+                "reason": "high_score",
+            }
+
+        query_tokens = self._evidence_tokens(query)
+        matched_tokens: set[str] = set()
+        for row in rows[:3]:
+            matched_tokens.update(query_tokens & self._row_tokens(row))
+
+        coverage = len(matched_tokens) / max(1, len(query_tokens))
+        top3_total = sum(scores[:3])
+        evidence = (
+            bool(query_tokens)
+            and len(matched_tokens) >= 2
+            and (max_score >= 2.0 or top3_total >= 4.5 or coverage >= 0.35)
+        )
+        return {
+            "evidence": evidence,
+            "query_token_count": len(query_tokens),
+            "matched_token_count": len(matched_tokens),
+            "coverage": round(coverage, 3),
+            "reason": "token_coverage" if evidence else "low_token_coverage",
+        }
+
     def _rpc_search(self, function_name: str, *, query: str, limit: int) -> Any:
         return self._client.rpc(
             function_name,
             {"p_query": query, "p_limit": max(1, min(limit, 20))},
         )
+
+    @staticmethod
+    def _phrase_rank_boost(query: str, *, content: str, metadata: dict[str, Any]) -> float:
+        query_text = (query or "").lower()
+        searchable = " ".join(
+            item
+            for item in (
+                content,
+                str(metadata.get("title") or ""),
+                str(metadata.get("section") or ""),
+                str(metadata.get("topic") or ""),
+            )
+            if item
+        ).lower()
+        boost = 0.0
+        if "besc" in query_text and (
+            "besc" in searchable or "bukidnon external studies center" in searchable
+        ):
+            boost += 5.0
+        if (
+            "besc" not in query_text
+            and "bukidnon external studies center" in query_text
+            and "bukidnon external studies center" in searchable
+        ):
+            boost += 5.0
+        former_name_query = any(
+            phrase in query_text
+            for phrase in ("called before", "former name", "previous name", "old name")
+        )
+        if former_name_query and "surigao del sur state university" in searchable:
+            boost += 20.0
+        if former_name_query and "formerly known" in searchable:
+            boost += 12.0
+        return boost
 
     def search_chunks(self, query: str, *, limit: int = 6) -> list[dict[str, Any]]:
         return list(self.search_chunks_detailed(query, limit=limit).get("rows") or [])
@@ -228,12 +347,17 @@ class SupabaseKnowledgeBaseClient:
                     "date": str(row.get("updated_date") or row.get("publication_date") or metadata.get("date") or "").strip(),
                     "match_source": str(row.get("source_kind") or metadata.get("match_source") or "").strip(),
                 }
+                retrieval_score = float(row.get("rank") or 0.0) + self._phrase_rank_boost(
+                    pass_query,
+                    content=content,
+                    metadata=metadata,
+                )
                 rows.append(
                     {
                         "source": f"supabase:{str(row.get('source_kind') or 'kb')}:{str(row.get('source_ref') or row.get('chunk_id') or '').strip()}",
                         "content": content,
                         "metadata": metadata,
-                        "_retrieval_score": float(row.get("rank") or 0.0),
+                        "_retrieval_score": retrieval_score,
                     }
                 )
             selected = self._dedupe_rows(
@@ -241,7 +365,7 @@ class SupabaseKnowledgeBaseClient:
                 max_rows=max(1, min(limit + 2, 8)),
             )
             max_score = max((float(item.get("_retrieval_score") or 0.0) for item in selected), default=0.0)
-            return {
+            pass_result = {
                 "name": pass_name,
                 "query": pass_query,
                 "rows": selected,
@@ -252,15 +376,37 @@ class SupabaseKnowledgeBaseClient:
                 "rpc_name": rpc_name,
                 "detail": None,
             }
+            logger.info(
+                "KB retrieval pass | name=%s rpc=%s query_chars=%d limit=%d candidates=%d selected=%d max_score=%.3f status=%s",
+                pass_name,
+                rpc_name,
+                len(pass_query),
+                pass_limit,
+                pass_result["candidate_count"],
+                pass_result["selected_count"],
+                pass_result["max_score"],
+                pass_result["status"],
+            )
+            return pass_result
 
         expanded_query = self._expanded_query(query)
+        broadened_query = self._broadened_query(query)
+        focused_query = self._focused_query(query)
+        simplified_query = self._simplified_query(query)
         initial = _run_pass("search", expanded_query, max(limit, 8))
         combined = list(initial["rows"])
         passes = [initial]
 
+        if not combined and simplified_query.strip():
+            seen_queries = {expanded_query.strip().lower()}
+            normalized_simplified = simplified_query.strip().lower()
+            if normalized_simplified not in seen_queries:
+                simplified = _run_pass("simplified_retry", simplified_query, max(limit + 4, 12))
+                passes.append(simplified)
+                combined.extend(simplified["rows"])
+
         should_broaden = not self._has_strong_rows(combined) or len(combined) < 2
         if should_broaden:
-            broadened_query = self._broadened_query(query)
             if broadened_query.strip() and broadened_query != expanded_query:
                 fallback = _run_pass("fallback", broadened_query, max(limit + 4, 12))
                 passes.append(fallback)
@@ -268,16 +414,39 @@ class SupabaseKnowledgeBaseClient:
 
         should_focus = not self._has_strong_rows(combined) or len(combined) < 2
         if should_focus:
-            focused_query = self._focused_query(query)
-            if focused_query.strip() and focused_query not in {expanded_query, self._broadened_query(query)}:
+            if focused_query.strip() and focused_query not in {expanded_query, broadened_query}:
                 deep_fallback = _run_pass("deep_fallback", focused_query, max(limit + 6, 14))
                 passes.append(deep_fallback)
                 combined.extend(deep_fallback["rows"])
+
+        targeted_queries: list[tuple[str, str]] = []
+        lowered_expanded = expanded_query.lower()
+        if "besc" in lowered_expanded or "bukidnon external studies center" in lowered_expanded:
+            targeted_queries.append(("alias_besc", "bukidnon external studies center"))
+        if (
+            ("cite" in lowered_expanded or "college of information technology education" in lowered_expanded)
+            and any(token in lowered_expanded for token in ("course", "courses", "program", "programs", "offered"))
+        ):
+            targeted_queries.append(
+                ("cite_programs", "programs offered college information technology education cite")
+            )
+        if any(phrase in lowered_expanded for phrase in ("called before", "former name", "previous name", "old name")):
+            targeted_queries.append(("former_name", "surigao del sur state university nemsu history former name"))
+        seen_pass_queries = {str(item["query"]).strip().lower() for item in passes}
+        for pass_name, targeted_query in targeted_queries:
+            normalized_target = targeted_query.strip().lower()
+            if not normalized_target or normalized_target in seen_pass_queries:
+                continue
+            targeted = _run_pass(pass_name, targeted_query, max(limit + 4, 12))
+            passes.append(targeted)
+            combined.extend(targeted["rows"])
+            seen_pass_queries.add(normalized_target)
 
         final_rows = self._dedupe_rows(
             sorted(combined, key=lambda item: float(item.get("_retrieval_score") or 0.0), reverse=True),
             max_rows=max(1, min(limit, 8)),
         )
+        evidence_summary = self._evidence_summary(query=query, rows=final_rows)
         failure_stage = "none"
         if not final_rows:
             if any(item["status"] == "rpc_unavailable" for item in passes):
@@ -310,6 +479,19 @@ class SupabaseKnowledgeBaseClient:
                 "status": "context_ready" if final_rows else "no_context",
             },
         }
+        logger.info(
+            (
+                "KB retrieval summary | source=supabase decision=%s failure_stage=%s passes=%s "
+                "combined=%d selected=%d max_score=%.3f evidence=%s"
+            ),
+            decision,
+            failure_stage,
+            [item["name"] for item in passes],
+            len(combined),
+            len(final_rows),
+            max((float(item.get("_retrieval_score") or 0.0) for item in final_rows), default=0.0),
+            evidence_summary["evidence"],
+        )
         return {
             "rows": final_rows,
             "passes": [
@@ -328,6 +510,15 @@ class SupabaseKnowledgeBaseClient:
             "decision": decision,
             "stages": stages,
             "failure_stage": failure_stage,
+            "evidence": evidence_summary,
+            "query_preprocessing": {
+                "raw_query_chars": len(query),
+                "expanded_query_chars": len(expanded_query),
+                "broadened_query_chars": len(broadened_query),
+                "focused_query_chars": len(focused_query),
+                "simplified_query_chars": len(simplified_query),
+                "alias_expanded": expanded_query.strip().lower() != query.strip().lower(),
+            },
         }
 
     @staticmethod
@@ -430,9 +621,13 @@ class SupabaseKnowledgeBaseClient:
                 "source_path": "supabase://kb_chunks",
                 "detail": "Supabase knowledge base is not configured.",
                 "chunk_count": 0,
+                "supabase_reachable": False,
+                "table_reachable": False,
+                "chunk_count_positive": False,
             }
         try:
             rows = self._client.select("kb_runtime_stats", limit=1)
+            self._client.select("kb_chunks", columns="chunk_id", limit=1)
         except PersistenceError as exc:
             logger.warning("Supabase KB health check failed (%s)", exc)
             return {
@@ -440,12 +635,19 @@ class SupabaseKnowledgeBaseClient:
                 "source_path": "supabase://kb_chunks",
                 "detail": "Supabase knowledge base is unreachable.",
                 "chunk_count": 0,
+                "supabase_reachable": False,
+                "table_reachable": False,
+                "chunk_count_positive": False,
             }
         row = rows[0] if rows else {}
         chunk_count = int(row.get("chunk_count", 0) or 0)
+        chunk_count_positive = chunk_count > 0
         return {
-            "available": chunk_count > 0,
+            "available": chunk_count_positive,
             "source_path": "supabase://kb_chunks",
-            "detail": None if chunk_count > 0 else "No KB chunks found in Supabase.",
+            "detail": None if chunk_count_positive else "No KB chunks found in Supabase.",
             "chunk_count": chunk_count,
+            "supabase_reachable": True,
+            "table_reachable": True,
+            "chunk_count_positive": chunk_count_positive,
         }

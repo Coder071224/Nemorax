@@ -43,7 +43,7 @@ def _build_startup_loader() -> ft.Control:
                 ft.ProgressRing(width=28, height=28, stroke_width=3, color=theme.accent),
                 ft.Text(
                     "Restoring session...",
-                    size=13,
+                    size=14,
                     color=theme.text_secondary,
                 ),
             ],
