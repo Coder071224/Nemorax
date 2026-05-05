@@ -1097,19 +1097,21 @@ class ChatPage(ft.Container):
         )
 
     def _build_composer_section(self, cfg: dict[str, Any]) -> ft.Control:
+        chip_height = 46 if self._is_mobile else 48
         return ft.Column(
             spacing=10 if self._is_mobile else 12,
+            tight=True,
             controls=[
                 self._build_input_box(cfg),
                 ft.Container(
-                    content=ft.Row(
+                    height=chip_height,
+                    content=ft.ListView(
+                        horizontal=True,
                         spacing=8,
-                        scroll=ft.ScrollMode.AUTO,
-                        wrap=False,
+                        padding=ft.Padding.only(left=0, right=14),
                         controls=[self._build_chip(question, cfg) for question in SUGGESTED_QUESTIONS],
                     ),
                     clip_behavior=ft.ClipBehavior.HARD_EDGE,
-                    padding=ft.Padding.only(right=10),
                 ),
             ],
         )
@@ -1133,11 +1135,12 @@ class ChatPage(ft.Container):
                 ft.Container(height=cfg["gap_header_body"]),
                 ft.Container(content=self._chat_host, expand=True),
                 ft.Container(height=cfg["gap_body_composer"]),
-                self._build_composer_section(cfg),
+                ft.Container(content=self._build_composer_section(cfg)),
             ],
         )
 
         return ft.Container(
+            expand=True,
             alignment=ft.Alignment(0, 0),
             content=ft.Container(
                 width=shell_width,
