@@ -735,10 +735,7 @@ class ChatPage(ft.Container):
     def _refresh(self) -> None:
         theme = current_theme()
         self.width = float(self._page.width or 1320)
-        if self._is_mobile_web_view():
-            self.height = None
-        else:
-            self.height = self._page_height()
+        self.height = self._page_height()
         self.bgcolor = theme.grad_bottom
         self.gradient = None
         if self._current_conversation_has_messages():
@@ -1097,20 +1094,30 @@ class ChatPage(ft.Container):
         )
 
     def _build_composer_section(self, cfg: dict[str, Any]) -> ft.Control:
-        chip_height = 46 if self._is_mobile else 48
+        chip_controls = [self._build_chip(question, cfg) for question in SUGGESTED_QUESTIONS]
+        chips = (
+            ft.Row(
+                spacing=6,
+                run_spacing=8,
+                wrap=True,
+                controls=chip_controls,
+            )
+            if self._is_mobile
+            else ft.Row(
+                spacing=8,
+                scroll=ft.ScrollMode.AUTO,
+                wrap=False,
+                controls=chip_controls,
+            )
+        )
+
         return ft.Column(
             spacing=10 if self._is_mobile else 12,
             tight=True,
             controls=[
                 self._build_input_box(cfg),
                 ft.Container(
-                    height=chip_height,
-                    content=ft.ListView(
-                        horizontal=True,
-                        spacing=8,
-                        padding=ft.Padding.only(left=0, right=14),
-                        controls=[self._build_chip(question, cfg) for question in SUGGESTED_QUESTIONS],
-                    ),
+                    content=chips,
                     clip_behavior=ft.ClipBehavior.HARD_EDGE,
                 ),
             ],
@@ -1394,7 +1401,7 @@ class ChatPage(ft.Container):
             )
 
             content_stack.extend([
-                ft.SafeArea(center, expand=True),
+                ft.Container(expand=True, content=center),
                 self._mobile_backdrop,
                 self._mobile_drawer_container,
             ])
