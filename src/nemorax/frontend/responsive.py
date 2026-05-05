@@ -18,6 +18,7 @@ _DESKTOP_PLATFORMS = {
 _MOBILE_WEB_MAX_WIDTH = 800
 _MOBILE_WEB_MAX_SHORTEST_SIDE = 500
 _MOBILE_WEB_MAX_LANDSCAPE_HEIGHT = 520
+_TABLET_WEB_MAX_WIDTH = 1024
 _MIN_READABLE_TEXT_SIZE = 14
 _MIN_INPUT_TEXT_SIZE = 16
 _MIN_TOUCH_TARGET = 44
@@ -50,10 +51,12 @@ def _viewport_size(page: ft.Page) -> tuple[float, float]:
 def _is_mobileish_web_bounds(width: float, height: float) -> bool:
     shortest_side = min(width, height)
     landscape_phone = width > height and height <= _MOBILE_WEB_MAX_LANDSCAPE_HEIGHT
+    portrait_tablet = width < _TABLET_WEB_MAX_WIDTH and height > width and shortest_side <= 768
     return (
         width < _MOBILE_WEB_MAX_WIDTH
         or shortest_side <= _MOBILE_WEB_MAX_SHORTEST_SIDE
         or landscape_phone
+        or portrait_tablet
     )
 
 
@@ -216,7 +219,7 @@ def get_layout_config(page: ft.Page) -> LayoutConfig:
 
 
 def _desktop_config(width: float, height: float) -> LayoutConfig:
-    compact = width < 760
+    compact = width < 960
 
     return _base_config(
         width=width,
@@ -227,26 +230,26 @@ def _desktop_config(width: float, height: float) -> LayoutConfig:
         compact=compact,
         sidebar_visible=True,
         top_padding=0,
-        font_size_title=28,
+        font_size_title=24 if compact else 28,
         font_size_subtitle=12,
         font_size_body=14,
         font_size_small=11,
-        font_size_hero_title=34,
+        font_size_hero_title=30 if compact else 34,
         font_size_splash_title=_splash_title_size(width),
         font_size_splash_sub=18 if width >= 760 else 14,
         font_size_splash_body=_splash_body_size(width),
-        padding_horizontal=24,
-        padding_vertical=24,
-        padding_card_h=24,
-        padding_card_v=20,
+        padding_horizontal=16 if compact else 24,
+        padding_vertical=16 if compact else 24,
+        padding_card_h=18 if compact else 24,
+        padding_card_v=16 if compact else 20,
         button_height=44,
-        logo_size_header=44,
-        logo_size_hero=74,
+        logo_size_header=40 if compact else 44,
+        logo_size_hero=62 if compact else 74,
         avatar_size=34,
         input_font_size=14,
         chip_font_size=12,
-        gap_header_body=18,
-        gap_body_composer=18,
+        gap_header_body=14 if compact else 18,
+        gap_body_composer=14 if compact else 18,
         drawer_width=min(width * 0.84, 320),
         splash_card_width=_splash_card_width(width),
         splash_padding_h=36 if width >= 760 else 22,

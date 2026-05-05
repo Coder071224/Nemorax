@@ -51,6 +51,18 @@ class BackendCorsTests(unittest.TestCase):
 
         self.assertEqual(settings.cors_origins, ["https://your-project.vercel.app"])
 
+    def test_development_default_cors_prioritizes_railway_local_port(self) -> None:
+        with tempfile.TemporaryDirectory() as tempdir:
+            env = {
+                "NEMORAX_DATA_DIR": tempdir,
+                "NEMORAX_ENV": "development",
+            }
+            with patch.dict(os.environ, env, clear=False):
+                settings = load_settings()
+
+        self.assertIn("http://localhost:8000", settings.cors_origins)
+        self.assertIn("http://127.0.0.1:8000", settings.cors_origins)
+
     def test_allowed_origin_receives_preflight_headers(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             settings = build_test_settings(Path(tempdir))

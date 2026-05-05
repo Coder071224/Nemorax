@@ -19,7 +19,7 @@ def _configure_web_server_env() -> None:
     if port:
         os.environ["FLET_SERVER_PORT"] = port
     else:
-        os.environ.setdefault("FLET_SERVER_PORT", "8550")
+        os.environ.setdefault("FLET_SERVER_PORT", "8000")
 
 
 _bootstrap_src_path()
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     from nemorax.frontend.main import main
 
     host = os.environ.get("FLET_SERVER_IP", "0.0.0.0")
-    port = int(os.environ.get("FLET_SERVER_PORT", os.environ.get("PORT", "8550")))
+    port = int(os.environ.get("FLET_SERVER_PORT", os.environ.get("PORT", "8000")))
     print(f"[serve_web] Starting Flet web server on {host}:{port}", flush=True)
     ft.run(
         main,

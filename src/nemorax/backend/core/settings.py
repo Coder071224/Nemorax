@@ -110,7 +110,7 @@ def _local_cors_origins(*ports: int) -> list[str]:
 def _default_cors_origins(environment: str) -> str:
     if environment != "development":
         return ""
-    return ",".join(_local_cors_origins(8550, 3000, 5173, 8000))
+    return ",".join(_local_cors_origins(8000, 3000, 5173, 8550))
 
 
 @dataclass(frozen=True, slots=True)

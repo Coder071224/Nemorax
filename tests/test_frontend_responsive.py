@@ -54,6 +54,15 @@ class FrontendResponsiveTests(unittest.TestCase):
         self.assertGreaterEqual(cfg["input_font_size"], 16)
         self.assertGreaterEqual(cfg["button_height"], 44)
 
+    def test_portrait_tablet_web_uses_mobile_shell(self) -> None:
+        page = _FakePage(width=768, height=1024, platform=ft.PagePlatform.WINDOWS, web=True)
+        cfg = get_layout_config(page)
+
+        self.assertTrue(should_use_mobile_layout(page))
+        self.assertTrue(cfg["is_mobile"])
+        self.assertFalse(cfg["sidebar_visible"])
+        self.assertLessEqual(cfg["drawer_width"], 340)
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -394,7 +394,7 @@ class ChatPage(ft.Container):
         if self._is_mobile and not was_mobile:
             self._settings_open = False
             self._custom_drawer_open = False
-        elif not self._is_mobile and was_mobile:
+        elif not self._is_mobile:
             self._custom_drawer_open = False
 
     # Mobile drawer
@@ -783,10 +783,10 @@ class ChatPage(ft.Container):
                     icon=ft.Icons.MENU_ROUNDED,
                     icon_color=theme.accent,
                     tooltip="Menu",
-                    width=max(44, cfg["button_height"] - 2),
-                    height=max(44, cfg["button_height"] - 2),
+                    width=max(40, cfg["button_height"] - 4),
+                    height=max(40, cfg["button_height"] - 4),
                     style=ft.ButtonStyle(
-                        shape=ft.RoundedRectangleBorder(radius=14),
+                        shape=ft.RoundedRectangleBorder(radius=12),
                         padding=ft.Padding.all(0),
                     ),
                     on_click=self._open_drawer,
@@ -802,7 +802,7 @@ class ChatPage(ft.Container):
                     fit=ft.BoxFit.CONTAIN,
                 ),
                 ft.Column(
-                    spacing=2,
+                    spacing=0,
                     tight=True,
                     expand=True,
                     controls=[
@@ -815,7 +815,7 @@ class ChatPage(ft.Container):
                             overflow=ft.TextOverflow.ELLIPSIS,
                         ),
                         ft.Text(
-                            "Campus assistant for NEMSU",
+                            "Campus assistant",
                             size=cfg["font_size_subtitle"],
                             color=theme.text_secondary,
                             max_lines=1,
@@ -835,18 +835,21 @@ class ChatPage(ft.Container):
             account_tooltip = "Sign In / Guest"
             account_color = theme.text_secondary
 
+        action_button_size = max(40, cfg["button_height"] - 4) if self._is_mobile else max(44, cfg["button_height"] - 2)
         header_row = ft.Row(
-            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+            alignment=ft.MainAxisAlignment.START,
             vertical_alignment=ft.CrossAxisAlignment.CENTER,
+            spacing=8 if self._is_mobile else 12,
             controls=[
                 ft.Row(
                     controls=left_controls,
-                    spacing=10 if self._is_mobile else 12,
+                    spacing=8 if self._is_mobile else 12,
                     expand=True,
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,
                 ),
                 ft.Row(
-                    spacing=8,
+                    spacing=6 if self._is_mobile else 8,
+                    tight=True,
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,
                     controls=[
                         ft.Container(
@@ -876,11 +879,12 @@ class ChatPage(ft.Container):
                             icon=account_icon,
                             icon_color=account_color,
                             tooltip=account_tooltip,
-                            width=max(44, cfg["button_height"] - 2),
-                            height=max(44, cfg["button_height"] - 2),
+                            width=action_button_size,
+                            height=action_button_size,
                             style=ft.ButtonStyle(
                                 bgcolor=ft.Colors.with_opacity(0.10, account_color),
-                                shape=ft.RoundedRectangleBorder(radius=14),
+                                shape=ft.RoundedRectangleBorder(radius=12 if self._is_mobile else 14),
+                                padding=ft.Padding.all(0),
                             ),
                             on_click=self._handle_account,
                         ),
@@ -928,8 +932,9 @@ class ChatPage(ft.Container):
         return ft.Container(
             expand=True,
             alignment=ft.Alignment(0, 0),
+            padding=ft.Padding.symmetric(horizontal=2 if self._is_mobile else 0),
             content=ft.Column(
-                spacing=12,
+                spacing=8 if self._is_mobile else 12,
                 tight=True,
                 alignment=ft.MainAxisAlignment.CENTER,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
@@ -946,21 +951,29 @@ class ChatPage(ft.Container):
                         weight=ft.FontWeight.W_800,
                         color=theme.text_primary,
                         italic=True,
+                        text_align=ft.TextAlign.CENTER,
+                        max_lines=2,
+                        overflow=ft.TextOverflow.ELLIPSIS,
                     ),
                     ft.Text(
                         greeting_subtitle,
                         size=cfg["font_size_body"],
                         color=theme.text_secondary,
                         text_align=ft.TextAlign.CENTER,
+                        max_lines=3 if self._is_mobile else 2,
+                        overflow=ft.TextOverflow.ELLIPSIS,
                     ),
-                    ft.Container(height=8),
+                    ft.Container(height=4 if self._is_mobile else 8),
                     ft.Row(
                         alignment=ft.MainAxisAlignment.CENTER,
-                        spacing=8,
+                        spacing=6 if self._is_mobile else 8,
                         wrap=True,
                         controls=[
                             ft.Container(
-                                padding=ft.Padding.symmetric(horizontal=14, vertical=9),
+                                padding=ft.Padding.symmetric(
+                                    horizontal=10 if self._is_mobile else 14,
+                                    vertical=7 if self._is_mobile else 9,
+                                ),
                                 border_radius=18,
                                 bgcolor=ft.Colors.with_opacity(0.10, theme.accent),
                                 border=ft.Border.all(
@@ -1022,7 +1035,10 @@ class ChatPage(ft.Container):
             bgcolor=ft.Colors.with_opacity(0.28, theme.chip_bg),
             border_radius=18,
             border=ft.Border.all(1, ft.Colors.with_opacity(0.20, theme.border)),
-            padding=ft.Padding.symmetric(horizontal=12, vertical=8),
+            padding=ft.Padding.symmetric(
+                horizontal=10 if self._is_mobile else 12,
+                vertical=7 if self._is_mobile else 8,
+            ),
             on_click=lambda _, value=text: self._send_message(value),
         )
 
@@ -1049,7 +1065,7 @@ class ChatPage(ft.Container):
             on_submit=self._handle_send,
         )
 
-        button_size = max(44, cfg["button_height"] - 4)
+        button_size = max(40, cfg["button_height"] - 6) if self._is_mobile else max(44, cfg["button_height"] - 4)
         self._send_button = ft.IconButton(
             icon=ft.Icons.ARROW_UPWARD_ROUNDED,
             icon_color=theme.text_primary,
@@ -1070,7 +1086,7 @@ class ChatPage(ft.Container):
             border_radius=24,
             border=ft.Border.all(1, ft.Colors.with_opacity(0.24, theme.border)),
             padding=ft.Padding.symmetric(
-                horizontal=cfg["padding_card_h"] - 2,
+                horizontal=max(8, cfg["padding_card_h"] - (4 if self._is_mobile else 2)),
                 vertical=8 if self._is_mobile else 10,
             ),
             content=ft.Row(
@@ -1085,11 +1101,15 @@ class ChatPage(ft.Container):
             spacing=10 if self._is_mobile else 12,
             controls=[
                 self._build_input_box(cfg),
-                ft.Row(
-                    spacing=8,
-                    scroll=ft.ScrollMode.AUTO,
-                    wrap=False,
-                    controls=[self._build_chip(question, cfg) for question in SUGGESTED_QUESTIONS],
+                ft.Container(
+                    content=ft.Row(
+                        spacing=8,
+                        scroll=ft.ScrollMode.AUTO,
+                        wrap=False,
+                        controls=[self._build_chip(question, cfg) for question in SUGGESTED_QUESTIONS],
+                    ),
+                    clip_behavior=ft.ClipBehavior.HARD_EDGE,
+                    padding=ft.Padding.only(right=10),
                 ),
             ],
         )
@@ -1097,6 +1117,13 @@ class ChatPage(ft.Container):
     def _build_shell(self, cfg: dict[str, Any]) -> ft.Control:
         self._message_list = self._build_message_list()
         self._chat_host = ft.Container(expand=True, content=self._build_hero_view(cfg))
+        shell_width: float | None = None
+        if not self._is_mobile:
+            page_width = float(self._page.width or 1320)
+            sidebar_width = _SIDEBAR_EXPANDED_WIDTH if self._sidebar_expanded else _SIDEBAR_COLLAPSED_WIDTH
+            settings_width = _SETTINGS_PANEL_WIDTH if self._settings_open else 0
+            available_width = page_width - sidebar_width - settings_width - (cfg["padding_horizontal"] * 2)
+            shell_width = min(1100, max(420, available_width))
 
         body = ft.Column(
             expand=True,
@@ -1110,12 +1137,19 @@ class ChatPage(ft.Container):
             ],
         )
 
-        return self._glass_card(
-            body,
-            padding=ft.Padding.symmetric(
-                horizontal=cfg["padding_card_h"],
-                vertical=cfg["padding_card_v"],
-            ),
+        return ft.Container(
+            alignment=ft.Alignment(0, 0),
+            content=ft.Container(
+                width=shell_width,
+                expand=True if self._is_mobile else False,
+                content=self._glass_card(
+                    body,
+                    padding=ft.Padding.symmetric(
+                        horizontal=cfg["padding_card_h"],
+                        vertical=cfg["padding_card_v"],
+                    ),
+                ),
+            )
         )
 
     def _build_sidebar(self) -> SidebarPanel:
@@ -1334,6 +1368,8 @@ class ChatPage(ft.Container):
             ),
         )
 
+        content_stack: list[ft.Control] = [gradient_bg]
+
         if self._is_mobile:
             drawer_width = cfg["drawer_width"]
             drawer = self._build_custom_drawer(cfg)
@@ -1354,27 +1390,20 @@ class ChatPage(ft.Container):
                 content=drawer,
             )
 
-            return ft.Stack(
-                expand=True,
-                controls=[
-                    gradient_bg,
-                    center,
-                    self._mobile_backdrop,
-                    self._mobile_drawer_container,
-                ],
+            content_stack.extend([
+                ft.SafeArea(center, expand=True),
+                self._mobile_backdrop,
+                self._mobile_drawer_container,
+            ])
+        else:
+            self._sidebar_host = ft.Container(
+                width=_SIDEBAR_EXPANDED_WIDTH if self._sidebar_expanded else _SIDEBAR_COLLAPSED_WIDTH,
+                animate_size=ft.Animation(260, ft.AnimationCurve.EASE_IN_OUT_CUBIC),
+                content=self._build_sidebar(),
             )
+            self._settings_panel = self._build_settings_panel()
 
-        self._sidebar_host = ft.Container(
-            width=_SIDEBAR_EXPANDED_WIDTH if self._sidebar_expanded else _SIDEBAR_COLLAPSED_WIDTH,
-            animate_size=ft.Animation(260, ft.AnimationCurve.EASE_IN_OUT_CUBIC),
-            content=self._build_sidebar(),
-        )
-        self._settings_panel = self._build_settings_panel()
-
-        return ft.Stack(
-            expand=True,
-            controls=[
-                gradient_bg,
+            content_stack.append(
                 ft.Container(
                     expand=True,
                     content=ft.Row(
@@ -1383,8 +1412,12 @@ class ChatPage(ft.Container):
                         expand=True,
                         vertical_alignment=ft.CrossAxisAlignment.STRETCH,
                     ),
-                ),
-            ],
+                )
+            )
+
+        return ft.Stack(
+            expand=True,
+            controls=content_stack,
         )
 
     # Account handlers
@@ -2112,6 +2145,3 @@ class ChatPage(ft.Container):
             ],
         )
         self._open_dialog(dialog)
-
-
-

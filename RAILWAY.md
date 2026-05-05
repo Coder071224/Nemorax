@@ -1,6 +1,7 @@
 # Railway Deployment
 
 This repository has two Railway services from the same GitHub repo.
+The landing/download website is deployed separately from `website/` on Vercel.
 
 ## Backend API service
 
@@ -9,7 +10,7 @@ Use the repository root as the service root.
 Start command:
 
 ```bash
-python -m uvicorn nemorax.backend.main:app --app-dir src --host 0.0.0.0 --port $PORT
+python railway_backend.py
 ```
 
 Required variables:
@@ -23,11 +24,13 @@ Required variables:
 ## Flet web app service
 
 Use the repository root as the service root.
+This must be a separate Railway service from the backend because Railway gives
+each service its own public port.
 
 Start command:
 
 ```bash
-python serve_web.py
+python railway_web.py
 ```
 
 Required variables:
@@ -35,6 +38,7 @@ Required variables:
 - `NEMORAX_API_URL`
 
 Set `NEMORAX_API_URL` to the Railway public URL of the backend API service.
+Railway provides `PORT`; both launchers default to port `8000` for local use.
 
 ## Important
 

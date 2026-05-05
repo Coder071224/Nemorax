@@ -5,8 +5,8 @@ Nemorax is a Flet frontend with a FastAPI backend for the Nemis campus assistant
 Production deployment is now split as follows:
 
 - Static website / download portal: Vercel (`website/`)
-- Persistent API backend: Oracle Cloud Always Free VM
-- Optional browser-based Flet app: Oracle Cloud VM behind Nginx
+- Persistent API backend: Railway
+- Browser-based Flet app: Railway
 
 ## Current layout
 
@@ -181,11 +181,11 @@ python -m unittest discover -s tests -v
 - Set `ALLOWED_ORIGINS` explicitly in production.
 - Recommended production split:
   - Vercel for `website/`
-  - Oracle Cloud Always Free for the FastAPI backend
-  - Oracle Cloud for the Flet web runtime if you need the browser app, because Flet requires a persistent Python service and is not a good fit for Cloudflare Pages or Vercel serverless hosting
+  - Railway for the FastAPI backend
+  - Railway for the Flet web runtime, because Flet requires a persistent Python service and is not a good fit for static-only hosting
 - Development defaults already allow the common local frontend origins:
-  - `http://127.0.0.1:8550`
-  - `http://localhost:8550`
+  - `http://127.0.0.1:8000`
+  - `http://localhost:8000`
   - `http://127.0.0.1:3000`
   - `http://localhost:3000`
   - `http://127.0.0.1:5173`
