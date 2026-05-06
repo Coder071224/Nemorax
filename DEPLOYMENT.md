@@ -2,25 +2,42 @@
 
 Target deployment split:
 
-- Backend/API: Railway
-- Flet web app/frontend: Railway
-- Landing/download website: Vercel
+- Backend/API: Render
+- Flet web app/frontend: Render, if you want browser access through a Python Flet server
+- Landing/download website: Vercel (`website/`)
 - Source control and release artifacts: GitHub
+- Database and runtime persistence: Supabase, if already used by the project
 
-## Backend API on Railway
+Railway can be kept only as an optional fallback backend URL while Render is the primary host.
 
-Create a Railway service from the repository root.
+## Render Dashboard Notes
+
+Create new Render services from scratch instead of relying on old suspended services:
+
+- `nemorax-backend`
+- `nemorax-flet-web`, only if the Flet web app is hosted as a separate Python web service
+
+Before deleting any old suspended Render service, open its Environment settings and copy any needed variable values into your own secure notes or directly into the new Render service. Do not paste secrets into Codex, ChatGPT, docs, commits, screenshots, or issue comments. Secrets such as API keys, Supabase keys, database URLs, and tokens belong only in Render Environment settings or another secret manager.
+
+## Backend API on Render
+
+Create a Render Web Service from the repository root.
+
+Build command:
+
+```bash
+pip install -r requirements.txt
+```
 
 Start command:
 
 ```bash
-python railway_backend.py
+python -m uvicorn nemorax.backend.main:app --app-dir src --host 0.0.0.0 --port $PORT
 ```
 
-The backend listens on Railway's `PORT` variable and defaults to `8000` for local
-development.
+Render provides `PORT` in production. Local development still defaults to port `8000`.
 
-Required Railway variables:
+Required Render variables:
 
 - `NEMORAX_ENV=production`
 - `ALLOWED_ORIGINS`
@@ -30,53 +47,61 @@ Required Railway variables:
 
 Optional variables are documented in `.env.example`.
 
-## Flet web app on Railway
+Health check path:
 
-Create a second Railway service from the repository root.
+```text
+/api/health
+```
+
+## Flet Web App on Render
+
+Create a second Render Web Service from the repository root only if you want the Flet browser app hosted separately from the landing site.
+
+Build command:
+
+```bash
+pip install -r requirements.txt
+```
 
 Start command:
 
 ```bash
-python railway_web.py
+python serve_web.py
 ```
 
 Set:
 
 - `NEMORAX_ENV=production`
-- `NEMORAX_API_URL=<public Railway backend URL>`
+- `NEMORAX_API_URL=https://nemorax-backend.onrender.com`
+- `NEMORAX_API_FALLBACK_URLS=<optional Railway backend URL>`
 
-The Flet web app also listens on Railway's `PORT` variable and defaults to
-`8000` for local development. It should run as its own Railway service, not in
-the same process as the backend API.
+The Flet service reads Render's `PORT` in production and falls back to `8000` locally. Do not deploy Flet as static-only unless the app is explicitly changed for that later.
 
 ## Landing/download website on Vercel
 
-Create a Vercel project with root directory:
+Create or keep a Vercel project with root directory:
 
 ```text
 website
 ```
 
-The Vercel config is `website/vercel.json`. Update
-`website/assets/js/site-config.js` when Railway service URLs or GitHub release
-asset names change.
+The Vercel config is `website/vercel.json`. Update `website/assets/js/site-config.js` when the Render service URLs or GitHub release asset names change.
 
 ## Local smoke checks
 
 Backend:
 
 ```bash
-python railway_backend.py
+python -m uvicorn nemorax.backend.main:app --app-dir src --reload --host 0.0.0.0 --port 8000
 ```
 
 Flet web app:
 
 ```bash
 $env:NEMORAX_API_URL="http://127.0.0.1:8000"
-python railway_web.py
+python serve_web.py
 ```
 
 Landing site:
 
-Open `website/index.html` directly, or serve the `website/` folder with any
-static file server.
+Open `website/index.html` directly, or serve the `website/` folder with any static file server.

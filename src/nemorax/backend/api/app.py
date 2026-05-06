@@ -32,6 +32,11 @@ from nemorax.backend.schemas import ApiErrorPayload, ApiResponse
 configure_logging(settings.log_level)
 logger = get_logger("nemorax.api")
 
+GENERIC_PUBLIC_ERROR_MESSAGE = "Something went wrong. Please try again in a few minutes."
+MODEL_NOT_READY_PUBLIC_MESSAGE = (
+    "Nemis is online, but the AI model is still getting ready. Please wait a few minutes and try again."
+)
+
 
 def _error_code_for_status(status_code: int) -> str:
     return {
@@ -71,16 +76,30 @@ def _error_response(
     code: str | None = None,
     details: object | None = None,
 ) -> JSONResponse:
+    environment = settings.environment
+    try:
+        environment = request.app.state.services.settings.environment
+    except Exception:
+        pass
+    public_details = None if environment == "production" else details
     payload = ApiResponse[object](
         ok=False,
         error=ApiErrorPayload(
             code=code or _error_code_for_status(status_code),
             message=message,
-            details=details,
+            details=public_details,
             request_id=getattr(request.state, "request_id", None),
         ),
     )
     return JSONResponse(status_code=status_code, content=payload.model_dump())
+
+
+def _public_message_for_exception(exc: ApplicationError) -> str:
+    if isinstance(exc, (LLMConnectionError, LLMResponseError)):
+        return MODEL_NOT_READY_PUBLIC_MESSAGE
+    if isinstance(exc, (ConfigurationError, PersistenceError)) or exc.status_code >= 500:
+        return GENERIC_PUBLIC_ERROR_MESSAGE
+    return str(exc) or GENERIC_PUBLIC_ERROR_MESSAGE
 
 
 def _cors_options(services: ApplicationServices) -> dict[str, object]:
@@ -109,7 +128,7 @@ def create_app(*, services: ApplicationServices | None = None) -> FastAPI:
     app = FastAPI(
         title=resolved_services.settings.app_name,
         version=resolved_services.settings.app_version,
-        description="Nemorax backend API.",
+        description="Backend API for Nemis by Nemorax.",
         lifespan=lifespan,
     )
     app.state.services = resolved_services
@@ -140,10 +159,25 @@ def create_app(*, services: ApplicationServices | None = None) -> FastAPI:
 
     @app.exception_handler(ApplicationError)
     async def application_exception_handler(request: Request, exc: ApplicationError) -> JSONResponse:
+        if exc.status_code >= 500:
+            logger.error(
+                "Backend application error | code=%s status=%s path=%s",
+                _error_code_for_exception(exc),
+                exc.status_code,
+                request.url.path,
+            )
+        else:
+            logger.info(
+                "Backend application error | code=%s status=%s path=%s detail=%r",
+                _error_code_for_exception(exc),
+                exc.status_code,
+                request.url.path,
+                str(exc),
+            )
         return _error_response(
             status_code=exc.status_code,
             request=request,
-            message=str(exc),
+            message=_public_message_for_exception(exc),
             code=_error_code_for_exception(exc),
         )
 
@@ -153,7 +187,7 @@ def create_app(*, services: ApplicationServices | None = None) -> FastAPI:
         return _error_response(
             status_code=500,
             request=request,
-            message="Internal server error.",
+            message=GENERIC_PUBLIC_ERROR_MESSAGE,
             code="internal_error",
         )
 

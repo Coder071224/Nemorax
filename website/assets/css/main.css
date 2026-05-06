@@ -957,6 +957,41 @@ button {
   letter-spacing: -0.02em;
 }
 
+.legal-meta {
+  margin-bottom: 22px;
+}
+
+.legal-notice,
+.legal-contact {
+  margin: 24px 0 30px;
+  padding: 18px;
+  border-radius: var(--r-md);
+  background: rgba(103, 232, 249, 0.06);
+  border: 1px solid rgba(103, 232, 249, 0.16);
+}
+
+.legal-notice strong,
+.legal-contact strong {
+  color: var(--text-primary);
+}
+
+.legal-contact p + p {
+  margin-top: 8px;
+}
+
+.legal-card a {
+  color: var(--cyan);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-color: rgba(103, 232, 249, 0.34);
+  text-underline-offset: 3px;
+}
+
+.legal-reference-list {
+  display: grid;
+  gap: 8px;
+}
+
 .shimmer-text {
   background: linear-gradient(90deg, #C8D9FF 30%, #67E8F9 50%, #C8D9FF 70%);
   background-size: 200% auto;

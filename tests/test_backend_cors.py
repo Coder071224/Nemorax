@@ -23,7 +23,7 @@ from tests.test_backend_app import FakeSupabaseTransport, StubProvider, build_te
 class BackendCorsTests(unittest.TestCase):
     def test_api_settings_normalize_and_dedupe_origins(self) -> None:
         settings = ApiSettings(
-            app_name="Nemorax API",
+            app_name="Nemis API",
             app_version="1.0.0",
             environment="production",
             log_level="INFO",
@@ -51,7 +51,7 @@ class BackendCorsTests(unittest.TestCase):
 
         self.assertEqual(settings.cors_origins, ["https://your-project.vercel.app"])
 
-    def test_development_default_cors_prioritizes_railway_local_port(self) -> None:
+    def test_development_default_cors_includes_local_port_8000(self) -> None:
         with tempfile.TemporaryDirectory() as tempdir:
             env = {
                 "NEMORAX_DATA_DIR": tempdir,

@@ -1,12 +1,12 @@
-# Nemorax
+# Nemis by Nemorax
 
-Nemorax is a Flet frontend with a FastAPI backend for the Nemis campus assistant. The backend is structured around services, repositories, and a provider-neutral LLM adapter so the app can run on Groq by default and still switch to other OpenAI-compatible providers with minimal code changes.
+Nemis is a Flet frontend with a FastAPI backend for the campus assistant experience. Nemis is developed and operated by Nemorax. The backend is structured around services, repositories, and a provider-neutral LLM adapter so the app can run on Groq by default and still switch to other OpenAI-compatible providers with minimal code changes.
 
 Production deployment is now split as follows:
 
 - Static website / download portal: Vercel (`website/`)
-- Persistent API backend: Railway
-- Browser-based Flet app: Railway
+- Persistent API backend: Render
+- Browser-based Flet app: Render
 
 ## Current layout
 
@@ -52,6 +52,7 @@ Use these canonical variables:
 
 - `NEMORAX_ENV`: `development`, `production`, or `test`
 - `NEMORAX_API_URL`: frontend-facing backend API base URL
+- `NEMORAX_API_FALLBACK_URLS`: optional comma-separated fallback backend URLs for deployed frontends
 - `BACKEND_HOST`: backend bind host
 - `BACKEND_PORT`: backend bind port for local/manual runs
 - `PORT`: deployment-provided bind port override
@@ -178,11 +179,12 @@ python -m unittest discover -s tests -v
 - Production backend entrypoint is `nemorax.backend.main:app`.
 - Keep secrets in environment variables, not in source files.
 - Set `NEMORAX_API_URL` explicitly for deployed frontends.
+- Set `NEMORAX_API_FALLBACK_URLS` only if you intentionally keep another backend, such as Railway, as a temporary fallback.
 - Set `ALLOWED_ORIGINS` explicitly in production.
 - Recommended production split:
   - Vercel for `website/`
-  - Railway for the FastAPI backend
-  - Railway for the Flet web runtime, because Flet requires a persistent Python service and is not a good fit for static-only hosting
+  - Render for the FastAPI backend
+  - Render for the Flet web runtime, because Flet requires a persistent Python service and is not a good fit for static-only hosting
 - Development defaults already allow the common local frontend origins:
   - `http://127.0.0.1:8000`
   - `http://localhost:8000`

@@ -6,6 +6,7 @@ Main Nemorax chat interface for Nemis - responsive across Desktop, Web, Android,
 from __future__ import annotations
 
 import asyncio
+import logging
 import random
 import threading
 from collections.abc import Callable
@@ -47,6 +48,7 @@ _SETTINGS_PANEL_WIDTH = 360
 _THEME_SAVE_DELAY_SECONDS = 0.08
 _AUTH_BANNER_SECONDS = 4.0
 _MOBILE_WEB_RESIZE_WIDTH_DELTA = 12.0
+logger = logging.getLogger("nemorax.frontend.chat_page")
 
 
 def _user_state_snapshot(user: UserInfo | None) -> tuple[str, str, str, tuple[tuple[str, Any], ...]]:
@@ -183,11 +185,13 @@ class ChatPage(ft.Container):
                 provider_model = model.strip() if isinstance(model, str) and model.strip() else ""
                 provider_available = bool(provider.get("available", False))
 
-            self._backend_available = health.get("status") == "ok"
+            backend = health.get("backend", {})
+            self._backend_available = bool(backend.get("running", False)) if isinstance(backend, dict) else True
             self._provider_available = provider_available or bool(health.get("provider_available", False))
             self._provider_label = provider_label or "Model"
             self._provider_model = provider_model
-        except Exception:
+        except Exception as exc:
+            logger.warning("Chat page health check failed", exc_info=exc)
             self._backend_available = False
             self._provider_available = False
             self._provider_label = "Model"
@@ -764,13 +768,24 @@ class ChatPage(ft.Container):
         theme = current_theme()
 
         if not self._backend_available:
-            status_text = "Backend offline"
+            status_text = "Server is waking up"
+            service_message = (
+                "Server is waking up. Please wait a few minutes, then log in again."
+                if self._is_mobile
+                else api_client.BACKEND_UNAVAILABLE_MESSAGE
+            )
             status_color = theme.error
         elif not self._provider_available:
-            status_text = "Model not ready"
+            status_text = "AI model is getting ready"
+            service_message = (
+                "AI model is getting ready. Please try again in a few minutes."
+                if self._is_mobile
+                else api_client.MODEL_NOT_READY_MESSAGE
+            )
             status_color = theme.error
         else:
             status_text = "Model ready"
+            service_message = ""
             status_color = theme.success
 
         left_controls: list[ft.Control] = []
@@ -913,7 +928,31 @@ class ChatPage(ft.Container):
                 ),
             )
 
-        return ft.Column(controls=[header_row, banner], spacing=0, tight=True)
+        service_banner = ft.Container(height=0)
+        if service_message:
+            service_banner = ft.Container(
+                margin=ft.Margin.only(top=12),
+                padding=ft.Padding.symmetric(horizontal=14, vertical=12),
+                border_radius=16,
+                bgcolor=ft.Colors.with_opacity(0.14, status_color),
+                border=ft.Border.all(1, ft.Colors.with_opacity(0.32, status_color)),
+                content=ft.Row(
+                    controls=[
+                        ft.Icon(ft.Icons.INFO_OUTLINE_ROUNDED, size=18, color=status_color),
+                        ft.Text(
+                            service_message,
+                            size=cfg["font_size_body"],
+                            color=theme.text_primary,
+                            weight=ft.FontWeight.W_600,
+                            expand=True,
+                        ),
+                    ],
+                    spacing=10,
+                    vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                ),
+            )
+
+        return ft.Column(controls=[header_row, service_banner, banner], spacing=0, tight=True)
 
     def _build_hero_view(self, cfg: dict[str, Any]) -> ft.Control:
         theme = current_theme()
@@ -1598,8 +1637,11 @@ class ChatPage(ft.Container):
                 ),
                 user_id=user_id,
             )
-        except Exception:
+        except Exception as exc:
+            logger.exception("Failed to start chat send request", exc_info=exc)
             self._typing_session_id = None
+            self._inline_error = (session_id, api_client.GENERIC_ERROR_MESSAGE)
+            self._render_conversation()
             self._unlock_input()
 
     def _on_response(self, response: str, session_id: str) -> None:
@@ -2013,15 +2055,17 @@ class ChatPage(ft.Container):
                 dialog_ref.current.open = False
             self._safe_page_update()
 
-        provider_value = self._provider_label
-        if self._provider_model:
-            provider_value = f"{provider_value} ({self._provider_model})"
+        if not self._backend_available:
+            status_value = "Server is waking up"
+        elif not self._provider_available:
+            status_value = "AI model is getting ready"
+        else:
+            status_value = "Online"
 
         rows = [
-            ("System", "Nemorax / Nemis"),
+            ("Product", "Nemis by Nemorax"),
             ("Purpose", "Campus assistant for NEMSU"),
-            ("Provider", provider_value),
-            ("Backend", "FastAPI"),
+            ("Status", status_value),
             ("Scope", "NEMSU-related questions only"),
         ]
 

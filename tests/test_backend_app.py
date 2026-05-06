@@ -18,6 +18,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from nemorax.backend.api.app import create_app
+from nemorax.backend.core.errors import LLMResponseError, PersistenceError
 from nemorax.backend.core.settings import ApiSettings, LLMSettings, PathSettings, Settings, SupabaseSettings
 from nemorax.backend.llm.base import ChatProvider
 from nemorax.backend.llm.models import ChatCompletionResult, LLMMessage, ProviderStatus
@@ -407,7 +408,7 @@ def build_test_settings(root: Path) -> Settings:
         knowledge_base_chunks_path=root / "kb" / "chunks.jsonl",
     )
     api = ApiSettings(
-        app_name="Nemorax API",
+        app_name="Nemis API",
         app_version="3.0.0",
         environment="test",
         log_level="INFO",
@@ -785,6 +786,9 @@ class BackendApiTests(unittest.TestCase):
         self.assertEqual(payload["provider"]["name"], "stub")
         self.assertEqual(payload["provider"]["model"], "stub-model")
         self.assertTrue(payload["provider"]["available"])
+        self.assertEqual(payload["provider"]["base_url"], "")
+        self.assertIsNone(payload["provider"]["detail"])
+        self.assertEqual(payload["environment_variables"]["missing_variables"], [])
 
         delete_response = self.client.delete("/api/history/session-1", params={"user_id": user_id})
         self.assertEqual(delete_response.status_code, 200)
@@ -982,6 +986,40 @@ class BackendApiTests(unittest.TestCase):
         self.assertEqual(error["code"], "validation_error")
         self.assertEqual(error["message"], "The request payload is invalid.")
         self.assertIsInstance(error["details"], list)
+
+    def test_backend_hides_internal_error_details_from_api_payload(self) -> None:
+        app = create_app(services=self.services)
+
+        @app.get("/test/internal-error")
+        async def _internal_error():
+            raise PersistenceError("Supabase failed at /tmp/private.py with SERVICE_ROLE_KEY missing")
+
+        client = TestClient(app)
+        response = client.get("/test/internal-error")
+
+        self.assertEqual(response.status_code, 500)
+        error = _response_error(response)
+        self.assertEqual(error["message"], "Something went wrong. Please try again in a few minutes.")
+        self.assertNotIn("Supabase", error["message"])
+        self.assertNotIn("SERVICE_ROLE_KEY", error["message"])
+
+    def test_backend_maps_model_errors_to_public_model_readiness_message(self) -> None:
+        app = create_app(services=self.services)
+
+        @app.get("/test/model-error")
+        async def _model_error():
+            raise LLMResponseError("Groq request failed: raw provider detail")
+
+        client = TestClient(app)
+        response = client.get("/test/model-error")
+
+        self.assertEqual(response.status_code, 502)
+        error = _response_error(response)
+        self.assertEqual(
+            error["message"],
+            "Nemis is online, but the AI model is still getting ready. Please wait a few minutes and try again.",
+        )
+        self.assertNotIn("Groq", error["message"])
 
     def test_prompt_service_truncates_large_knowledge_base(self) -> None:
         large_kb = "NEMSU campus information. " * 800

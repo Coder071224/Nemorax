@@ -288,7 +288,7 @@ def load_settings() -> Settings:
         llm_api_key = _read_str("LLM_API_KEY", default="") or None
 
     api = ApiSettings(
-        app_name=_read_str("NEMORAX_APP_NAME", default="Nemorax API"),
+        app_name=_read_str("NEMORAX_APP_NAME", default="Nemis API"),
         app_version=_read_str("NEMORAX_APP_VERSION", default="1.0.0"),
         environment=environment,
         log_level=_read_str("LOG_LEVEL", default="INFO"),

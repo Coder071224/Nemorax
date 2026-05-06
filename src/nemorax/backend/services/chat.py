@@ -23,7 +23,7 @@ except ImportError:
 from nemorax.backend.core.logging import get_logger
 from nemorax.backend.core.settings import Settings, missing_health_env_var_names
 from nemorax.backend.llm.base import ChatProvider
-from nemorax.backend.llm.models import LLMMessage
+from nemorax.backend.llm.models import LLMMessage, ProviderStatus
 from nemorax.backend.schemas import ChatRequest, ChatResponse, MessageSchema
 from nemorax.backend.services.history import HistoryService
 from nemorax.backend.services.prompt import KnowledgeBasePromptService
@@ -842,7 +842,18 @@ class ChatService:
         )
 
     async def health(self) -> dict[str, Any]:
-        provider_status = await self._provider.health()
+        try:
+            provider_status = await self._provider.health()
+        except Exception as exc:
+            logger.exception("Provider health check failed", exc_info=exc)
+            provider_status = ProviderStatus(
+                name=self._provider.name,
+                label=getattr(self._provider, "provider_label", "Model"),
+                model=self._provider.model,
+                base_url=getattr(self._provider, "base_url", ""),
+                available=False,
+                detail=str(exc),
+            )
         prompt_status = self._prompt_service.health()
         missing_env_vars = missing_health_env_var_names()
         environment_loaded = not missing_env_vars
@@ -860,13 +871,32 @@ class ChatService:
             and kb_table_reachable
             and kb_chunk_count_positive
         )
+        if not provider_ready:
+            logger.warning(
+                "Model provider is not ready | provider=%s model=%s configured=%s detail=%r",
+                provider_status.name,
+                provider_status.model,
+                provider_status.configured,
+                provider_status.detail,
+            )
+        if missing_env_vars:
+            logger.warning("Required runtime configuration is missing | names=%s", missing_env_vars)
+        if not supabase_reachable or not kb_table_reachable:
+            logger.warning(
+                "Knowledge base health is degraded | supabase_configured=%s supabase_reachable=%s table_reachable=%s detail=%r",
+                supabase_configured,
+                supabase_reachable,
+                kb_table_reachable,
+                prompt_status.get("detail"),
+            )
+        public_kb_source = "supabase" if self._settings.supabase.kb_source == "supabase" else "local"
         return {
             "status": "ok" if healthy else "degraded",
             "backend": {"running": True},
             "environment": self._settings.environment,
             "environment_variables": {
                 "loaded": environment_loaded,
-                "missing_variables": missing_env_vars,
+                "missing_variables": [],
             },
             "supabase": {
                 "configured": supabase_configured,
@@ -880,11 +910,15 @@ class ChatService:
                 "name": provider_status.name,
                 "label": provider_status.label,
                 "model": provider_status.model,
-                "base_url": provider_status.base_url,
+                "base_url": "",
                 "available": provider_ready,
                 "configured": provider_status.configured,
-                "detail": provider_status.detail,
+                "detail": None,
             },
-            "knowledge_base": prompt_status,
+            "knowledge_base": {
+                **prompt_status,
+                "source_path": public_kb_source,
+                "detail": None,
+            },
             "model": provider_status.model,
         }

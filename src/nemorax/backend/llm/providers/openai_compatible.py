@@ -162,7 +162,7 @@ def _rate_limit_info(response: httpx.Response, detail: str) -> _RateLimitInfo:
 
 def _friendly_rate_limit_message(info: _RateLimitInfo) -> str:
     prefix = (
-        "Sorry for the inconvenience. Nemorax is a free app that helps users navigate "
+        "Sorry for the inconvenience. Nemis is a free app by Nemorax that helps users navigate "
         "and ask questions about the school. "
     )
     if info.kind == "temporary":

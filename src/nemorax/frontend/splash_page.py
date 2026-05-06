@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from collections.abc import Callable
 from typing import Any, cast
 from flet.controls.control_event import Event
@@ -19,6 +20,7 @@ _LOADING_STEPS: list[tuple[str, float]] = [
 ]
 _MOBILE_WEB_BREAKPOINT = 800.0
 _MOBILE_WEB_RESIZE_WIDTH_DELTA = 12.0
+logger = logging.getLogger("nemorax.frontend.splash_page")
 
 
 class SplashPage(ft.Container):
@@ -94,13 +96,13 @@ class SplashPage(ft.Container):
         return ft.Column(
             controls=[
                 ft.Text(
-                    BRAND_NAME,
+                    APP_NAME,
                     size=title_size,
                     weight=ft.FontWeight.W_900,
                     color=theme.text_primary,
                 ),
                 ft.Text(
-                    APP_NAME,
+                    f"by {BRAND_NAME}",
                     size=subtitle_size,
                     weight=ft.FontWeight.W_700,
                     color=theme.accent,
@@ -213,20 +215,20 @@ class SplashPage(ft.Container):
         )
 
         description = ft.Text(
-            "Nemorax is the AI platform developed to support students, teachers, and "
+            "Nemis is the AI-powered application developed by Nemorax to support students, teachers, and "
             "the wider campus community of North Eastern Mindanao State University.\n\n"
             "It is designed to answer queries, provide reliable information, and support "
             "academic and school-related needs. By streamlining access to knowledge and "
-            "improving communication, Nemorax improves productivity and the overall campus experience.",
+            "improving communication, Nemis supports productivity and the overall campus experience.",
             size=body_size,
             color=ft.Colors.with_opacity(0.94, theme.text_primary),
             weight=ft.FontWeight.W_500,
         )
 
         description_secondary = ft.Text(
-            "Nemis is the first assistant built on Nemorax, focused on handling "
+            "Nemis is a product of Nemorax, focused on handling "
             "academic inquiries, campus-related concerns, and general questions.\n\n"
-            "As the first assistant experience from Nemorax, Nemis is the starting point for a "
+            "As an assistant experience from Nemorax, Nemis is the starting point for a "
             "scalable system that can expand into more advanced and specialized AI solutions over time.",
             size=max(10, body_size - 1),
             color=ft.Colors.with_opacity(0.84, theme.text_secondary),
@@ -471,16 +473,16 @@ class SplashPage(ft.Container):
                     asyncio.to_thread(api_client.check_health),
                     timeout=6.0,
                 )
-            except (asyncio.TimeoutError, OSError):
-                pass
+            except (asyncio.TimeoutError, OSError, api_client.ApiClientError) as exc:
+                logger.warning("Splash health check did not complete", exc_info=exc)
 
             await self._set_step(1, bar_max_width, total_steps)
             await self._set_step(2, bar_max_width, total_steps)
             await self._animate_bar(bar_max_width)
             await asyncio.sleep(0.20)
-        except Exception:
+        except Exception as exc:
             # Never strand the UI on the splash loader because of a transient task failure.
-            pass
+            logger.exception("Splash loading sequence failed", exc_info=exc)
         finally:
             if self._on_continue is not None:
                 self._on_continue()

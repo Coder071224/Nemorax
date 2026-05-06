@@ -21,20 +21,34 @@ def _normalize_api_url(value: str) -> str:
     return value.strip().rstrip("/")
 
 
+def _split_api_urls(value: str) -> list[str]:
+    urls: list[str] = []
+    seen: set[str] = set()
+    for item in value.split(","):
+        normalized = _normalize_api_url(item)
+        if not normalized or normalized in seen:
+            continue
+        seen.add(normalized)
+        urls.append(normalized)
+    return urls
+
+
 def _environment_name() -> str:
     return os.getenv("NEMORAX_ENV", "development").strip().lower() or "development"
 
 
-def _resolve_backend_url() -> str:
-    configured = os.getenv("NEMORAX_API_URL", "").strip()
+def _resolve_backend_urls() -> list[str]:
+    configured = _split_api_urls(os.getenv("NEMORAX_API_URL", ""))
+    fallback = _split_api_urls(os.getenv("NEMORAX_API_FALLBACK_URLS", ""))
     if configured:
-        return _normalize_api_url(configured)
+        urls = configured + [url for url in fallback if url not in configured]
+        return urls
     if _environment_name() in _PRODUCTION_ENVIRONMENTS:
-        return ""
-    return LOCAL_BACKEND_URL
+        return []
+    return [LOCAL_BACKEND_URL]
 
 
-_API_BASE_URL: str = _resolve_backend_url()
+_API_BASE_URLS: list[str] = _resolve_backend_urls()
 
 BRAND_NAME = "Nemorax"
 APP_NAME = "Nemis"
@@ -240,18 +254,22 @@ def normalize_user_settings(source: Any) -> dict[str, Any]:
 
 
 def get_api_base_url() -> str:
-    return _API_BASE_URL
+    return _API_BASE_URLS[0] if _API_BASE_URLS else ""
+
+
+def get_api_base_urls() -> list[str]:
+    return list(_API_BASE_URLS)
 
 
 def has_api_base_url() -> bool:
-    return bool(_API_BASE_URL)
+    return bool(_API_BASE_URLS)
 
 
 def set_api_base_url(value: str | None) -> str:
-    global _API_BASE_URL
+    global _API_BASE_URLS
     normalized = _normalize_api_url(value or "") if value else ""
-    _API_BASE_URL = normalized
-    return _API_BASE_URL
+    _API_BASE_URLS = [normalized] if normalized else []
+    return get_api_base_url()
 
 
 def resolve_theme_name(source: Any = None) -> str:

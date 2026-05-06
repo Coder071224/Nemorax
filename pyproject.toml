@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "nemorax"
 version = "1.0.0"
-description = "Nemorax desktop/web/mobile-ready app for the Nemis AI assistant"
+description = "Nemis desktop/web/mobile-ready AI assistant app by Nemorax"
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
@@ -34,7 +34,7 @@ where = ["src"]
 
 [tool.flet]
 org = "com.nemorax"
-product = "Nemorax"
+product = "Nemis"
 company = "Nemorax"
 copyright = "Copyright (c) 2026 Nemorax"
 

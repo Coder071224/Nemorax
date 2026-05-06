@@ -67,7 +67,7 @@ async def _configure_desktop_window(page: ft.Page) -> None:
 
 
 async def main(page: ft.Page) -> None:
-    page.title = f"{BRAND_NAME} - {APP_NAME}"
+    page.title = f"{APP_NAME} by {BRAND_NAME}"
     page.padding = 0
     page.spacing = 0
     page.bgcolor = current_theme().grad_bottom

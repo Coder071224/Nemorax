@@ -21,7 +21,7 @@
       web: {
         url: appConfig.webUrl || "",
         label: "Open web app",
-        status: "Use Nemorax directly in the browser for iPhone and desktop web access."
+        status: "Use Nemis directly in the browser for iPhone and desktop web access."
       }
     }
   };

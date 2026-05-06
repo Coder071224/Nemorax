@@ -56,7 +56,7 @@ def _wait_for_backend(host: str, port: int, *, timeout_seconds: float = 10.0) ->
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run Nemorax")
+    parser = argparse.ArgumentParser(description="Run Nemis")
     parser.add_argument("--web", action="store_true", help="Open as web app")
     parser.add_argument(
         "--no-backend",
