@@ -473,7 +473,7 @@ class SupabaseKnowledgeBaseClient:
         try:
             rows = self._client.select(
                 "kb_chunks",
-                columns="chunk_id,embedding_model,embedding_updated_at",
+                columns="chunk_id",
                 limit=5000,
             )
         except PersistenceError:
@@ -487,6 +487,7 @@ class SupabaseKnowledgeBaseClient:
             }
 
         function_available = False
+        vector_rows: list[Any] = []
         try:
             probe = self._client.rpc(
                 _VECTOR_RPC_NAME,
@@ -496,22 +497,11 @@ class SupabaseKnowledgeBaseClient:
                 },
             )
             function_available = isinstance(probe, list)
+            vector_rows = probe if isinstance(probe, list) else []
         except PersistenceError:
             function_available = False
-        embedded_rows = [
-            row
-            for row in rows
-            if str(row.get("embedding_model") or "").strip()
-            or str(row.get("embedding_updated_at") or "").strip()
-        ]
-        models = sorted(
-            {
-                str(row.get("embedding_model") or "").strip()
-                for row in embedded_rows
-                if str(row.get("embedding_model") or "").strip()
-            }
-        )
-        embedded_count = len(embedded_rows)
+        models = [self._config.embedding_model] if self._config.embedding_model and vector_rows else []
+        embedded_count = len(rows) if vector_rows else 0
         dimensions = [_VECTOR_DIMENSION] if embedded_count > 0 else []
         if embedded_count <= 0:
             status = "empty"
