@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 from functools import lru_cache
+import math
 import re
 from typing import Any
+
+import httpx
 
 from nemorax.backend.core.logging import get_logger
 from nemorax.backend.core.errors import PersistenceError
@@ -14,6 +17,8 @@ from nemorax.backend.repositories.supabase_client import SupabasePersistenceClie
 
 logger = get_logger("nemorax.supabase_kb")
 _SEARCH_RPC_CANDIDATES = ("search_kb_chunks", "search_kb_knowledge")
+_VECTOR_RPC_NAME = "match_kb_chunks"
+_VECTOR_DIMENSION = 1536
 _SOURCE_TOKEN_PATTERN = re.compile(r"[a-z0-9]+")
 _SOURCE_STOP_TOKENS = {
     "a",
@@ -58,10 +63,123 @@ _INSTITUTION_EVIDENCE_STOP_TOKENS = {
 }
 
 
-class SupabaseKnowledgeBaseClient:
+class EmbeddingError(RuntimeError):
+    """Raised when query embeddings are unavailable or unsafe to use."""
+
+
+class EmbeddingClient:
     def __init__(self, config: SupabaseSettings) -> None:
         self._config = config
+
+    @property
+    def enabled(self) -> bool:
+        return self._config.embedding_configured
+
+    @property
+    def dimension(self) -> int:
+        return self._config.embedding_dimension
+
+    def embed_query(self, text: str) -> list[float]:
+        return self._embed(text, gemini_task_type="RETRIEVAL_QUERY")
+
+    def embed_document(self, text: str) -> list[float]:
+        return self._embed(text, gemini_task_type="RETRIEVAL_DOCUMENT")
+
+    def _embed(self, text: str, *, gemini_task_type: str) -> list[float]:
+        if not self.enabled:
+            raise EmbeddingError("Embedding provider is not configured.")
+
+        provider = self._config.embedding_provider
+        if provider == "gemini":
+            values = self._embed_gemini(text, task_type=gemini_task_type)
+        elif provider in {"openai-compatible", "openai"}:
+            values = self._embed_openai_compatible(text)
+        else:
+            raise EmbeddingError("Unsupported embedding provider.")
+
+        if len(values) != self.dimension:
+            raise EmbeddingError("Embedding provider returned an unexpected vector dimension.")
+        if provider == "gemini" and self._config.embedding_model == "gemini-embedding-001":
+            values = self._normalize(values)
+        return values
+
+    def _embed_gemini(self, text: str, *, task_type: str) -> list[float]:
+        url = f"{self._config.embedding_base_url}/v1beta/models/{self._config.embedding_model}:embedContent"
+        payload = {
+            "taskType": task_type,
+            "content": {"parts": [{"text": text}]},
+            "output_dimensionality": self.dimension,
+        }
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "x-goog-api-key": self._config.embedding_api_key or "",
+        }
+        raw = self._post_json(url, headers=headers, payload=payload)
+        embedding = raw.get("embedding")
+        if not isinstance(embedding, dict):
+            raise EmbeddingError("Gemini embedding response was invalid.")
+        return self._coerce_values(embedding.get("values"))
+
+    def _embed_openai_compatible(self, text: str) -> list[float]:
+        url = f"{self._config.embedding_base_url}/embeddings"
+        payload: dict[str, Any] = {
+            "model": self._config.embedding_model,
+            "input": text,
+        }
+        if self.dimension > 0:
+            payload["dimensions"] = self.dimension
+        headers = {
+            "Accept": "application/json",
+            "Authorization": f"Bearer {self._config.embedding_api_key or ''}",
+            "Content-Type": "application/json",
+        }
+        raw = self._post_json(url, headers=headers, payload=payload)
+        data = raw.get("data")
+        if not isinstance(data, list) or not data or not isinstance(data[0], dict):
+            raise EmbeddingError("OpenAI-compatible embedding response was invalid.")
+        return self._coerce_values(data[0].get("embedding"))
+
+    def _post_json(self, url: str, *, headers: dict[str, str], payload: dict[str, Any]) -> dict[str, Any]:
+        try:
+            with httpx.Client(timeout=self._config.embedding_timeout_seconds) as client:
+                response = client.post(url, headers=headers, json=payload)
+                response.raise_for_status()
+                raw = response.json()
+        except httpx.HTTPStatusError as exc:
+            raise EmbeddingError(f"Embedding provider request failed with status {exc.response.status_code}.") from exc
+        except httpx.HTTPError as exc:
+            raise EmbeddingError("Embedding provider request failed.") from exc
+        except ValueError as exc:
+            raise EmbeddingError("Embedding provider returned invalid JSON.") from exc
+        if not isinstance(raw, dict):
+            raise EmbeddingError("Embedding provider returned an invalid payload.")
+        return raw
+
+    @staticmethod
+    def _coerce_values(raw_values: Any) -> list[float]:
+        if not isinstance(raw_values, list):
+            raise EmbeddingError("Embedding values were missing.")
+        values: list[float] = []
+        for value in raw_values:
+            if not isinstance(value, (int, float)):
+                raise EmbeddingError("Embedding values were invalid.")
+            values.append(float(value))
+        return values
+
+    @staticmethod
+    def _normalize(values: list[float]) -> list[float]:
+        magnitude = math.sqrt(sum(value * value for value in values))
+        if magnitude <= 0.0:
+            raise EmbeddingError("Embedding provider returned a zero vector.")
+        return [value / magnitude for value in values]
+
+
+class SupabaseKnowledgeBaseClient:
+    def __init__(self, config: SupabaseSettings, *, embedding_client: EmbeddingClient | None = None) -> None:
+        self._config = config
         self._client = SupabasePersistenceClient(config)
+        self._embedding_client = embedding_client or EmbeddingClient(config)
 
     @property
     def enabled(self) -> bool:
@@ -293,6 +411,19 @@ class SupabaseKnowledgeBaseClient:
             {"p_query": query, "p_limit": max(1, min(limit, 20))},
         )
 
+    @staticmethod
+    def _vector_literal(values: list[float]) -> str:
+        return "[" + ",".join(f"{value:.12g}" for value in values) + "]"
+
+    def _rpc_vector_search(self, *, embedding: list[float], limit: int) -> Any:
+        return self._client.rpc(
+            _VECTOR_RPC_NAME,
+            {
+                "query_embedding": self._vector_literal(embedding),
+                "match_count": max(1, min(limit, 20)),
+            },
+        )
+
     def _embedding_readiness(self) -> dict[str, Any]:
         if not self.enabled:
             return {
@@ -328,10 +459,12 @@ class SupabaseKnowledgeBaseClient:
         }
         if embedded_count <= 0:
             status = "empty"
-        elif 1536 not in numeric_dimensions:
+        elif _VECTOR_DIMENSION not in numeric_dimensions:
             status = "dimension_mismatch"
         elif not function_available:
             status = "rpc_missing"
+        elif self._embedding_client.dimension != _VECTOR_DIMENSION:
+            status = "dimension_mismatch"
         else:
             status = "ready"
         return {
@@ -422,6 +555,41 @@ class SupabaseKnowledgeBaseClient:
                 "decision": "disabled" if not self.enabled else "empty_query",
             }
 
+        def _row_from_payload(row: dict[str, Any], *, pass_query: str, vector: bool = False) -> dict[str, Any] | None:
+            url = str(row.get("url") or "").strip()
+            content = str(row.get("content") or "").strip()
+            metadata = row.get("metadata")
+            if not isinstance(metadata, dict):
+                metadata = {}
+            metadata = {
+                **metadata,
+                "title": str(row.get("title") or metadata.get("title") or "").strip(),
+                "section": (
+                    " > ".join(item for item in (row.get("heading_path") or []) if isinstance(item, str))
+                    or str(row.get("section") or metadata.get("section") or "").strip()
+                ),
+                "url": url,
+                "type": str(row.get("page_type") or metadata.get("type") or "").strip(),
+                "topic": str(row.get("topic") or metadata.get("topic") or "").strip(),
+                "date": str(row.get("updated_date") or row.get("publication_date") or metadata.get("date") or "").strip(),
+                "match_source": str(row.get("source_kind") or metadata.get("match_source") or "").strip(),
+            }
+            if vector:
+                metadata["match_source"] = metadata.get("match_source") or "vector"
+                retrieval_score = float(row.get("similarity") or 0.0) * 10.0
+            else:
+                retrieval_score = float(row.get("rank") or 0.0) + self._phrase_rank_boost(
+                    pass_query,
+                    content=content,
+                    metadata=metadata,
+                )
+            return {
+                "source": f"supabase:{str(row.get('source_kind') or 'kb')}:{str(row.get('source_ref') or row.get('chunk_id') or '').strip()}",
+                "content": content,
+                "metadata": metadata,
+                "_retrieval_score": retrieval_score,
+            }
+
         def _run_pass(pass_name: str, pass_query: str, pass_limit: int) -> dict[str, Any]:
             payload = None
             rpc_name = ""
@@ -466,37 +634,9 @@ class SupabaseKnowledgeBaseClient:
             for row in payload:
                 if not isinstance(row, dict):
                     continue
-                url = str(row.get("url") or "").strip()
-                content = str(row.get("content") or "").strip()
-                metadata = row.get("metadata")
-                if not isinstance(metadata, dict):
-                    metadata = {}
-                metadata = {
-                    **metadata,
-                    "title": str(row.get("title") or metadata.get("title") or "").strip(),
-                    "section": (
-                        " > ".join(item for item in (row.get("heading_path") or []) if isinstance(item, str))
-                        or str(row.get("section") or metadata.get("section") or "").strip()
-                    ),
-                    "url": url,
-                    "type": str(row.get("page_type") or metadata.get("type") or "").strip(),
-                    "topic": str(row.get("topic") or metadata.get("topic") or "").strip(),
-                    "date": str(row.get("updated_date") or row.get("publication_date") or metadata.get("date") or "").strip(),
-                    "match_source": str(row.get("source_kind") or metadata.get("match_source") or "").strip(),
-                }
-                retrieval_score = float(row.get("rank") or 0.0) + self._phrase_rank_boost(
-                    pass_query,
-                    content=content,
-                    metadata=metadata,
-                )
-                rows.append(
-                    {
-                        "source": f"supabase:{str(row.get('source_kind') or 'kb')}:{str(row.get('source_ref') or row.get('chunk_id') or '').strip()}",
-                        "content": content,
-                        "metadata": metadata,
-                        "_retrieval_score": retrieval_score,
-                    }
-                )
+                normalized = _row_from_payload(row, pass_query=pass_query)
+                if normalized is not None:
+                    rows.append(normalized)
             selected = self._dedupe_rows(
                 sorted(rows, key=lambda item: float(item.get("_retrieval_score") or 0.0), reverse=True),
                 max_rows=max(1, min(limit + 2, 8)),
@@ -526,13 +666,105 @@ class SupabaseKnowledgeBaseClient:
             )
             return pass_result
 
+        def _run_vector_pass(pass_query: str, pass_limit: int, readiness: dict[str, Any]) -> dict[str, Any]:
+            if readiness["status"] != "ready":
+                return {
+                    "name": "vector",
+                    "query": pass_query,
+                    "rows": [],
+                    "candidate_count": 0,
+                    "selected_count": 0,
+                    "max_score": 0.0,
+                    "status": readiness["status"],
+                    "rpc_name": _VECTOR_RPC_NAME,
+                    "detail": readiness["detail"],
+                }
+            if not self._embedding_client.enabled:
+                return {
+                    "name": "vector",
+                    "query": pass_query,
+                    "rows": [],
+                    "candidate_count": 0,
+                    "selected_count": 0,
+                    "max_score": 0.0,
+                    "status": "embedding_unconfigured",
+                    "rpc_name": _VECTOR_RPC_NAME,
+                    "detail": "Embedding provider is not configured; using PostgreSQL full-text and trigram retrieval.",
+                }
+            try:
+                embedding = self._embedding_client.embed_query(pass_query)
+                payload = self._rpc_vector_search(embedding=embedding, limit=pass_limit)
+            except EmbeddingError:
+                logger.warning("KB vector search skipped because query embedding failed")
+                return {
+                    "name": "vector",
+                    "query": pass_query,
+                    "rows": [],
+                    "candidate_count": 0,
+                    "selected_count": 0,
+                    "max_score": 0.0,
+                    "status": "embedding_failed",
+                    "rpc_name": _VECTOR_RPC_NAME,
+                    "detail": "Embedding provider failed; using PostgreSQL full-text and trigram retrieval.",
+                }
+            except PersistenceError:
+                logger.warning("KB vector RPC failed")
+                return {
+                    "name": "vector",
+                    "query": pass_query,
+                    "rows": [],
+                    "candidate_count": 0,
+                    "selected_count": 0,
+                    "max_score": 0.0,
+                    "status": "rpc_unavailable",
+                    "rpc_name": _VECTOR_RPC_NAME,
+                    "detail": "Vector search RPC failed; using PostgreSQL full-text and trigram retrieval.",
+                }
+            if not isinstance(payload, list):
+                return {
+                    "name": "vector",
+                    "query": pass_query,
+                    "rows": [],
+                    "candidate_count": 0,
+                    "selected_count": 0,
+                    "max_score": 0.0,
+                    "status": "invalid_payload",
+                    "rpc_name": _VECTOR_RPC_NAME,
+                    "detail": "Vector search returned an invalid payload; using PostgreSQL full-text and trigram retrieval.",
+                }
+            rows: list[dict[str, Any]] = []
+            for row in payload:
+                if not isinstance(row, dict):
+                    continue
+                normalized = _row_from_payload(row, pass_query=pass_query, vector=True)
+                if normalized is not None:
+                    rows.append(normalized)
+            selected = self._dedupe_rows(
+                sorted(rows, key=lambda item: float(item.get("_retrieval_score") or 0.0), reverse=True),
+                max_rows=max(1, min(limit + 2, 8)),
+            )
+            max_score = max((float(item.get("_retrieval_score") or 0.0) for item in selected), default=0.0)
+            return {
+                "name": "vector",
+                "query": pass_query,
+                "rows": selected,
+                "candidate_count": len(payload),
+                "selected_count": len(selected),
+                "max_score": max_score,
+                "status": "ok" if selected else "no_match",
+                "rpc_name": _VECTOR_RPC_NAME,
+                "detail": None,
+            }
+
         expanded_query = self._expanded_query(query)
         broadened_query = self._broadened_query(query)
         focused_query = self._focused_query(query)
         simplified_query = self._simplified_query(query)
+        embedding_readiness = self._embedding_readiness()
+        vector = _run_vector_pass(expanded_query, max(limit, 8), embedding_readiness)
         initial = _run_pass("search", expanded_query, max(limit, 8))
-        combined = list(initial["rows"])
-        passes = [initial]
+        combined = list(vector["rows"]) + list(initial["rows"])
+        passes = [vector, initial]
 
         if not combined and simplified_query.strip():
             seen_queries = {expanded_query.strip().lower()}
@@ -623,24 +855,33 @@ class SupabaseKnowledgeBaseClient:
         evidence_summary = self._evidence_summary(query=query, rows=final_rows)
         failure_stage = "none"
         if not final_rows:
-            if any(item["status"] == "rpc_unavailable" for item in passes):
+            if any(item["status"] == "rpc_unavailable" for item in passes if item["name"] != "vector"):
                 failure_stage = "search"
             elif any(item["candidate_count"] > 0 for item in passes):
                 failure_stage = "filter"
             else:
                 failure_stage = "fallback" if len(passes) > 1 else "search"
         decision = "ranked" if final_rows else "no_match"
-        embedding_readiness = self._embedding_readiness()
+        embedding_status = (
+            "used"
+            if vector["status"] == "ok"
+            else (
+                vector["status"]
+                if vector["status"] in {"embedding_unconfigured", "embedding_failed", "rpc_unavailable", "invalid_payload"}
+                else embedding_readiness["status"]
+            )
+        )
+        embedding_detail = vector["detail"] or embedding_readiness["detail"]
         stages = {
             "embedding": {
-                "status": embedding_readiness["status"],
-                "detail": embedding_readiness["detail"],
+                "status": embedding_status,
+                "detail": embedding_detail,
                 "embedded_chunk_count": embedding_readiness["embedded_chunk_count"],
                 "embedding_dimensions": embedding_readiness["embedding_dimensions"],
                 "vector_search_function_available": embedding_readiness["vector_search_function_available"],
             },
             "search": {
-                "status": "ok" if any(item["candidate_count"] > 0 for item in passes) else "no_match",
+                "status": "ok" if any(item["candidate_count"] > 0 for item in passes if item["name"] != "vector") else "no_match",
                 "passes_run": len(passes),
             },
             "rerank": {
@@ -653,8 +894,8 @@ class SupabaseKnowledgeBaseClient:
                 "selected_count": len(final_rows),
             },
             "fallback": {
-                "status": "used" if len(passes) > 1 else "skipped",
-                "passes": [item["name"] for item in passes[1:]],
+                "status": "used" if len(passes) > 2 else "skipped",
+                "passes": [item["name"] for item in passes[2:]],
             },
             "prompt": {
                 "status": "context_ready" if final_rows else "no_context",

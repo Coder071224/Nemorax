@@ -21,6 +21,18 @@ services:
         value: groq
       - key: LLM_MODEL
         value: openai/gpt-oss-20b
+      - key: EMBEDDING_PROVIDER
+        value: gemini
+      - key: EMBEDDING_BASE_URL
+        value: https://generativelanguage.googleapis.com
+      - key: EMBEDDING_API_KEY
+        sync: false
+      - key: EMBEDDING_MODEL
+        value: gemini-embedding-001
+      - key: EMBEDDING_DIMENSION
+        value: "1536"
+      - key: EMBEDDING_TIMEOUT_SECONDS
+        value: "30"
 
   - type: web
     name: nemorax-flet-web

@@ -193,6 +193,12 @@ class SupabaseSettings:
     service_role_key: str | None
     kb_source: str
     timeout_seconds: float
+    embedding_provider: str = ""
+    embedding_base_url: str = ""
+    embedding_api_key: str | None = None
+    embedding_model: str = ""
+    embedding_dimension: int = 1536
+    embedding_timeout_seconds: float = 30.0
 
     @property
     def configured(self) -> bool:
@@ -201,6 +207,16 @@ class SupabaseSettings:
     @property
     def enabled(self) -> bool:
         return bool(self.configured and self.kb_source == "supabase")
+
+    @property
+    def embedding_configured(self) -> bool:
+        return bool(
+            self.embedding_provider
+            and self.embedding_base_url
+            and self.embedding_api_key
+            and self.embedding_model
+            and self.embedding_dimension > 0
+        )
 
 
 @dataclass(frozen=True, slots=True)
@@ -325,6 +341,12 @@ def load_settings() -> Settings:
         service_role_key=_read_str("SUPABASE_SERVICE_ROLE_KEY", default="") or None,
         kb_source=_read_str("NEMORAX_KB_SOURCE", default="supabase").strip().lower() or "supabase",
         timeout_seconds=_read_float("SUPABASE_TIMEOUT_SECONDS", default=10.0),
+        embedding_provider=_read_str("EMBEDDING_PROVIDER", default="").strip().lower().replace("_", "-"),
+        embedding_base_url=_normalize_url(_read_str("EMBEDDING_BASE_URL", default="")),
+        embedding_api_key=_read_str("EMBEDDING_API_KEY", default="") or None,
+        embedding_model=_read_str("EMBEDDING_MODEL", default="").strip(),
+        embedding_dimension=_read_int("EMBEDDING_DIMENSION", default=1536),
+        embedding_timeout_seconds=_read_float("EMBEDDING_TIMEOUT_SECONDS", default=30.0),
     )
     settings = Settings(api=api, llm=llm, supabase=supabase, paths=paths)
     settings.ensure_directories()

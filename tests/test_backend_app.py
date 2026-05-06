@@ -38,6 +38,7 @@ from nemorax.backend.services import (
     KnowledgeBasePromptService,
     SupabaseKnowledgeBaseClient,
 )
+from nemorax.backend.services.supabase_kb import EmbeddingError
 
 
 def _response_data(response) -> object:
@@ -221,6 +222,26 @@ class SupabaseKbFakeClient:
         raise PersistenceError(f"unexpected table: {table}")
 
     def rpc(self, function_name: str, payload: dict[str, object]) -> list[dict[str, object]]:
+        if function_name == "match_kb_chunks":
+            self.rpc_calls.append((function_name, "vector"))
+            return [
+                {
+                    "chunk_id": "vector-registrar",
+                    "source_kind": "page",
+                    "source_ref": "vector-registrar",
+                    "title": "Registrar",
+                    "url": "",
+                    "heading_path": ["Student Services"],
+                    "page_type": "page",
+                    "topic": "Registrar",
+                    "content": "The registrar helps students with grades, records, and enrollment documents.",
+                    "short_summary": "Registrar services.",
+                    "publication_date": None,
+                    "updated_date": None,
+                    "metadata": {},
+                    "similarity": 0.82,
+                }
+            ]
         query = str(payload.get("p_query") or "")
         self.rpc_calls.append((function_name, query))
         if query.lower() in {"current president", "nemesio loayon university president"}:
@@ -340,6 +361,28 @@ class SupabaseKbFakeClient:
                 "rank": 1.0,
             }
         ]
+
+
+class StubEmbeddingClient:
+    def __init__(self, *, values: list[float] | None = None, error: Exception | None = None, enabled: bool = True) -> None:
+        self._values = values or ([0.001] * 1536)
+        self._error = error
+        self._enabled = enabled
+        self.queries: list[str] = []
+
+    @property
+    def enabled(self) -> bool:
+        return self._enabled
+
+    @property
+    def dimension(self) -> int:
+        return len(self._values)
+
+    def embed_query(self, text: str) -> list[float]:
+        self.queries.append(text)
+        if self._error is not None:
+            raise self._error
+        return list(self._values)
 
 
 class UnavailablePromptService:
@@ -1531,6 +1574,120 @@ class BackendApiTests(unittest.TestCase):
         self.assertEqual(health["embedded_chunk_count"], 0)
         self.assertEqual(health["embedding_dimensions"], [])
         self.assertTrue(health["vector_search_function_available"])
+
+    def test_supabase_retrieval_skips_vector_when_gemini_config_is_missing(self) -> None:
+        supabase_client = SupabaseKnowledgeBaseClient(
+            SupabaseSettings(
+                url="https://stub-supabase.local",
+                service_role_key="service-role",
+                kb_source="supabase",
+                timeout_seconds=5.0,
+                embedding_provider="gemini",
+                embedding_base_url="https://generativelanguage.googleapis.com",
+                embedding_api_key=None,
+                embedding_model="gemini-embedding-001",
+                embedding_dimension=1536,
+                embedding_timeout_seconds=30.0,
+            )
+        )
+        fake_client = SupabaseKbFakeClient(
+            vector_readiness_rows=[
+                {
+                    "chunk_count": 419,
+                    "embedded_chunk_count": 100,
+                    "embedding_dimensions": [1536],
+                    "embedding_models": ["gemini-embedding-001"],
+                    "vector_search_function_available": True,
+                }
+            ]
+        )
+        supabase_client._client = fake_client
+
+        payload = supabase_client.search_chunks_detailed("How do I get my grades?", limit=6)
+
+        self.assertEqual(payload["passes"][0]["name"], "vector")
+        self.assertEqual(payload["stages"]["embedding"]["status"], "embedding_unconfigured")
+        self.assertIn("student_grades", [item["name"] for item in payload["passes"]])
+        self.assertTrue(payload["rows"])
+        self.assertNotIn("match_kb_chunks", [name for name, _query in fake_client.rpc_calls])
+
+    def test_supabase_retrieval_skips_vector_when_gemini_embedding_fails(self) -> None:
+        embedding_client = StubEmbeddingClient(error=EmbeddingError("simulated failure"))
+        supabase_client = SupabaseKnowledgeBaseClient(
+            SupabaseSettings(
+                url="https://stub-supabase.local",
+                service_role_key="service-role",
+                kb_source="supabase",
+                timeout_seconds=5.0,
+                embedding_provider="gemini",
+                embedding_base_url="https://generativelanguage.googleapis.com",
+                embedding_api_key="test-key",
+                embedding_model="gemini-embedding-001",
+                embedding_dimension=1536,
+                embedding_timeout_seconds=30.0,
+            ),
+            embedding_client=embedding_client,
+        )
+        fake_client = SupabaseKbFakeClient(
+            vector_readiness_rows=[
+                {
+                    "chunk_count": 419,
+                    "embedded_chunk_count": 100,
+                    "embedding_dimensions": [1536],
+                    "embedding_models": ["gemini-embedding-001"],
+                    "vector_search_function_available": True,
+                }
+            ]
+        )
+        supabase_client._client = fake_client
+
+        payload = supabase_client.search_chunks_detailed("How do I enroll?", limit=6)
+
+        self.assertEqual(payload["passes"][0]["name"], "vector")
+        self.assertEqual(payload["stages"]["embedding"]["status"], "embedding_failed")
+        self.assertIn("student_enrollment", [item["name"] for item in payload["passes"]])
+        self.assertTrue(payload["rows"])
+        self.assertTrue(embedding_client.queries)
+        self.assertNotIn("match_kb_chunks", [name for name, _query in fake_client.rpc_calls])
+
+    def test_supabase_retrieval_uses_vector_when_gemini_embedding_is_ready(self) -> None:
+        embedding_client = StubEmbeddingClient()
+        supabase_client = SupabaseKnowledgeBaseClient(
+            SupabaseSettings(
+                url="https://stub-supabase.local",
+                service_role_key="service-role",
+                kb_source="supabase",
+                timeout_seconds=5.0,
+                embedding_provider="gemini",
+                embedding_base_url="https://generativelanguage.googleapis.com",
+                embedding_api_key="test-key",
+                embedding_model="gemini-embedding-001",
+                embedding_dimension=1536,
+                embedding_timeout_seconds=30.0,
+            ),
+            embedding_client=embedding_client,
+        )
+        fake_client = SupabaseKbFakeClient(
+            vector_readiness_rows=[
+                {
+                    "chunk_count": 419,
+                    "embedded_chunk_count": 100,
+                    "embedding_dimensions": [1536],
+                    "embedding_models": ["gemini-embedding-001"],
+                    "vector_search_function_available": True,
+                }
+            ]
+        )
+        supabase_client._client = fake_client
+
+        payload = supabase_client.search_chunks_detailed("Where do I get enrollment documents?", limit=6)
+
+        self.assertEqual(payload["passes"][0]["name"], "vector")
+        self.assertEqual(payload["stages"]["embedding"]["status"], "used")
+        self.assertIn("match_kb_chunks", [name for name, _query in fake_client.rpc_calls])
+        self.assertTrue(
+            any("registrar" in str(row.get("content") or "").lower() for row in payload["rows"])
+        )
 
     def test_chat_returns_single_official_link_when_user_explicitly_requests_it(self) -> None:
         provider = StubProvider()
