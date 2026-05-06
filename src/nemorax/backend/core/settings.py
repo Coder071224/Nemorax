@@ -204,10 +204,25 @@ class SupabaseSettings:
 
 
 @dataclass(frozen=True, slots=True)
+class EmbeddingSettings:
+    provider: str
+    base_url: str
+    api_key: str | None
+    model: str
+    dimension: int
+    timeout_seconds: float
+
+    @property
+    def configured(self) -> bool:
+        return bool(self.provider and self.base_url and self.api_key and self.model)
+
+
+@dataclass(frozen=True, slots=True)
 class Settings:
     api: ApiSettings
     llm: LLMSettings
     supabase: SupabaseSettings
+    embeddings: EmbeddingSettings
     paths: PathSettings
 
     @property
@@ -326,8 +341,16 @@ def load_settings() -> Settings:
         kb_source=_read_str("NEMORAX_KB_SOURCE", default="supabase").strip().lower() or "supabase",
         timeout_seconds=_read_float("SUPABASE_TIMEOUT_SECONDS", default=10.0),
     )
+    embeddings = EmbeddingSettings(
+        provider=_read_str("EMBEDDING_PROVIDER", default="openai-compatible").strip().lower().replace("_", "-"),
+        base_url=_normalize_url(_read_str("EMBEDDING_BASE_URL", default="")),
+        api_key=_read_str("EMBEDDING_API_KEY", default="") or None,
+        model=_read_str("EMBEDDING_MODEL", default=""),
+        dimension=_read_int("EMBEDDING_DIMENSION", default=1536),
+        timeout_seconds=_read_float("EMBEDDING_TIMEOUT_SECONDS", default=30.0),
+    )
 
-    settings = Settings(api=api, llm=llm, supabase=supabase, paths=paths)
+    settings = Settings(api=api, llm=llm, supabase=supabase, embeddings=embeddings, paths=paths)
     settings.ensure_directories()
     return settings
 
@@ -339,6 +362,7 @@ __all__ = [
     "HEALTH_REQUIRED_ENV_NAMES",
     "PROJECT_ROOT",
     "ApiSettings",
+    "EmbeddingSettings",
     "LLMSettings",
     "PathSettings",
     "Settings",
