@@ -473,8 +473,7 @@ class SupabaseKnowledgeBaseClient:
         try:
             rows = self._client.select(
                 "kb_chunks",
-                columns="chunk_id,embedding_model",
-                filters={"embedding": ("not.is", None)},
+                columns="chunk_id,embedding_model,embedding_updated_at",
                 limit=5000,
             )
         except PersistenceError:
@@ -499,14 +498,20 @@ class SupabaseKnowledgeBaseClient:
             function_available = isinstance(probe, list)
         except PersistenceError:
             function_available = False
+        embedded_rows = [
+            row
+            for row in rows
+            if str(row.get("embedding_model") or "").strip()
+            or str(row.get("embedding_updated_at") or "").strip()
+        ]
         models = sorted(
             {
                 str(row.get("embedding_model") or "").strip()
-                for row in rows
+                for row in embedded_rows
                 if str(row.get("embedding_model") or "").strip()
             }
         )
-        embedded_count = len(rows)
+        embedded_count = len(embedded_rows)
         dimensions = [_VECTOR_DIMENSION] if embedded_count > 0 else []
         if embedded_count <= 0:
             status = "empty"
