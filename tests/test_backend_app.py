@@ -242,6 +242,86 @@ class SupabaseKbFakeClient:
                     "rank": 1.0,
                 }
             ]
+        if query.lower() == "student grades registrar myportal portal":
+            return [
+                {
+                    "chunk_id": "grades-registrar",
+                    "source_kind": "faq",
+                    "source_ref": "grades-registrar",
+                    "title": "How do I contact the registrar?",
+                    "url": "",
+                    "heading_path": ["Legacy FAQ"],
+                    "page_type": "faq",
+                    "topic": "Registrar",
+                    "content": "For grades and records concerns, contact the registrar or check the student portal/MyPortal if available.",
+                    "short_summary": "Grades and registrar guidance.",
+                    "publication_date": None,
+                    "updated_date": None,
+                    "metadata": {},
+                    "rank": 0.8,
+                }
+            ]
+        if query.lower() == "student enrollment online enrollment registrar admission":
+            return [
+                {
+                    "chunk_id": "online-enrollment",
+                    "source_kind": "faq",
+                    "source_ref": "online-enrollment",
+                    "title": "Does NEMSU have online enrollment?",
+                    "url": "",
+                    "heading_path": ["Legacy FAQ"],
+                    "page_type": "faq",
+                    "topic": "Enrollment",
+                    "content": "NEMSU enrollment concerns are handled through the registrar, admission office, or official online enrollment channels.",
+                    "short_summary": "Enrollment guidance.",
+                    "publication_date": None,
+                    "updated_date": None,
+                    "metadata": {},
+                    "rank": 0.8,
+                }
+            ]
+        taxonomy_payloads = {
+            "registrar certificate document transcript diploma clearance cor coe tor": (
+                "student-documents",
+                "How do I request documents?",
+                "Students can request certificates, COR, COE, TOR, diploma records, and clearance through the registrar process.",
+            ),
+            "tuition fee payment cashier assessment balance official receipt": (
+                "student-payments",
+                "How do I pay my fees?",
+                "Tuition, assessment, balance, payment validation, and official receipt concerns are handled by the cashier.",
+            ),
+            "student portal myportal login password account preenrollment lms": (
+                "student-portal",
+                "Student portal help",
+                "Use MyPortal or the official student portal for login, pre-enrollment, grades, schedules, and account concerns.",
+            ),
+            "campus office room building location directory map": (
+                "campus-location",
+                "Campus directory",
+                "For office, room, building, campus location, and map questions, use the campus directory or contact the relevant office.",
+            ),
+        }
+        if query.lower() in taxonomy_payloads:
+            chunk_id, title, content = taxonomy_payloads[query.lower()]
+            return [
+                {
+                    "chunk_id": chunk_id,
+                    "source_kind": "faq",
+                    "source_ref": chunk_id,
+                    "title": title,
+                    "url": "",
+                    "heading_path": ["Service FAQ"],
+                    "page_type": "faq",
+                    "topic": "Student Services",
+                    "content": content,
+                    "short_summary": title,
+                    "publication_date": None,
+                    "updated_date": None,
+                    "metadata": {},
+                    "rank": 0.8,
+                }
+            ]
         return [
             {
                 "chunk_id": "weak-library",
@@ -1355,6 +1435,73 @@ class BackendApiTests(unittest.TestCase):
         self.assertEqual(payload["evidence"]["reason"], "high_score")
         self.assertIn("Dr. Nemesio G. Loayon", payload["rows"][0]["content"])
         self.assertEqual(payload["stages"]["embedding"]["status"], "empty")
+
+    def test_supabase_retrieval_uses_targeted_student_workflow_fallbacks(self) -> None:
+        supabase_client = SupabaseKnowledgeBaseClient(
+            SupabaseSettings(
+                url="https://stub-supabase.local",
+                service_role_key="service-role",
+                kb_source="supabase",
+                timeout_seconds=5.0,
+            )
+        )
+        fake_client = SupabaseKbFakeClient(
+            vector_readiness_rows=[
+                {
+                    "chunk_count": 419,
+                    "embedded_chunk_count": 0,
+                    "embedding_dimensions": [],
+                    "embedding_models": [],
+                    "vector_search_function_available": False,
+                }
+            ]
+        )
+        supabase_client._client = fake_client
+
+        grades = supabase_client.search_chunks_detailed("How do I get my grades?", limit=6)
+        enroll = supabase_client.search_chunks_detailed("How do I enroll?", limit=6)
+
+        self.assertIn("student_grades", [item["name"] for item in grades["passes"]])
+        self.assertTrue(grades["evidence"]["evidence"])
+        self.assertIn("grades", grades["rows"][0]["content"].lower())
+        self.assertIn("student_enrollment", [item["name"] for item in enroll["passes"]])
+        self.assertTrue(enroll["evidence"]["evidence"])
+        self.assertIn("enrollment", enroll["rows"][0]["content"].lower())
+
+    def test_supabase_retrieval_covers_common_school_service_intents(self) -> None:
+        supabase_client = SupabaseKnowledgeBaseClient(
+            SupabaseSettings(
+                url="https://stub-supabase.local",
+                service_role_key="service-role",
+                kb_source="supabase",
+                timeout_seconds=5.0,
+            )
+        )
+        supabase_client._client = SupabaseKbFakeClient(
+            vector_readiness_rows=[
+                {
+                    "chunk_count": 419,
+                    "embedded_chunk_count": 0,
+                    "embedding_dimensions": [],
+                    "embedding_models": [],
+                    "vector_search_function_available": False,
+                }
+            ]
+        )
+
+        cases = [
+            ("How do I request my TOR?", "student_documents", "registrar"),
+            ("How do I pay tuition?", "student_payments", "cashier"),
+            ("I forgot my portal password", "student_portal", "myportal"),
+            ("Where is the cashier office?", "campus_location", "directory"),
+        ]
+        for query, pass_name, expected_text in cases:
+            with self.subTest(query=query):
+                payload = supabase_client.search_chunks_detailed(query, limit=6)
+                self.assertIn(pass_name, [item["name"] for item in payload["passes"]])
+                self.assertTrue(payload["evidence"]["evidence"])
+                combined_context = " ".join(str(row.get("content") or "").lower() for row in payload["rows"])
+                self.assertIn(expected_text, combined_context)
 
     def test_supabase_health_reports_vector_readiness_without_requiring_embeddings(self) -> None:
         supabase_client = SupabaseKnowledgeBaseClient(

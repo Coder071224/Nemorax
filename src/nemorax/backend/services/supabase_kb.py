@@ -248,6 +248,23 @@ class SupabaseKnowledgeBaseClient:
             (("president",), ("president", "nemesio", "loayon")),
             (("registrar",), ("registrar",)),
             (("admission", "admissions"), ("admission", "admissions")),
+            (("enroll", "enrollment"), ("enroll", "enrollment", "admission", "registrar", "portal", "myportal")),
+            (("grade", "grades"), ("grade", "grades", "registrar", "myportal", "portal")),
+            (("portal", "myportal", "login", "password"), ("portal", "myportal", "login", "preenrollment", "lms")),
+            (("schedule", "calendar", "class", "exam"), ("schedule", "calendar", "class", "exam", "event")),
+            (("room", "building", "location", "where"), ("room", "building", "location", "office", "campus")),
+            (("certificate", "document", "cor", "coe", "tor", "transcript", "diploma", "clearance"), ("certificate", "document", "registrar", "clearance", "transcript", "diploma")),
+            (("tuition", "fee", "fees", "payment", "cashier", "balance"), ("tuition", "fee", "payment", "cashier", "assessment")),
+            (("scholarship", "financial", "assistance", "voucher"), ("scholarship", "financial", "assistance", "grant")),
+            (("clinic", "medical", "health", "medcert"), ("clinic", "medical", "health", "certificate")),
+            (("library",), ("library", "borrow", "clearance", "resource")),
+            (("guidance", "counseling", "mental", "career"), ("guidance", "counseling", "career", "student")),
+            (("uniform", "policy", "attendance", "absence", "handbook", "violation"), ("policy", "attendance", "uniform", "handbook", "student")),
+            (("thesis", "capstone", "research", "defense"), ("thesis", "capstone", "research", "defense")),
+            (("ojt", "internship", "practicum"), ("ojt", "internship", "practicum", "endorsement")),
+            (("graduation", "alumni", "diploma"), ("graduation", "alumni", "diploma", "clearance")),
+            (("event", "orientation", "seminar", "intramurals"), ("event", "orientation", "seminar", "intramurals", "announcement")),
+            (("wifi", "email", "technical", "error", "support"), ("wifi", "email", "technical", "support", "portal")),
             (("dean",), ("dean",)),
             (("program", "programs", "course", "courses"), ("program", "programs", "course", "courses", "bachelor", "master")),
         ]
@@ -366,6 +383,32 @@ class SupabaseKnowledgeBaseClient:
         if any(term in query_text for term in ("program", "programs", "course", "courses")):
             if any(term in searchable for term in ("bachelor", "master", "program", "course")):
                 boost += 4.0
+        if any(term in query_text for term in ("enroll", "enrollment")):
+            if any(term in searchable for term in ("enroll", "enrollment", "admission", "registrar", "portal", "myportal")):
+                boost += 5.0
+        if any(term in query_text for term in ("grade", "grades")):
+            if any(term in searchable for term in ("grade", "grades", "registrar", "portal", "myportal")):
+                boost += 5.0
+        if any(term in query_text for term in ("portal", "myportal", "login", "password")):
+            if any(term in searchable for term in ("portal", "myportal", "login", "preenrollment", "lms")):
+                boost += 5.0
+        if any(term in query_text for term in ("certificate", "document", "cor", "coe", "tor", "transcript", "diploma", "clearance")):
+            if any(term in searchable for term in ("certificate", "document", "registrar", "transcript", "diploma", "clearance")):
+                boost += 5.0
+        if any(term in query_text for term in ("tuition", "fee", "fees", "payment", "cashier", "balance")):
+            if any(term in searchable for term in ("tuition", "fee", "payment", "cashier", "assessment", "balance")):
+                boost += 5.0
+        if any(term in query_text for term in ("room", "building", "location", "where")):
+            if any(term in searchable for term in ("room", "building", "location", "office", "campus")):
+                boost += 4.0
+            if "office" in query_text and "office" in searchable:
+                boost += 4.0
+        if any(term in query_text for term in ("schedule", "calendar", "class", "exam")):
+            if any(term in searchable for term in ("schedule", "calendar", "class", "exam", "event")):
+                boost += 4.0
+        if any(term in query_text for term in ("library", "clinic", "guidance", "scholarship", "graduation")):
+            if any(term in searchable for term in ("library", "clinic", "guidance", "scholarship", "graduation")):
+                boost += 5.0
         return boost
 
     def search_chunks(self, query: str, *, limit: int = 6) -> list[dict[str, Any]]:
@@ -518,6 +561,40 @@ class SupabaseKnowledgeBaseClient:
         if "president" in lowered_expanded:
             targeted_queries.append(("current_president", "current president"))
             targeted_queries.append(("president_name", "nemesio loayon university president"))
+        if any(token in lowered_expanded for token in ("grade", "grades")):
+            targeted_queries.append(("student_grades", "student grades registrar myportal portal"))
+        if any(token in lowered_expanded for token in ("enroll", "enrollment")):
+            targeted_queries.append(("student_enrollment", "student enrollment online enrollment registrar admission"))
+        if any(token in lowered_expanded for token in ("portal", "myportal", "login", "password", "account")):
+            targeted_queries.append(("student_portal", "student portal myportal login password account preenrollment lms"))
+        if any(token in lowered_expanded for token in ("schedule", "calendar", "class", "exam")):
+            targeted_queries.append(("school_schedule", "school schedule academic calendar class exam schedule"))
+        if any(token in lowered_expanded for token in ("room", "building", "location", "where", "map")):
+            targeted_queries.append(("campus_location", "campus office room building location directory map"))
+        if any(token in lowered_expanded for token in ("certificate", "document", "cor", "coe", "tor", "transcript", "diploma", "clearance")):
+            targeted_queries.append(("student_documents", "registrar certificate document transcript diploma clearance cor coe tor"))
+        if any(token in lowered_expanded for token in ("tuition", "fee", "fees", "payment", "cashier", "balance", "receipt")):
+            targeted_queries.append(("student_payments", "tuition fee payment cashier assessment balance official receipt"))
+        if any(token in lowered_expanded for token in ("scholarship", "financial", "assistance", "voucher", "discount")):
+            targeted_queries.append(("student_scholarship", "scholarship financial assistance voucher discount requirements application"))
+        if any(token in lowered_expanded for token in ("clinic", "medical", "medcert", "health", "medicine")):
+            targeted_queries.append(("clinic_services", "clinic medical certificate health services consultation clearance"))
+        if "library" in lowered_expanded:
+            targeted_queries.append(("library_services", "library hours borrowing clearance resources online database"))
+        if any(token in lowered_expanded for token in ("guidance", "counseling", "mental", "career")):
+            targeted_queries.append(("guidance_services", "guidance counseling mental health career appointment services"))
+        if any(token in lowered_expanded for token in ("uniform", "policy", "attendance", "absence", "handbook", "violation", "discipline")):
+            targeted_queries.append(("student_policy", "student handbook policy attendance uniform discipline violation rules"))
+        if any(token in lowered_expanded for token in ("thesis", "capstone", "research", "defense")):
+            targeted_queries.append(("research_academic", "thesis capstone research defense adviser manuscript"))
+        if any(token in lowered_expanded for token in ("ojt", "internship", "practicum")):
+            targeted_queries.append(("internship_ojt", "ojt internship practicum endorsement requirements hours"))
+        if any(token in lowered_expanded for token in ("graduation", "alumni", "diploma")):
+            targeted_queries.append(("graduation_services", "graduation requirements clearance ceremony diploma alumni"))
+        if any(token in lowered_expanded for token in ("announcement", "news", "event", "orientation", "seminar", "intramurals")):
+            targeted_queries.append(("school_announcements", "official announcement news event orientation seminar intramurals"))
+        if any(token in lowered_expanded for token in ("wifi", "email", "technical", "error", "support", "download", "apk", "windows", "nemis")):
+            targeted_queries.append(("technical_support", "technical support wifi school email portal error app download nemis"))
         if "besc" in lowered_expanded or "bukidnon external studies center" in lowered_expanded:
             targeted_queries.append(("alias_besc", "bukidnon external studies center"))
         if (
