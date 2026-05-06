@@ -437,14 +437,7 @@ class SupabaseKnowledgeBaseClient:
         try:
             rows = self._client.select("kb_vector_readiness", limit=1)
         except PersistenceError:
-            return {
-                "status": "unknown",
-                "embedded_chunk_count": 0,
-                "embedding_dimensions": [],
-                "embedding_models": [],
-                "vector_search_function_available": False,
-                "detail": "Vector readiness view is not installed.",
-            }
+            return self._embedding_readiness_from_chunks()
         row = rows[0] if rows else {}
         embedded_count = int(row.get("embedded_chunk_count", 0) or 0)
         dimensions = row.get("embedding_dimensions")
@@ -474,6 +467,57 @@ class SupabaseKnowledgeBaseClient:
             "embedding_models": models,
             "vector_search_function_available": function_available,
             "detail": None if status == "ready" else "Vector search is not ready; using PostgreSQL full-text and trigram retrieval.",
+        }
+
+    def _embedding_readiness_from_chunks(self) -> dict[str, Any]:
+        try:
+            rows = self._client.select(
+                "kb_chunks",
+                columns="chunk_id,embedding_model",
+                filters={"embedding": ("not.is", None)},
+                limit=5000,
+            )
+            probe = self._client.rpc(
+                _VECTOR_RPC_NAME,
+                {
+                    "query_embedding": self._vector_literal([0.0] * _VECTOR_DIMENSION),
+                    "match_count": 1,
+                },
+            )
+            function_available = isinstance(probe, list)
+        except PersistenceError:
+            return {
+                "status": "unknown",
+                "embedded_chunk_count": 0,
+                "embedding_dimensions": [],
+                "embedding_models": [],
+                "vector_search_function_available": False,
+                "detail": "Vector readiness could not be checked; using PostgreSQL full-text and trigram retrieval.",
+            }
+        models = sorted(
+            {
+                str(row.get("embedding_model") or "").strip()
+                for row in rows
+                if str(row.get("embedding_model") or "").strip()
+            }
+        )
+        embedded_count = len(rows)
+        dimensions = [_VECTOR_DIMENSION] if embedded_count > 0 else []
+        if embedded_count <= 0:
+            status = "empty"
+        elif not function_available:
+            status = "rpc_missing"
+        elif self._embedding_client.dimension != _VECTOR_DIMENSION:
+            status = "dimension_mismatch"
+        else:
+            status = "ready"
+        return {
+            "status": status,
+            "embedded_chunk_count": embedded_count,
+            "embedding_dimensions": dimensions,
+            "embedding_models": models,
+            "vector_search_function_available": function_available,
+            "detail": None if status == "ready" else "Vector readiness view is unavailable; checked kb_chunks directly.",
         }
 
     @staticmethod
