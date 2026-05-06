@@ -1078,6 +1078,8 @@ class ChatService:
             "status": "ok" if healthy else "degraded",
             "backend": {"running": True},
             "environment": self._settings.environment,
+            "app_version": self._settings.app_version,
+            "build_marker": "vector-readiness-probe-20260507",
             "environment_variables": {
                 "loaded": environment_loaded,
                 "missing_variables": [],

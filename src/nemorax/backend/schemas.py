@@ -269,6 +269,8 @@ class HealthResponse(BaseModel):
     status: str
     backend: BackendProcessHealthResponse
     environment: str
+    app_version: str = ""
+    build_marker: str = ""
     environment_variables: EnvironmentVariablesHealthResponse
     supabase: SupabaseHealthResponse
     provider_name: str
