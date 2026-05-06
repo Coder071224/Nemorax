@@ -165,6 +165,28 @@ $env:NEMORAX_API_URL="http://127.0.0.1:8000"
 python run.py --web
 ```
 
+### 7. Build the Android APK
+
+The APK packages the Flet frontend and connects to the deployed backend API over HTTPS. It does not include Supabase, Groq, or Gemini secrets.
+
+On Windows, enable Developer Mode before building Android packages:
+
+```powershell
+start ms-settings:developers
+```
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\build_android_apk.ps1
+```
+
+The APK output is under:
+
+```text
+build\apk\
+```
+
+Detailed APK build and install notes are in `docs/android-apk.md`.
+
 ## Tests
 
 Run the current regression suite:
