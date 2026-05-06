@@ -477,6 +477,18 @@ class SupabaseKnowledgeBaseClient:
                 filters={"embedding": ("not.is", None)},
                 limit=5000,
             )
+        except PersistenceError:
+            return {
+                "status": "unknown",
+                "embedded_chunk_count": 0,
+                "embedding_dimensions": [],
+                "embedding_models": [],
+                "vector_search_function_available": False,
+                "detail": "Embedded chunk readiness could not be checked; using PostgreSQL full-text and trigram retrieval.",
+            }
+
+        function_available = False
+        try:
             probe = self._client.rpc(
                 _VECTOR_RPC_NAME,
                 {
@@ -486,14 +498,7 @@ class SupabaseKnowledgeBaseClient:
             )
             function_available = isinstance(probe, list)
         except PersistenceError:
-            return {
-                "status": "unknown",
-                "embedded_chunk_count": 0,
-                "embedding_dimensions": [],
-                "embedding_models": [],
-                "vector_search_function_available": False,
-                "detail": "Vector readiness could not be checked; using PostgreSQL full-text and trigram retrieval.",
-            }
+            function_available = False
         models = sorted(
             {
                 str(row.get("embedding_model") or "").strip()
