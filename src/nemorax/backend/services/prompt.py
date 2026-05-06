@@ -673,6 +673,12 @@ class KnowledgeBasePromptService:
                 "table_reachable": bool(status.get("table_reachable")),
                 "chunk_count_positive": bool(status.get("chunk_count_positive")),
                 "supabase_reachable": bool(status.get("supabase_reachable")),
+                "embedding_status": str(status.get("embedding_status") or "unknown"),
+                "embedded_chunk_count": int(status.get("embedded_chunk_count", 0) or 0),
+                "embedding_dimensions": list(status.get("embedding_dimensions") or []),
+                "embedding_models": list(status.get("embedding_models") or []),
+                "vector_search_function_available": bool(status.get("vector_search_function_available")),
+                "vector_readiness_source": str(status.get("vector_readiness_source") or ""),
             }
         else:
             local_chunks, _ = self._load_local_legacy_chunks()
@@ -683,6 +689,12 @@ class KnowledgeBasePromptService:
                 "table_reachable": False,
                 "chunk_count_positive": chunk_count > 0,
                 "supabase_reachable": False,
+                "embedding_status": "disabled",
+                "embedded_chunk_count": 0,
+                "embedding_dimensions": [],
+                "embedding_models": [],
+                "vector_search_function_available": False,
+                "vector_readiness_source": "disabled",
             }
         return {
             "available": available,
