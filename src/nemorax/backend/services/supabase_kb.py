@@ -385,6 +385,9 @@ class SupabaseKnowledgeBaseClient:
             (("wifi", "email", "technical", "error", "support"), ("wifi", "email", "technical", "support", "portal")),
             (("dean",), ("dean",)),
             (("program", "programs", "course", "courses"), ("program", "programs", "course", "courses", "bachelor", "master")),
+            (("mission",), ("mission", "sustainable", "development")),
+            (("vision",), ("vision", "research", "university")),
+            (("mandate",), ("mandate", "advanced", "education", "instruction")),
         ]
         for query_terms, row_terms in intents:
             if not any(term in lowered_query for term in query_terms):
@@ -564,6 +567,21 @@ class SupabaseKnowledgeBaseClient:
         if any(term in query_text for term in ("program", "programs", "course", "courses")):
             if any(term in searchable for term in ("bachelor", "master", "program", "course")):
                 boost += 4.0
+        if "mission" in query_text:
+            if "mission:" in searchable or "mission" in searchable:
+                boost += 10.0
+            if "sustainable development" in searchable or "quality instruction" in searchable:
+                boost += 8.0
+        if "vision" in query_text:
+            if "vision:" in searchable or "vision" in searchable:
+                boost += 10.0
+            if "research university" in searchable or "technology and innovation" in searchable:
+                boost += 8.0
+        if "mandate" in query_text:
+            if "mandate" in searchable:
+                boost += 10.0
+            if "advanced education" in searchable or "professional instruction" in searchable:
+                boost += 8.0
         if any(term in query_text for term in ("enroll", "enrollment")):
             if any(term in searchable for term in ("enroll", "enrollment", "admission", "registrar", "portal", "myportal")):
                 boost += 5.0
@@ -624,7 +642,11 @@ class SupabaseKnowledgeBaseClient:
             }
             if vector:
                 metadata["match_source"] = metadata.get("match_source") or "vector"
-                retrieval_score = float(row.get("similarity") or 0.0) * 10.0
+                retrieval_score = (float(row.get("similarity") or 0.0) * 10.0) + self._phrase_rank_boost(
+                    pass_query,
+                    content=content,
+                    metadata=metadata,
+                )
             else:
                 retrieval_score = float(row.get("rank") or 0.0) + self._phrase_rank_boost(
                     pass_query,
@@ -843,6 +865,14 @@ class SupabaseKnowledgeBaseClient:
             targeted_queries.append(("president_name", "nemesio loayon university president"))
         if any(token in lowered_expanded for token in ("grade", "grades")):
             targeted_queries.append(("student_grades", "student grades registrar myportal portal"))
+        if any(token in lowered_expanded for token in ("mission", "vision", "mandate")):
+            targeted_queries.append(("institution_mandate_vision_mission", "nemsu mandate vision mission"))
+        if "mission" in lowered_expanded:
+            targeted_queries.append(("institution_mission", "nemsu mission sustainable development quality instruction"))
+        if "vision" in lowered_expanded:
+            targeted_queries.append(("institution_vision", "nemsu vision research university technology innovation"))
+        if "mandate" in lowered_expanded:
+            targeted_queries.append(("institution_mandate", "nemsu mandate advanced education professional instruction"))
         if any(token in lowered_expanded for token in ("enroll", "enrollment")):
             targeted_queries.append(("student_enrollment", "student enrollment online enrollment registrar admission"))
         if any(token in lowered_expanded for token in ("portal", "myportal", "login", "password", "account")):

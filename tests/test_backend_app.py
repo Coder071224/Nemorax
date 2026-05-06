@@ -301,6 +301,30 @@ class SupabaseKbFakeClient:
                     "rank": 0.8,
                 }
             ]
+        if query.lower() in {
+            "nemsu mandate vision mission",
+            "nemsu mission sustainable development quality instruction",
+            "nemsu vision research university technology innovation",
+            "nemsu mandate advanced education professional instruction",
+        }:
+            return [
+                {
+                    "chunk_id": "mandate-vision-mission",
+                    "source_kind": "faq",
+                    "source_ref": "mandate-vision-mission",
+                    "title": "What is NEMSU's vision and mission?",
+                    "url": "",
+                    "heading_path": ["Legacy FAQ"],
+                    "page_type": "faq",
+                    "topic": "Mandate Vision Mission",
+                    "content": "Vision: A Research University advancing technology and innovation for sustainable development. Mission: We drive sustainable development through quality instruction, innovative research, community collaboration, and technological advancement.",
+                    "short_summary": "NEMSU vision and mission.",
+                    "publication_date": None,
+                    "updated_date": None,
+                    "metadata": {},
+                    "rank": 1.0,
+                }
+            ]
         taxonomy_payloads = {
             "registrar certificate document transcript diploma clearance cor coe tor": (
                 "student-documents",
@@ -1545,6 +1569,35 @@ class BackendApiTests(unittest.TestCase):
                 self.assertTrue(payload["evidence"]["evidence"])
                 combined_context = " ".join(str(row.get("content") or "").lower() for row in payload["rows"])
                 self.assertIn(expected_text, combined_context)
+
+    def test_supabase_retrieval_prioritizes_institution_mission_questions(self) -> None:
+        supabase_client = SupabaseKnowledgeBaseClient(
+            SupabaseSettings(
+                url="https://stub-supabase.local",
+                service_role_key="service-role",
+                kb_source="supabase",
+                timeout_seconds=5.0,
+            )
+        )
+        supabase_client._client = SupabaseKbFakeClient(
+            vector_readiness_rows=[
+                {
+                    "chunk_count": 419,
+                    "embedded_chunk_count": 0,
+                    "embedding_dimensions": [],
+                    "embedding_models": [],
+                    "vector_search_function_available": False,
+                }
+            ]
+        )
+
+        payload = supabase_client.search_chunks_detailed("What is the mission of NEMSU?", limit=6)
+
+        self.assertIn("institution_mission", [item["name"] for item in payload["passes"]])
+        self.assertTrue(payload["evidence"]["evidence"])
+        combined_context = " ".join(str(row.get("content") or "").lower() for row in payload["rows"])
+        self.assertIn("quality instruction", combined_context)
+        self.assertIn("sustainable development", combined_context)
 
     def test_supabase_health_reports_vector_readiness_without_requiring_embeddings(self) -> None:
         supabase_client = SupabaseKnowledgeBaseClient(
