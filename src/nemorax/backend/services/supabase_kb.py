@@ -432,6 +432,7 @@ class SupabaseKnowledgeBaseClient:
                 "embedding_dimensions": [],
                 "embedding_models": [],
                 "vector_search_function_available": False,
+                "vector_readiness_source": "disabled",
                 "detail": "Supabase knowledge base is not enabled.",
             }
         try:
@@ -466,6 +467,7 @@ class SupabaseKnowledgeBaseClient:
             "embedding_dimensions": dimensions,
             "embedding_models": models,
             "vector_search_function_available": function_available,
+            "vector_readiness_source": "view",
             "detail": None if status == "ready" else "Vector search is not ready; using PostgreSQL full-text and trigram retrieval.",
         }
 
@@ -483,6 +485,7 @@ class SupabaseKnowledgeBaseClient:
                 "embedding_dimensions": [],
                 "embedding_models": [],
                 "vector_search_function_available": False,
+                "vector_readiness_source": "chunks_unavailable",
                 "detail": "Embedded chunk readiness could not be checked; using PostgreSQL full-text and trigram retrieval.",
             }
 
@@ -517,6 +520,7 @@ class SupabaseKnowledgeBaseClient:
             "embedding_dimensions": dimensions,
             "embedding_models": models,
             "vector_search_function_available": function_available,
+            "vector_readiness_source": "chunks_rpc_probe",
             "detail": None if status == "ready" else "Vector readiness view is unavailable; checked kb_chunks directly.",
         }
 
@@ -1095,6 +1099,7 @@ class SupabaseKnowledgeBaseClient:
                 "embedding_dimensions": [],
                 "embedding_models": [],
                 "vector_search_function_available": False,
+                "vector_readiness_source": "disabled",
             }
         embedding_readiness = self._embedding_readiness()
         try:
@@ -1115,6 +1120,7 @@ class SupabaseKnowledgeBaseClient:
                 "embedding_dimensions": embedding_readiness["embedding_dimensions"],
                 "embedding_models": embedding_readiness["embedding_models"],
                 "vector_search_function_available": embedding_readiness["vector_search_function_available"],
+                "vector_readiness_source": embedding_readiness["vector_readiness_source"],
             }
         row = rows[0] if rows else {}
         chunk_count = int(row.get("chunk_count", 0) or 0)
@@ -1132,4 +1138,5 @@ class SupabaseKnowledgeBaseClient:
             "embedding_dimensions": embedding_readiness["embedding_dimensions"],
             "embedding_models": embedding_readiness["embedding_models"],
             "vector_search_function_available": embedding_readiness["vector_search_function_available"],
+            "vector_readiness_source": embedding_readiness["vector_readiness_source"],
         }

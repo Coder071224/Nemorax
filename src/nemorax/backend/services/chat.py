@@ -1104,7 +1104,6 @@ class ChatService:
             "knowledge_base": {
                 **prompt_status,
                 "source_path": public_kb_source,
-                "detail": None,
             },
             "model": provider_status.model,
         }

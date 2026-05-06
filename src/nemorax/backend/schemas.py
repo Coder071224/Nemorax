@@ -255,6 +255,7 @@ class KnowledgeBaseHealthResponse(BaseModel):
     available: bool
     source_path: str
     detail: str | None = None
+    vector_readiness_source: str = ""
     chunk_count: int = 0
     table_reachable: bool = False
     chunk_count_positive: bool = False
