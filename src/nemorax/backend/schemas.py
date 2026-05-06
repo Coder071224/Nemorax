@@ -258,6 +258,11 @@ class KnowledgeBaseHealthResponse(BaseModel):
     chunk_count: int = 0
     table_reachable: bool = False
     chunk_count_positive: bool = False
+    embedding_status: str = "unknown"
+    embedded_chunk_count: int = 0
+    embedding_dimensions: list[int] = Field(default_factory=list)
+    embedding_models: list[str] = Field(default_factory=list)
+    vector_search_function_available: bool = False
 
 
 class HealthResponse(BaseModel):

@@ -199,6 +199,106 @@ class AdaptiveStubSupabaseKnowledgeBaseClient(StubSupabaseKnowledgeBaseClient):
         }
 
 
+class SupabaseKbFakeClient:
+    def __init__(self, *, vector_readiness_rows: list[dict[str, object]] | None = None) -> None:
+        self.vector_readiness_rows = vector_readiness_rows
+        self.rpc_calls: list[tuple[str, str]] = []
+
+    def select(self, table: str, **kwargs) -> list[dict[str, object]]:
+        del kwargs
+        if table == "kb_vector_readiness":
+            if self.vector_readiness_rows is None:
+                raise PersistenceError("missing readiness view")
+            return list(self.vector_readiness_rows)
+        if table == "kb_runtime_stats":
+            return [{"chunk_count": 419}]
+        if table == "kb_chunks":
+            return [{"chunk_id": "chunk-1"}]
+        if table == "kb_aliases":
+            return []
+        if table == "kb_sources":
+            return []
+        raise PersistenceError(f"unexpected table: {table}")
+
+    def rpc(self, function_name: str, payload: dict[str, object]) -> list[dict[str, object]]:
+        query = str(payload.get("p_query") or "")
+        self.rpc_calls.append((function_name, query))
+        if query.lower() in {"current president", "nemesio loayon university president"}:
+            return [
+                {
+                    "chunk_id": "legacy-faq-president",
+                    "source_kind": "faq",
+                    "source_ref": "legacy-faq-president",
+                    "title": "Who is the president of NEMSU?",
+                    "url": "",
+                    "heading_path": ["Legacy FAQ"],
+                    "page_type": "faq",
+                    "topic": "Leadership",
+                    "content": "question: Who is the president of NEMSU? answer: The University President is Dr. Nemesio G. Loayon.",
+                    "short_summary": "Current NEMSU president.",
+                    "publication_date": None,
+                    "updated_date": None,
+                    "metadata": {},
+                    "rank": 1.0,
+                }
+            ]
+        return [
+            {
+                "chunk_id": "weak-library",
+                "source_kind": "entity",
+                "source_ref": "weak-library",
+                "title": "University Library | North Eastern Mindanao State University",
+                "url": "",
+                "heading_path": ["Office"],
+                "page_type": "entity",
+                "topic": "Office",
+                "content": "canonical_name: University Library | North Eastern Mindanao State University entity_type: office",
+                "short_summary": "",
+                "publication_date": None,
+                "updated_date": None,
+                "metadata": {},
+                "rank": 1.0,
+            }
+        ]
+
+
+class UnavailablePromptService:
+    def get_system_prompt_for_query(self, query, conversation_history=None):
+        del query, conversation_history
+        return "System prompt"
+
+    def build_prompt_payload(self, query, conversation_history=None):
+        del conversation_history
+        return {
+            "system_prompt": "System prompt",
+            "retrieved_context": "",
+            "retrieval_message": "",
+            "strategy": "supabase:no_match",
+            "chunks": [],
+            "max_score": 0.0,
+            "retrieval_diagnostics": {
+                "query": query,
+                "source": "supabase",
+                "passes": [
+                    {
+                        "name": "search",
+                        "query": query,
+                        "candidate_count": 0,
+                        "selected_count": 0,
+                        "max_score": 0.0,
+                        "status": "rpc_unavailable",
+                    }
+                ],
+                "decision": "no_match",
+                "failure_stage": "search",
+            },
+        }
+
+    def best_source_link(self, query):
+        del query
+        return None
+
+
 class FakeSupabaseTransport(httpx.MockTransport):
     def __init__(self) -> None:
         self.tables: dict[str, list[dict[str, object]]] = {
@@ -1226,6 +1326,65 @@ class BackendApiTests(unittest.TestCase):
         self.assertEqual([item["name"] for item in diagnostics["passes"]], ["search", "fallback"])
         self.assertTrue(diagnostics["evidence"])
 
+    def test_supabase_retrieval_uses_targeted_president_fallback_before_giving_up(self) -> None:
+        supabase_client = SupabaseKnowledgeBaseClient(
+            SupabaseSettings(
+                url="https://stub-supabase.local",
+                service_role_key="service-role",
+                kb_source="supabase",
+                timeout_seconds=5.0,
+            )
+        )
+        fake_client = SupabaseKbFakeClient(
+            vector_readiness_rows=[
+                {
+                    "chunk_count": 419,
+                    "embedded_chunk_count": 0,
+                    "embedding_dimensions": [],
+                    "embedding_models": [],
+                    "vector_search_function_available": False,
+                }
+            ]
+        )
+        supabase_client._client = fake_client
+
+        payload = supabase_client.search_chunks_detailed("Who is the current president of NEMSU?", limit=6)
+
+        self.assertIn("current_president", [item["name"] for item in payload["passes"]])
+        self.assertTrue(payload["evidence"]["evidence"])
+        self.assertEqual(payload["evidence"]["reason"], "high_score")
+        self.assertIn("Dr. Nemesio G. Loayon", payload["rows"][0]["content"])
+        self.assertEqual(payload["stages"]["embedding"]["status"], "empty")
+
+    def test_supabase_health_reports_vector_readiness_without_requiring_embeddings(self) -> None:
+        supabase_client = SupabaseKnowledgeBaseClient(
+            SupabaseSettings(
+                url="https://stub-supabase.local",
+                service_role_key="service-role",
+                kb_source="supabase",
+                timeout_seconds=5.0,
+            )
+        )
+        supabase_client._client = SupabaseKbFakeClient(
+            vector_readiness_rows=[
+                {
+                    "chunk_count": 419,
+                    "embedded_chunk_count": 0,
+                    "embedding_dimensions": [],
+                    "embedding_models": [],
+                    "vector_search_function_available": True,
+                }
+            ]
+        )
+
+        health = supabase_client.health()
+
+        self.assertEqual(health["chunk_count"], 419)
+        self.assertEqual(health["embedding_status"], "empty")
+        self.assertEqual(health["embedded_chunk_count"], 0)
+        self.assertEqual(health["embedding_dimensions"], [])
+        self.assertTrue(health["vector_search_function_available"])
+
     def test_chat_returns_single_official_link_when_user_explicitly_requests_it(self) -> None:
         provider = StubProvider()
         prompt_service = KnowledgeBasePromptService(
@@ -1330,4 +1489,28 @@ class BackendApiTests(unittest.TestCase):
 
         self.assertIn("current NEMSU knowledge base", response.reply)
         self.assertIn("as of 2026", response.reply)
+        self.assertFalse(provider.last_messages)
+
+    def test_chat_reports_kb_not_ready_when_supabase_search_is_unavailable(self) -> None:
+        provider = StubProvider()
+        chat_service = ChatService(
+            settings=self.settings,
+            provider=provider,
+            prompt_service=UnavailablePromptService(),
+            history_service=self.services.history_service,
+        )
+
+        response = asyncio.run(
+            chat_service.chat(
+                ChatRequest(
+                    session_id="session-kb-unavailable",
+                    messages=[MessageSchema(role="user", content="Who is the current president of NEMSU?")],
+                )
+            )
+        )
+
+        self.assertEqual(
+            response.reply,
+            "Nemis is online, but its knowledge base is still being prepared. Please try again in a few minutes.",
+        )
         self.assertFalse(provider.last_messages)

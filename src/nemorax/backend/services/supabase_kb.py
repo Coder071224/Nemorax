@@ -35,7 +35,6 @@ _SOURCE_STOP_TOKENS = {
 }
 _QUERY_STOP_TOKENS = _SOURCE_STOP_TOKENS | {
     "about",
-    "current",
     "details",
     "find",
     "help",
@@ -221,24 +220,111 @@ class SupabaseKnowledgeBaseClient:
 
         coverage = len(matched_tokens) / max(1, len(query_tokens))
         top3_total = sum(scores[:3])
+        has_exact_intent_match = self._has_exact_intent_match(query=query, rows=rows[:3])
         evidence = (
-            bool(query_tokens)
-            and len(matched_tokens) >= 2
-            and (max_score >= 2.0 or top3_total >= 4.5 or coverage >= 0.35)
+            has_exact_intent_match
+            or (
+                bool(query_tokens)
+                and (
+                    len(matched_tokens) >= 2
+                    or (len(query_tokens) == 1 and len(matched_tokens) == 1 and max_score >= 2.0)
+                )
+                and (max_score >= 2.0 or top3_total >= 4.5 or coverage >= 0.35)
+            )
         )
         return {
             "evidence": evidence,
             "query_token_count": len(query_tokens),
             "matched_token_count": len(matched_tokens),
             "coverage": round(coverage, 3),
-            "reason": "token_coverage" if evidence else "low_token_coverage",
+            "reason": "exact_intent_match" if has_exact_intent_match else ("token_coverage" if evidence else "low_token_coverage"),
         }
+
+    def _has_exact_intent_match(self, *, query: str, rows: list[dict[str, Any]]) -> bool:
+        lowered_query = (query or "").lower()
+        if not rows:
+            return False
+        intents: list[tuple[tuple[str, ...], tuple[str, ...]]] = [
+            (("president",), ("president", "nemesio", "loayon")),
+            (("registrar",), ("registrar",)),
+            (("admission", "admissions"), ("admission", "admissions")),
+            (("dean",), ("dean",)),
+            (("program", "programs", "course", "courses"), ("program", "programs", "course", "courses", "bachelor", "master")),
+        ]
+        for query_terms, row_terms in intents:
+            if not any(term in lowered_query for term in query_terms):
+                continue
+            for row in rows:
+                metadata = row.get("metadata") if isinstance(row.get("metadata"), dict) else {}
+                searchable = " ".join(
+                    item
+                    for item in (
+                        str(row.get("content") or ""),
+                        str(metadata.get("title") or ""),
+                        str(metadata.get("section") or ""),
+                        str(metadata.get("topic") or ""),
+                    )
+                    if item
+                ).lower()
+                if any(term in searchable for term in row_terms):
+                    return True
+        return False
 
     def _rpc_search(self, function_name: str, *, query: str, limit: int) -> Any:
         return self._client.rpc(
             function_name,
             {"p_query": query, "p_limit": max(1, min(limit, 20))},
         )
+
+    def _embedding_readiness(self) -> dict[str, Any]:
+        if not self.enabled:
+            return {
+                "status": "disabled",
+                "embedded_chunk_count": 0,
+                "embedding_dimensions": [],
+                "embedding_models": [],
+                "vector_search_function_available": False,
+                "detail": "Supabase knowledge base is not enabled.",
+            }
+        try:
+            rows = self._client.select("kb_vector_readiness", limit=1)
+        except PersistenceError:
+            return {
+                "status": "unknown",
+                "embedded_chunk_count": 0,
+                "embedding_dimensions": [],
+                "embedding_models": [],
+                "vector_search_function_available": False,
+                "detail": "Vector readiness view is not installed.",
+            }
+        row = rows[0] if rows else {}
+        embedded_count = int(row.get("embedded_chunk_count", 0) or 0)
+        dimensions = row.get("embedding_dimensions")
+        dimensions = dimensions if isinstance(dimensions, list) else []
+        models = row.get("embedding_models")
+        models = models if isinstance(models, list) else []
+        function_available = bool(row.get("vector_search_function_available"))
+        numeric_dimensions = {
+            int(item)
+            for item in dimensions
+            if isinstance(item, (int, float)) or (isinstance(item, str) and item.isdigit())
+        }
+        if embedded_count <= 0:
+            status = "empty"
+        elif 1536 not in numeric_dimensions:
+            status = "dimension_mismatch"
+        elif not function_available:
+            status = "rpc_missing"
+        else:
+            status = "ready"
+        return {
+            "status": status,
+            "embedded_chunk_count": embedded_count,
+            "embedding_dimensions": dimensions,
+            "embedding_models": models,
+            "vector_search_function_available": function_available,
+            "detail": None if status == "ready" else "Vector search is not ready; using PostgreSQL full-text and trigram retrieval.",
+        }
 
     @staticmethod
     def _phrase_rank_boost(query: str, *, content: str, metadata: dict[str, Any]) -> float:
@@ -272,6 +358,14 @@ class SupabaseKnowledgeBaseClient:
             boost += 20.0
         if former_name_query and "formerly known" in searchable:
             boost += 12.0
+        if "president" in query_text:
+            if "president" in searchable:
+                boost += 7.0
+            if "nemesio" in searchable or "loayon" in searchable:
+                boost += 10.0
+        if any(term in query_text for term in ("program", "programs", "course", "courses")):
+            if any(term in searchable for term in ("bachelor", "master", "program", "course")):
+                boost += 4.0
         return boost
 
     def search_chunks(self, query: str, *, limit: int = 6) -> list[dict[str, Any]]:
@@ -421,6 +515,9 @@ class SupabaseKnowledgeBaseClient:
 
         targeted_queries: list[tuple[str, str]] = []
         lowered_expanded = expanded_query.lower()
+        if "president" in lowered_expanded:
+            targeted_queries.append(("current_president", "current president"))
+            targeted_queries.append(("president_name", "nemesio loayon university president"))
         if "besc" in lowered_expanded or "bukidnon external studies center" in lowered_expanded:
             targeted_queries.append(("alias_besc", "bukidnon external studies center"))
         if (
@@ -456,8 +553,15 @@ class SupabaseKnowledgeBaseClient:
             else:
                 failure_stage = "fallback" if len(passes) > 1 else "search"
         decision = "ranked" if final_rows else "no_match"
+        embedding_readiness = self._embedding_readiness()
         stages = {
-            "embedding": {"status": "not_used", "detail": "Using PostgreSQL full-text and trigram retrieval."},
+            "embedding": {
+                "status": embedding_readiness["status"],
+                "detail": embedding_readiness["detail"],
+                "embedded_chunk_count": embedding_readiness["embedded_chunk_count"],
+                "embedding_dimensions": embedding_readiness["embedding_dimensions"],
+                "vector_search_function_available": embedding_readiness["vector_search_function_available"],
+            },
             "search": {
                 "status": "ok" if any(item["candidate_count"] > 0 for item in passes) else "no_match",
                 "passes_run": len(passes),
@@ -624,7 +728,13 @@ class SupabaseKnowledgeBaseClient:
                 "supabase_reachable": False,
                 "table_reachable": False,
                 "chunk_count_positive": False,
+                "embedding_status": "disabled",
+                "embedded_chunk_count": 0,
+                "embedding_dimensions": [],
+                "embedding_models": [],
+                "vector_search_function_available": False,
             }
+        embedding_readiness = self._embedding_readiness()
         try:
             rows = self._client.select("kb_runtime_stats", limit=1)
             self._client.select("kb_chunks", columns="chunk_id", limit=1)
@@ -638,6 +748,11 @@ class SupabaseKnowledgeBaseClient:
                 "supabase_reachable": False,
                 "table_reachable": False,
                 "chunk_count_positive": False,
+                "embedding_status": embedding_readiness["status"],
+                "embedded_chunk_count": embedding_readiness["embedded_chunk_count"],
+                "embedding_dimensions": embedding_readiness["embedding_dimensions"],
+                "embedding_models": embedding_readiness["embedding_models"],
+                "vector_search_function_available": embedding_readiness["vector_search_function_available"],
             }
         row = rows[0] if rows else {}
         chunk_count = int(row.get("chunk_count", 0) or 0)
@@ -650,4 +765,9 @@ class SupabaseKnowledgeBaseClient:
             "supabase_reachable": True,
             "table_reachable": True,
             "chunk_count_positive": chunk_count_positive,
+            "embedding_status": embedding_readiness["status"],
+            "embedded_chunk_count": embedding_readiness["embedded_chunk_count"],
+            "embedding_dimensions": embedding_readiness["embedding_dimensions"],
+            "embedding_models": embedding_readiness["embedding_models"],
+            "vector_search_function_available": embedding_readiness["vector_search_function_available"],
         }

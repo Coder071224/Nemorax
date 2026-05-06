@@ -34,6 +34,7 @@ logger = get_logger("nemorax.chat")
 
 _FOLLOW_UP_HISTORY_WINDOW = 6
 _MIN_RETRIEVAL_EVIDENCE_SCORE = 3.0
+KB_NOT_READY_MESSAGE = "Nemis is online, but its knowledge base is still being prepared. Please try again in a few minutes."
 _GREETING_PATTERN = re.compile(r"\b(hi|hello|hey|good morning|good afternoon|good evening|kumusta|musta|yo|hola)\b")
 _FORMER_NAME_PATTERN = re.compile(
     r"\b("
@@ -530,6 +531,16 @@ class ChatService:
         scores = sorted((float(chunk.get("_retrieval_score") or 0.0) for chunk in chunks), reverse=True)
         return sum(scores[:3]) >= 4.5 or len([score for score in scores if score >= 1.5]) >= 2
 
+    @staticmethod
+    def _is_kb_search_unavailable(prompt_payload: dict[str, Any]) -> bool:
+        diagnostics = prompt_payload.get("retrieval_diagnostics") or {}
+        if diagnostics.get("failure_stage") == "search":
+            return True
+        for item in diagnostics.get("passes") or []:
+            if isinstance(item, dict) and item.get("status") in {"rpc_unavailable", "invalid_payload"}:
+                return True
+        return False
+
     def _provider_messages(
         self,
         context: _ChatContext,
@@ -812,7 +823,9 @@ class ChatService:
                         prompt_payload=prompt_payload,
                     )
             else:
-                if context.history_messages and not prompt_payload.get("chunks"):
+                if self._is_kb_search_unavailable(prompt_payload):
+                    reply = KB_NOT_READY_MESSAGE
+                elif context.history_messages and not prompt_payload.get("chunks"):
                     reply = await self._generate_model_reply(
                         context=context,
                         prompt_payload=prompt_payload,
