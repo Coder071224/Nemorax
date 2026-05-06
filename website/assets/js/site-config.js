@@ -19,14 +19,14 @@ window.NEMORAX_SITE_CONFIG = {
   },
   app: {
     // Render-hosted Flet web app used by the website's "Open web app" button.
-    webUrl: "https://nemorax-flet-web.onrender.com"
+    webUrl: "https://nemorax-flet-web-it1f.onrender.com"
   },
   api: {
     localBaseUrl: "http://localhost:8000",
     // Primary production backend URL (Render). Railway may be kept as a manual fallback in deployed Flet env vars.
-    productionBaseUrl: "https://nemorax-backend.onrender.com",
+    productionBaseUrl: "https://nemorax-backend-c1ma.onrender.com",
     baseUrl: ["localhost", "127.0.0.1"].includes(window.location.hostname)
       ? "http://localhost:8000"
-      : "https://nemorax-backend.onrender.com"
+      : "https://nemorax-backend-c1ma.onrender.com"
   }
 };
