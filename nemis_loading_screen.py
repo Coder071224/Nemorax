@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import asyncio
+import os
 from dataclasses import dataclass
 from typing import Any
 
 import flet as ft
 
+if not hasattr(ft, "colors"):
+    ft.colors = ft.Colors  # type: ignore[attr-defined]
 
 THEME: dict[str, str] = {
     "grad_top": "#4FC3F7",
@@ -21,13 +24,19 @@ THEME: dict[str, str] = {
     "progress": "#4FC3F7",
     "progress_track": "#FFFFFF",
     "button_text": "#FFFFFF",
+    "shadow": "#111827",
 }
 
-STATUS_MESSAGES = [
-    "Restoring your session...",
-    "Loading your profile...",
-    "Almost there...",
-]
+BACKEND_PRIMARY = os.getenv("NEMIS_PRIMARY_BACKEND_URL", "https://nemis-backend.onrender.com").rstrip("/")
+BACKEND_SECONDARY = os.getenv("NEMIS_SECONDARY_BACKEND_URL", "https://nemis-backend.up.railway.app").rstrip("/")
+
+
+class LoadingScreenError(Exception):
+    """Raised when the loading screen cannot complete its startup flow."""
+
+
+class BackendEndpointMissingError(LoadingScreenError):
+    """Raised when no backend endpoint is configured for the loading screen."""
 
 
 @dataclass(frozen=True)
@@ -41,30 +50,40 @@ class PlatformConfig:
     show_blobs: bool
 
 
-def _platform_name(page: ft.Page) -> str:
-    platform = str(getattr(page, "platform", "") or "").lower()
-    if platform.startswith("pageplatform."):
-        platform = platform.rsplit(".", 1)[-1]
-    return platform
+STATUS_MESSAGES = [
+    "Restoring your session...",
+    "Loading your profile...",
+    "Almost there...",
+]
 
 
-def _is_mobile_web(page: ft.Page) -> bool:
-    width = float(page.width or 390)
-    return bool(getattr(page, "web", False)) and width < 760
+def get_backend_urls() -> tuple[str, str]:
+    if not BACKEND_PRIMARY and not BACKEND_SECONDARY:
+        raise BackendEndpointMissingError("No Nemis backend endpoint is configured.")
+    return BACKEND_PRIMARY, BACKEND_SECONDARY
 
 
-def _platform_config(page: ft.Page) -> PlatformConfig:
-    platform = _platform_name(page)
+def get_platform_name(page: ft.Page) -> str:
+    platform_name = str(getattr(page, "platform", "") or "").lower()
+    if platform_name.startswith("pageplatform."):
+        platform_name = platform_name.rsplit(".", 1)[-1]
+    return platform_name
+
+
+def is_mobile_web(page: ft.Page) -> bool:
+    viewport_width = float(page.width or 390)
+    return bool(getattr(page, "web", False)) and viewport_width < 760
+
+
+def build_platform_config(page: ft.Page) -> PlatformConfig:
+    platform_name = get_platform_name(page)
     is_web = bool(getattr(page, "web", False))
-    is_native_mobile = platform in {"android", "ios"}
-    is_mobile = is_native_mobile or _is_mobile_web(page)
-    page_width = float(page.width or (390 if is_mobile else 1200))
+    is_native_mobile = platform_name in {"android", "ios"}
+    is_mobile = is_native_mobile or is_mobile_web(page)
+    viewport_width = float(page.width or (390 if is_mobile else 1200))
 
-    # Mobile native and mobile web use almost-full-width cards so the layout
-    # stays centered and never becomes a narrow side panel.
     if is_mobile:
-        # FIXED
-        card_width = min(max(280, page_width * 0.88), 400)
+        card_width = min(max(280, viewport_width * 0.88), 400)
         return PlatformConfig(
             is_web=is_web,
             is_mobile=True,
@@ -75,12 +94,9 @@ def _platform_config(page: ft.Page) -> PlatformConfig:
             show_blobs=False,
         )
 
-    # Desktop native and desktop web keep the wider fixed card and decorative
-    # blobs because there is enough canvas area for the frosted-glass treatment.
     return PlatformConfig(
         is_web=is_web,
         is_mobile=False,
-        # FIXED
         card_width=520,
         card_padding_h=34,
         card_padding_v=34,
@@ -89,35 +105,24 @@ def _platform_config(page: ft.Page) -> PlatformConfig:
     )
 
 
-def _scaled(value: int | float, scale: float) -> float:
+def scale_size(value: int | float, scale: float) -> float:
     return round(float(value) * scale, 1)
 
 
-def _gradient_background() -> ft.Container:
+def build_gradient_background(page: ft.Page) -> ft.Container:
     return ft.Container(
         expand=True,
+        width=page.width,
+        height=page.height,
         gradient=ft.LinearGradient(
-            begin=ft.Alignment(-1, -1),
-            end=ft.Alignment(1, 1),
+            begin=ft.alignment.top_left,
+            end=ft.alignment.bottom_right,
             colors=[THEME["grad_top"], THEME["grad_mid"], THEME["grad_bottom"]],
         ),
     )
 
 
-def _blob(*, top: int | None = None, right: int | None = None, bottom: int | None = None, left: int | None = None) -> ft.Container:
-    return ft.Container(
-        top=top,
-        right=right,
-        bottom=bottom,
-        left=left,
-        width=300,
-        height=300,
-        border_radius=150,
-        bgcolor=ft.Colors.with_opacity(0.08, THEME["blob"]),
-    )
-
-
-def _avatar_button(font_scale: float) -> ft.Container:
+def build_avatar_button(font_scale: float) -> ft.Container:
     return ft.Container(
         width=48,
         height=48,
@@ -126,14 +131,14 @@ def _avatar_button(font_scale: float) -> ft.Container:
         alignment=ft.Alignment(0, 0),
         content=ft.Text(
             "N",
-            size=_scaled(22, font_scale),
+            size=scale_size(22, font_scale),
             weight=ft.FontWeight.W_800,
             color=THEME["text_primary"],
         ),
     )
 
 
-def _robot_logo(font_scale: float) -> ft.Container:
+def build_robot_logo(font_scale: float) -> ft.Container:
     return ft.Container(
         width=72,
         height=72,
@@ -152,60 +157,59 @@ def _robot_logo(font_scale: float) -> ft.Container:
         ),
         content=ft.Text(
             "N",
-            size=_scaled(34, font_scale),
+            size=scale_size(34, font_scale),
             weight=ft.FontWeight.W_900,
             color=THEME["text_primary"],
         ),
     )
 
 
-def _loading_card(
+def build_loading_card(
     page: ft.Page,
-    cfg: PlatformConfig,
+    platform_config: PlatformConfig,
     status_ref: ft.Ref[ft.Text],
     progress_ref: ft.Ref[ft.ProgressBar],
 ) -> ft.Container:
-    font_scale = cfg.font_scale
-
+    font_scale = platform_config.font_scale
     title_block = ft.Column(
         spacing=2,
         tight=True,
         controls=[
             ft.Text(
                 "Nemis",
-                size=_scaled(28, font_scale),
+                size=scale_size(28, font_scale),
                 weight=ft.FontWeight.W_800,
                 color=THEME["text_primary"],
             ),
             ft.Text(
                 "Campus assistant",
-                size=_scaled(14, font_scale),
+                size=scale_size(14, font_scale),
                 color=THEME["text_secondary"],
             ),
         ],
     )
-
-    hidden_cta = ft.Container(
+    hidden_talk_button_label = ft.Container(
         alignment=ft.Alignment(1, 0),
         visible=False,
         content=ft.Text(
             "TALK TO NEMIS",
-            size=_scaled(12, font_scale),
+            size=scale_size(12, font_scale),
             weight=ft.FontWeight.W_800,
             color=THEME["button_text"],
         ),
     )
 
     return ft.Container(
-        width=cfg.card_width,
-        padding=ft.Padding.symmetric(horizontal=cfg.card_padding_h, vertical=cfg.card_padding_v),
+        width=platform_config.card_width,
+        expand=False,
+        padding=ft.Padding.symmetric(horizontal=platform_config.card_padding_h, vertical=platform_config.card_padding_v),
         border_radius=24,
         bgcolor=ft.Colors.with_opacity(0.85, THEME["card_bg"]),
         border=ft.Border.all(1, ft.Colors.with_opacity(0.18, THEME["blob"])),
         shadow=ft.BoxShadow(
             blur_radius=34,
             spread_radius=0,
-            color=ft.Colors.with_opacity(0.28, "#111827"),
+            color=ft.Colors.with_opacity(0.28, THEME["shadow"]),
             offset=ft.Offset(0, 18),
         ),
         content=ft.Column(
@@ -217,17 +221,17 @@ def _loading_card(
                     controls=[
                         title_block,
                         ft.Container(expand=True),
-                        _avatar_button(font_scale),
+                        build_avatar_button(font_scale),
                     ],
                     vertical_alignment=ft.CrossAxisAlignment.START,
                 ),
-                ft.Container(height=34 if cfg.is_mobile else 42),
-                _robot_logo(font_scale),
-                ft.Container(height=28 if cfg.is_mobile else 34),
+                ft.Container(height=34 if platform_config.is_mobile else 42),
+                build_robot_logo(font_scale),
+                ft.Container(height=28 if platform_config.is_mobile else 34),
                 ft.Text(
                     ref=status_ref,
                     value=STATUS_MESSAGES[0],
-                    size=_scaled(16, font_scale),
+                    size=scale_size(16, font_scale),
                     italic=True,
                     text_align=ft.TextAlign.CENTER,
                     color=THEME["text_primary"],
@@ -242,7 +246,7 @@ def _loading_card(
                     border_radius=8,
                 ),
                 ft.Container(height=18),
-                hidden_cta,
+                hidden_talk_button_label,
             ],
         ),
     )
@@ -252,56 +256,48 @@ def build_loading_screen(
     page: ft.Page,
     status_ref: ft.Ref[ft.Text],
     progress_ref: ft.Ref[ft.ProgressBar],
-) -> ft.Control:
-    cfg = _platform_config(page)
-
-    stack_controls: list[ft.Control] = [_gradient_background()]
-
-    # Android/iOS/mobile web skip decorative blobs because they clip poorly on
-    # small screens and can make the centered card feel crowded.
-    if cfg.show_blobs:
-        stack_controls.extend(
-            [
-                _blob(top=-70, right=-70),
-                _blob(bottom=-90, left=-85),
-            ]
-        )
-
-    # The card is last in the Stack because Flet renders children back-to-front
-    # on native mobile targets.
-    stack_controls.append(
-        ft.Container(
-            expand=True,
-            alignment=ft.Alignment(0, 0),
-            padding=ft.Padding.symmetric(horizontal=16 if cfg.is_mobile else 24),
-            content=_loading_card(page, cfg, status_ref, progress_ref),
-        )
+) -> ft.Stack:
+    platform_config = build_platform_config(page)
+    session_card = build_loading_card(page, platform_config, status_ref, progress_ref)
+    gradient_background = build_gradient_background(page)
+    centered_session_card = ft.Container(
+        expand=True,
+        width=page.width,
+        height=page.height,
+        alignment=ft.alignment.center,
+        bgcolor=ft.colors.TRANSPARENT,
+        content=session_card,
     )
 
-    return ft.Stack(expand=True, controls=stack_controls)
+    return ft.Stack(
+        expand=True,
+        width=page.width,
+        height=page.height,
+        controls=[gradient_background, centered_session_card],
+    )
 
 
 async def animate_status(page: ft.Page, status_ref: ft.Ref[ft.Text]) -> None:
-    index = 0
+    message_index = 0
     while True:
         await asyncio.sleep(1.2)
         if status_ref.current is None:
             return
-        index += 1
-        if index >= len(STATUS_MESSAGES):
+        message_index += 1
+        if message_index >= len(STATUS_MESSAGES):
             return
-        status_ref.current.value = STATUS_MESSAGES[index]
+        status_ref.current.value = STATUS_MESSAGES[message_index]
         page.update()
 
 
 async def animate_progress(page: ft.Page, progress_ref: ft.Ref[ft.ProgressBar], status_ref: ft.Ref[ft.Text]) -> None:
-    steps = 60
-    for step in range(steps + 1):
+    total_steps = 60
+    for current_step in range(total_steps + 1):
         if progress_ref.current is None:
             return
-        progress_ref.current.value = step / steps
+        progress_ref.current.value = current_step / total_steps
         page.update()
-        await asyncio.sleep(3 / steps)
+        await asyncio.sleep(3 / total_steps)
 
     if status_ref.current is not None:
         status_ref.current.value = "Session ready."
@@ -310,25 +306,37 @@ async def animate_progress(page: ft.Page, progress_ref: ft.Ref[ft.ProgressBar], 
 
 async def main(page: ft.Page) -> None:
     print(f"[Nemis] Platform: {page.platform}, Web: {page.web}")
-
     page.title = "Nemis"
-    # FIXED
-    page.bgcolor = "#7B1FA2"
     page.padding = 0
-    # FIXED
-    if hasattr(page, "margin"):
-        # FIXED
-        page.margin = 0
+    page.margin = 0
     page.spacing = 0
-    page.scroll = ft.ScrollMode.HIDDEN
+    page.bgcolor = ft.colors.TRANSPARENT
+    try:
+        page.window_bgcolor = ft.colors.TRANSPARENT
+    except Exception:
+        pass
+    page.scroll = None
     page.theme_mode = ft.ThemeMode.DARK
     page.horizontal_alignment = ft.CrossAxisAlignment.STRETCH
     page.vertical_alignment = ft.MainAxisAlignment.START
+    get_backend_urls()
 
     status_ref = ft.Ref[ft.Text]()
     progress_ref = ft.Ref[ft.ProgressBar]()
+    root_stack = build_loading_screen(page, status_ref, progress_ref)
 
-    page.add(build_loading_screen(page, status_ref, progress_ref))
+    def on_resize(event: Any) -> None:
+        root_stack.width = page.width
+        root_stack.height = page.height
+        root_stack.controls[0].width = page.width
+        root_stack.controls[0].height = page.height
+        root_stack.controls[1].width = page.width
+        root_stack.controls[1].height = page.height
+        page.update()
+
+    page.on_resize = on_resize
+    page.controls.clear()
+    page.add(root_stack)
     page.update()
 
     await asyncio.gather(
@@ -337,6 +345,4 @@ async def main(page: ft.Page) -> None:
     )
 
 
-if __name__ == "__main__":
-    ft.app(target=main)
-    # ft.app(target=main, view=ft.AppView.WEB_BROWSER)
+ft.app(target=main)
