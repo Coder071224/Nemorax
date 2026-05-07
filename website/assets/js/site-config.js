@@ -2,10 +2,10 @@ window.NEMORAX_SITE_CONFIG = {
   github: {
     owner: "Coder071224",
     repo: "Nemorax",
-    releaseTag: "",
+    releaseTag: "v1.1.1",
     assets: {
       windows: "Nemorax.exe",
-      android: "Nemorax.apk"
+      android: "app-release.apk"
     }
   },
   release: {
