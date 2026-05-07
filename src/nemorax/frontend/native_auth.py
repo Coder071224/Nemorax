@@ -156,6 +156,19 @@ async def restore_native_auth_session(
     return restored_user
 
 
+async def load_native_auth_session_snapshot(page: ft.Page) -> UserInfo | None:
+    if not is_supported_native_auth_target(page):
+        return None
+
+    preferences = _shared_preferences(page)
+    payload = await preferences.get(_SESSION_KEY)
+    session_data = _parse_session_payload(payload)
+    if session_data is None:
+        return None
+
+    return sanitize_native_session_user(session_data.get("user"))
+
+
 def _shared_preferences(page: ft.Page) -> ft.SharedPreferences:
     for service in page.services:
         if isinstance(service, ft.SharedPreferences):

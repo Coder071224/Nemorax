@@ -75,6 +75,7 @@ class ThemePalette:
     text_primary: str
     text_secondary: str
     text_muted: str
+    button_text: str
     accent: str
     accent_soft: str
     success: str
@@ -102,6 +103,7 @@ THEMES: dict[str, ThemePalette] = {
         text_primary="#F8FBFF",
         text_secondary="#C8D9FF",
         text_muted="#94A8DA",
+        button_text="#081018",
         accent="#67E8F9",
         accent_soft="#3381F4FF",
         success="#6EE7B7",
@@ -127,6 +129,7 @@ THEMES: dict[str, ThemePalette] = {
         text_primary="#F8FAFC",
         text_secondary="#D6D9E6",
         text_muted="#9AA4BE",
+        button_text="#081018",
         accent="#F5D76E",
         accent_soft="#2AF5D76E",
         success="#34D399",
@@ -152,6 +155,7 @@ THEMES: dict[str, ThemePalette] = {
         text_primary="#16213E",
         text_secondary="#334A75",
         text_muted="#6B7EA8",
+        button_text="#F7F9FF",
         accent="#1DB5CC",
         accent_soft="#1F1DB5CC",
         success="#10B981",
@@ -177,6 +181,7 @@ THEMES: dict[str, ThemePalette] = {
         text_primary="#F7FFFE",
         text_secondary="#C7EEE9",
         text_muted="#8FC3BC",
+        button_text="#071816",
         accent="#6EE7B7",
         accent_soft="#336EE7B7",
         success="#34D399",

@@ -141,6 +141,33 @@ def test_restore_native_auth_session_validates_with_backend_profile(monkeypatch)
     assert payload["user"]["display_name"] == "Restored User"
 
 
+def test_load_native_auth_session_snapshot_reads_theme_without_backend(monkeypatch) -> None:
+    page = _FakePage(platform=ft.PagePlatform.ANDROID)
+    preferences = _FakePreferences()
+    preferences.values[native_auth.native_auth_session_key()] = json.dumps(
+        {
+            "version": 1,
+            "installation_id": "install-1",
+            "saved_at": "2026-04-21T00:00:00+00:00",
+            "user": {
+                "user_id": "user-123",
+                "email": "user@example.com",
+                "settings": {"theme": "glacier_pearl"},
+            },
+        }
+    )
+    monkeypatch.setattr(native_auth, "_shared_preferences", lambda _: preferences)
+
+    snapshot = asyncio.run(native_auth.load_native_auth_session_snapshot(page))
+
+    assert snapshot == {
+        "user_id": "user-123",
+        "email": "user@example.com",
+        "settings": {"theme": "glacier_pearl"},
+    }
+    assert native_auth.native_auth_session_key() in preferences.values
+
+
 def test_restore_native_auth_session_clears_when_profile_validation_fails(monkeypatch) -> None:
     page = _FakePage(platform=ft.PagePlatform.ANDROID)
     preferences = _FakePreferences()

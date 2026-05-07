@@ -26,7 +26,6 @@ from nemorax.frontend.config import (
     LOGO_ASSET,
     SUGGESTED_QUESTIONS,
     THEMES,
-    apply_theme,
     current_theme,
     normalize_user_settings,
     resolve_theme_name,
@@ -70,18 +69,18 @@ class ChatPage(ft.Container):
         page: ft.Page,
         initial_user: UserInfo | None = None,
         initial_theme_name: str | None = None,
+        app_state: AppState | None = None,
     ) -> None:
         super().__init__()
         self._page = page
         initial_user_id = str((initial_user or {}).get("user_id", "")).strip() or None
         self._history = HistoryService(initial_user_id)
 
-        apply_theme(DEFAULT_THEME)
         self._sending = False
         self._sidebar_expanded = False
         self._settings_open = False
         self._guest_theme_name = initial_theme_name if initial_theme_name in THEMES else DEFAULT_THEME
-        self._state = AppState(self._guest_theme_name)
+        self._state = app_state or AppState(self._guest_theme_name)
         self._session_greeting_name = self._roll_greeting_name()
 
         self._mobile_backdrop: ft.Container | None = None
@@ -335,6 +334,7 @@ class ChatPage(ft.Container):
                     self._page,
                     initial_user=user,
                     initial_theme_name=self._resolved_theme_name(user),
+                    app_state=self._state,
                 )
             )
 
@@ -1466,7 +1466,7 @@ class ChatPage(ft.Container):
             self._mobile_backdrop = ft.Container(
                 expand=True,
                 visible=self._custom_drawer_open,
-                bgcolor=ft.Colors.with_opacity(0.42, "#000000"),
+                bgcolor=ft.Colors.with_opacity(0.42, theme.shadow),
                 on_click=self._close_drawer,
             )
             self._mobile_drawer_container = ft.Container(
@@ -1517,7 +1517,7 @@ class ChatPage(ft.Container):
             page=self._page,
             current_user=self._current_user,
             is_mobile=self._is_mobile,
-            theme_name=self._theme_name,
+            app_state=self._state,
             on_login=self._handle_login,
             on_logout=self._handle_logout,
             on_guest=self._handle_guest_continue,
@@ -1969,7 +1969,7 @@ class ChatPage(ft.Container):
                     content=ft.Container(
                         width=page_width,
                         height=page_height,
-                        bgcolor=ft.Colors.with_opacity(0.001, "#000000"),
+                        bgcolor=ft.Colors.with_opacity(0.001, theme.shadow),
                     ),
                 ),
                 ft.Container(
@@ -2004,7 +2004,7 @@ class ChatPage(ft.Container):
             dismissible=True,
             show_drag_handle=True,
             shape=ft.RoundedRectangleBorder(radius=28),
-            barrier_color=ft.Colors.with_opacity(0.32, "#000000"),
+            barrier_color=ft.Colors.with_opacity(0.32, theme.shadow),
             on_dismiss=lambda _: self._dismiss_history_delete_sheet(),
             content=ft.Container(
                 padding=ft.Padding.from_ltrb(20, 8, 20, 24),
@@ -2130,6 +2130,7 @@ class ChatPage(ft.Container):
                     self._page,
                     initial_user=self._current_user,
                     initial_theme_name=self._resolved_theme_name(),
+                    app_state=self._state,
                 )
             )
 
@@ -2292,7 +2293,7 @@ class ChatPage(ft.Container):
                     content=ft.Text(
                         "Submit",
                         size=14,
-                        color="#081018",
+                        color=theme.button_text,
                         weight=ft.FontWeight.W_700,
                     ),
                     style=ft.ButtonStyle(

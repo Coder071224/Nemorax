@@ -110,7 +110,7 @@ def _avatar(*, compact: bool = False) -> ft.Container:
         ),
         content=ft.Text(
             CHATBOT_NAME[:1].upper(),
-            color="#081018",
+            color=theme.button_text,
             size=14,
             weight=ft.FontWeight.W_800,
         ),

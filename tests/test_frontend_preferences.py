@@ -6,6 +6,8 @@ import asyncio
 import contextvars
 from pathlib import Path
 
+import flet as ft
+
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 if str(SRC) not in sys.path:
@@ -97,6 +99,29 @@ class FrontendPreferenceTests(unittest.TestCase):
         self.assertEqual(theme.send_btn, "#0E8F7B")
         self.assertEqual(theme.bot_bubble, "#173D38")
         self.assertEqual(theme.grad_bottom, "#071816")
+
+    def test_startup_loader_uses_current_theme_palette(self) -> None:
+        from nemorax.frontend.main import _build_startup_loader
+
+        class _LoaderPage:
+            width = 390
+            height = 760
+
+        state = AppState("glacier_pearl")
+        theme = state.activate_theme()
+        loader = _build_startup_loader(_LoaderPage(), state)
+        card = loader.content
+        body = card.content
+        progress = body.controls[3]
+        text_group = body.controls[4]
+
+        self.assertEqual(loader.bgcolor, theme.grad_bottom)
+        self.assertEqual(loader.gradient.colors, [theme.grad_top, theme.grad_mid, theme.grad_bottom])
+        self.assertEqual(card.bgcolor, ft.Colors.with_opacity(0.22, theme.sidebar_bg))
+        self.assertEqual(progress.color, theme.accent)
+        self.assertEqual(text_group.controls[0].value, "Restoring your session...")
+        self.assertEqual(text_group.controls[0].color, theme.text_primary)
+        self.assertEqual(text_group.controls[1].color, theme.text_secondary)
 
     def test_local_theme_keys_are_isolated_by_guest_and_user(self) -> None:
         page = _FakePage()

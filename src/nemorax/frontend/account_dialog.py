@@ -12,7 +12,8 @@ from typing import Any
 import flet as ft
 
 from nemorax.frontend import api_client
-from nemorax.frontend.config import DEFAULT_THEME, THEMES, apply_theme, current_theme, normalize_user_settings
+from nemorax.frontend.app_state import AppState
+from nemorax.frontend.config import DEFAULT_THEME, current_theme, normalize_user_settings
 
 
 RECOVERY_QUESTIONS = [
@@ -53,7 +54,7 @@ class AccountDialog:
         on_logout: Callable[[], None],
         on_guest: Callable[[], None],
         on_user_update: Callable[[UserInfo], None],
-        theme_name: str | None = None,
+        app_state: AppState | None = None,
     ) -> None:
         self._page = page
         self._current_user = current_user
@@ -62,7 +63,7 @@ class AccountDialog:
         self._on_logout = on_logout
         self._on_guest = on_guest
         self._on_user_update = on_user_update
-        self._theme_name = theme_name if theme_name in THEMES else DEFAULT_THEME
+        self._state = app_state or AppState(DEFAULT_THEME)
 
         self._view = self._VIEW_LOGGED_IN if current_user else self._VIEW_LANDING
         self._error_text = ""
@@ -102,7 +103,7 @@ class AccountDialog:
         self._display_name_remove_ref = ft.Ref[ft.TextButton]()
 
     def _activate_theme_context(self):
-        return apply_theme(self._theme_name)
+        return self._state.activate_theme()
 
     def open(self) -> None:
         self._activate_theme_context()
@@ -391,7 +392,7 @@ class AccountDialog:
             expand=True,
             width=page_width,
             height=page_height,
-            bgcolor=ft.Colors.with_opacity(0.52, "#000000"),
+            bgcolor=ft.Colors.with_opacity(0.52, theme.shadow),
             on_click=self._close,
             alignment=ft.Alignment(0, 1 if self._is_mobile else 0),
             content=ft.GestureDetector(on_tap=lambda _: None, content=panel),
@@ -471,7 +472,7 @@ class AccountDialog:
                 label,
                 size=14,
                 weight=ft.FontWeight.W_700,
-                color="#081018",
+                color=theme.button_text,
             ),
             style=ft.ButtonStyle(
                 bgcolor=theme.accent,
@@ -734,7 +735,7 @@ class AccountDialog:
                         button_label,
                         size=14,
                         weight=ft.FontWeight.W_700,
-                        color="#081018",
+                        color=theme.button_text,
                     ),
                 ],
                 alignment=ft.MainAxisAlignment.CENTER,
@@ -1215,7 +1216,7 @@ class AccountDialog:
                 "Saving..." if self._display_name_saving else "Save",
                 size=14,
                 weight=ft.FontWeight.W_700,
-                color="#081018",
+                color=theme.button_text,
             ),
             style=ft.ButtonStyle(
                 bgcolor=theme.accent,
