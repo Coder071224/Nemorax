@@ -14,9 +14,9 @@
         status: "Use this card for the official .exe link once the signed installer is published."
       },
       android: {
-        url: "",
-        label: "Android distribution pending publication",
-        status: "Use this card for the official .apk link once the beta package is ready for direct download."
+        url: "/downloads/app-release.apk",
+        label: "Download Android APK",
+        status: "Official Android APK is available for direct download."
       },
       web: {
         url: appConfig.webUrl || "",
@@ -56,7 +56,9 @@
 
   if (release.downloads.android.url) {
     release.downloads.android.label = "Download Android build";
-    release.downloads.android.status = "Official Android APK hosted through GitHub Releases.";
+    if (!release.downloads.android.url.startsWith("/downloads/")) {
+      release.downloads.android.status = "Official Android APK hosted through GitHub Releases.";
+    }
   }
 
   document.querySelectorAll("[data-release-version]").forEach((node) => {
