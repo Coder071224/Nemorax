@@ -9,17 +9,23 @@ but all real secrets belong in backend/config.py or the deployment environment.
 from __future__ import annotations
 
 import os
+import sys
 from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Any
 
 
 LOCAL_BACKEND_URL = "http://127.0.0.1:8000"
+PUBLIC_PRIMARY_BACKEND_URL = "https://nemorax-backend-c1ma.onrender.com"
+PUBLIC_SECONDARY_BACKEND_URL = "https://nemoraxbackend-production.up.railway.app"
 _PRODUCTION_ENVIRONMENTS = {"production"}
 
 
 def _normalize_api_url(value: str) -> str:
-    return value.strip().rstrip("/")
+    normalized = value.strip().rstrip("/")
+    if normalized and "://" not in normalized:
+        normalized = f"https://{normalized}"
+    return normalized
 
 
 def _split_api_urls(value: str) -> list[str]:
@@ -39,13 +45,20 @@ def _environment_name() -> str:
 
 
 def _resolve_backend_urls() -> list[str]:
-    configured = _split_api_urls(os.getenv("NEMORAX_API_URL", ""))
-    fallback = _split_api_urls(os.getenv("NEMORAX_API_FALLBACK_URLS", ""))
+    primary = _split_api_urls(os.getenv("NEMIS_PRIMARY_BACKEND_URL", ""))
+    secondary = _split_api_urls(os.getenv("NEMIS_SECONDARY_BACKEND_URL", ""))
+    configured = primary or _split_api_urls(os.getenv("NEMORAX_API_URL", ""))
+    fallback = secondary + _split_api_urls(os.getenv("NEMORAX_API_FALLBACK_URLS", ""))
     if configured:
         urls = configured + [url for url in fallback if url not in configured]
         return urls
+    public_defaults = [PUBLIC_PRIMARY_BACKEND_URL, PUBLIC_SECONDARY_BACKEND_URL]
     if _environment_name() in _PRODUCTION_ENVIRONMENTS:
-        return []
+        return public_defaults
+    if "NEMORAX_ENV" not in os.environ and sys.platform not in {"win32", "darwin"}:
+        return public_defaults
+    if os.getenv("FLET_APP_STORAGE_DATA") or os.getenv("FLET_APP_CONSOLE"):
+        return public_defaults
     return [LOCAL_BACKEND_URL]
 
 

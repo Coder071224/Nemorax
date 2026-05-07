@@ -51,6 +51,8 @@ The rest of the app talks to `ChatService`, not directly to a specific model ven
 Use these canonical variables:
 
 - `NEMORAX_ENV`: `development`, `production`, or `test`
+- `NEMIS_PRIMARY_BACKEND_URL`: preferred frontend primary backend URL, for example Render
+- `NEMIS_SECONDARY_BACKEND_URL`: preferred frontend fallback backend URL, for example Railway
 - `NEMORAX_API_URL`: frontend-facing backend API base URL
 - `NEMORAX_API_FALLBACK_URLS`: optional comma-separated fallback backend URLs for deployed frontends
 - `BACKEND_HOST`: backend bind host

@@ -45,6 +45,53 @@ class FrontendApiConfigTests(unittest.TestCase):
             ["https://nemorax-backend.onrender.com", "https://fallback.example.com"],
         )
 
+    def test_nemis_primary_secondary_envs_drive_cross_host_failover(self) -> None:
+        with patch.dict(
+            os.environ,
+            {
+                "NEMORAX_ENV": "production",
+                "NEMIS_PRIMARY_BACKEND_URL": "https://render.example.com/",
+                "NEMIS_SECONDARY_BACKEND_URL": "https://railway.example.com/",
+                "NEMORAX_API_URL": "https://legacy.example.com/",
+            },
+            clear=True,
+        ):
+            config = self._reload_config()
+
+        self.assertEqual(
+            config.get_api_base_urls(),
+            ["https://render.example.com", "https://railway.example.com"],
+        )
+
+    def test_backend_urls_without_scheme_default_to_https(self) -> None:
+        with patch.dict(
+            os.environ,
+            {
+                "NEMORAX_ENV": "production",
+                "NEMIS_PRIMARY_BACKEND_URL": "render.example.com",
+                "NEMIS_SECONDARY_BACKEND_URL": "railway.example.com",
+            },
+            clear=True,
+        ):
+            config = self._reload_config()
+
+        self.assertEqual(
+            config.get_api_base_urls(),
+            ["https://render.example.com", "https://railway.example.com"],
+        )
+
+    def test_production_without_env_uses_public_cross_host_defaults(self) -> None:
+        with patch.dict(os.environ, {"NEMORAX_ENV": "production"}, clear=True):
+            config = self._reload_config()
+
+        self.assertEqual(
+            config.get_api_base_urls(),
+            [
+                "https://nemorax-backend-c1ma.onrender.com",
+                "https://nemoraxbackend-production.up.railway.app",
+            ],
+        )
+
     def test_api_client_tries_fallback_after_temporary_backend_error(self) -> None:
         from nemorax.frontend import api_client
 

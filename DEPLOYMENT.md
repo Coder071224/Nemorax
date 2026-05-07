@@ -72,8 +72,10 @@ python serve_web.py
 Set:
 
 - `NEMORAX_ENV=production`
-- `NEMORAX_API_URL=https://nemorax-backend-c1ma.onrender.com`
-- `NEMORAX_API_FALLBACK_URLS=<optional Railway backend URL>`
+- `NEMIS_PRIMARY_BACKEND_URL=https://nemorax-backend-c1ma.onrender.com`
+- `NEMIS_SECONDARY_BACKEND_URL=<Railway backend URL>`
+- `NEMORAX_API_URL=https://nemorax-backend-c1ma.onrender.com` if you need the legacy single-target variable
+- `NEMORAX_API_FALLBACK_URLS=<optional additional backend URLs>`
 
 The Flet service reads Render's `PORT` in production and falls back to `8000` locally. Do not deploy Flet as static-only unless the app is explicitly changed for that later.
 
