@@ -2,11 +2,14 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
-from zoneinfo import ZoneInfo
+from datetime import datetime, timedelta, timezone
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 
-PH_TZ = ZoneInfo("Asia/Manila")
+try:
+    PH_TZ = ZoneInfo("Asia/Manila")
+except ZoneInfoNotFoundError:
+    PH_TZ = timezone(timedelta(hours=8), name="Asia/Manila")
 
 
 def ph_now() -> datetime:

@@ -5,13 +5,20 @@ window.NEMORAX_SITE_CONFIG = {
     releaseTag: "v1.1.1",
     assets: {
       windows: "Nemorax.exe",
-      android: "app-release.apk"
+      android: "Nemis.apk"
     }
   },
   release: {
     version: "1.0.0",
-    channel: "Initial Release",
-    updated: "April 12, 2026"
+    channel: "Android APK Release",
+    updated: "May 7, 2026",
+    downloads: {
+      android: {
+        url: "downloads/Nemis.apk",
+        label: "Download Android APK",
+        status: "Official Android APK direct download from this website."
+      }
+    }
   },
   support: {
     email: "",

@@ -26,9 +26,21 @@
     }
   };
   const configuredRelease = siteConfig.release || {};
+  const configuredDownloads = configuredRelease.downloads || {};
   release.version = configuredRelease.version || release.version;
   release.channel = configuredRelease.channel || release.channel;
   release.updated = configuredRelease.updated || release.updated;
+
+  Object.keys(configuredDownloads).forEach((platform) => {
+    if (!release.downloads[platform]) {
+      return;
+    }
+
+    release.downloads[platform] = {
+      ...release.downloads[platform],
+      ...configuredDownloads[platform]
+    };
+  });
 
   function buildGitHubReleaseUrl(assetName) {
     if (!github.owner || !github.repo || !assetName) {
@@ -49,12 +61,12 @@
     release.downloads.android.url = buildGitHubReleaseUrl(githubAssets.android || "");
   }
 
-  if (release.downloads.windows.url) {
+  if (release.downloads.windows.url && !configuredDownloads.windows) {
     release.downloads.windows.label = "Download Windows build";
     release.downloads.windows.status = "Official Windows release hosted through GitHub Releases.";
   }
 
-  if (release.downloads.android.url) {
+  if (release.downloads.android.url && !configuredDownloads.android) {
     release.downloads.android.label = "Download Android build";
     release.downloads.android.status = "Official Android APK hosted through GitHub Releases.";
   }
@@ -82,6 +94,9 @@
       link.className = "download-button";
       link.href = config.url;
       link.rel = "noopener";
+      if (config.download) {
+        link.download = config.download === true ? "" : config.download;
+      }
       if (platform === "windows") {
         link.textContent = "Download Windows build";
       } else if (platform === "android") {
