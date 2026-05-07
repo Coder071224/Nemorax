@@ -12,6 +12,7 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from nemorax.frontend import preferences
+from nemorax.frontend.app_state import AppState
 from nemorax.frontend.config import (
     DEFAULT_THEME,
     apply_theme,
@@ -19,6 +20,7 @@ from nemorax.frontend.config import (
     normalize_user_settings,
     resolve_theme_name,
     should_show_splash,
+    THEMES,
 )
 from nemorax.frontend.api_client import ApiClientError
 from nemorax.frontend.history_service import HistoryService
@@ -79,6 +81,22 @@ class FrontendPreferenceTests(unittest.TestCase):
 
         self.assertEqual(current_theme().name, "Emerald Noir")
         self.assertEqual(other_context.run(current_theme).name, "Glacier Pearl")
+
+    def test_app_state_reactivates_theme_in_new_callback_context(self) -> None:
+        state = AppState("emerald_noir")
+        apply_theme("aurora_luxe")
+
+        other_context = contextvars.copy_context()
+        other_context.run(state.activate_theme)
+
+        self.assertEqual(other_context.run(current_theme).name, "Emerald Noir")
+
+    def test_emerald_noir_visible_controls_do_not_use_purple_defaults(self) -> None:
+        theme = THEMES["emerald_noir"]
+
+        self.assertEqual(theme.send_btn, "#0E8F7B")
+        self.assertEqual(theme.bot_bubble, "#173D38")
+        self.assertEqual(theme.grad_bottom, "#071816")
 
     def test_local_theme_keys_are_isolated_by_guest_and_user(self) -> None:
         page = _FakePage()

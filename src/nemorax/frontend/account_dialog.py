@@ -12,7 +12,7 @@ from typing import Any
 import flet as ft
 
 from nemorax.frontend import api_client
-from nemorax.frontend.config import current_theme, normalize_user_settings
+from nemorax.frontend.config import DEFAULT_THEME, THEMES, apply_theme, current_theme, normalize_user_settings
 
 
 RECOVERY_QUESTIONS = [
@@ -53,6 +53,7 @@ class AccountDialog:
         on_logout: Callable[[], None],
         on_guest: Callable[[], None],
         on_user_update: Callable[[UserInfo], None],
+        theme_name: str | None = None,
     ) -> None:
         self._page = page
         self._current_user = current_user
@@ -61,6 +62,7 @@ class AccountDialog:
         self._on_logout = on_logout
         self._on_guest = on_guest
         self._on_user_update = on_user_update
+        self._theme_name = theme_name if theme_name in THEMES else DEFAULT_THEME
 
         self._view = self._VIEW_LOGGED_IN if current_user else self._VIEW_LANDING
         self._error_text = ""
@@ -99,7 +101,11 @@ class AccountDialog:
         self._display_name_save_ref = ft.Ref[ft.Button]()
         self._display_name_remove_ref = ft.Ref[ft.TextButton]()
 
+    def _activate_theme_context(self):
+        return apply_theme(self._theme_name)
+
     def open(self) -> None:
+        self._activate_theme_context()
         self._overlay_container = self._build_overlay()
         self._page.overlay.append(self._overlay_container)
         self._page.update()
@@ -122,6 +128,7 @@ class AccountDialog:
 
     def _run_on_ui(self, callback: Callable[[], None]) -> None:
         async def _runner() -> None:
+            self._activate_theme_context()
             callback()
 
         self._page.run_task(_runner)
@@ -144,6 +151,7 @@ class AccountDialog:
         self._page.update()
 
     def _show_history_info_dialog(self) -> None:
+        self._activate_theme_context()
         theme = current_theme()
         dialog: ft.AlertDialog | None = None
         page_width, _ = self._page_size()
@@ -303,6 +311,7 @@ class AccountDialog:
         self._run_in_thread(_worker)
 
     def _navigate(self, view: str) -> None:
+        self._activate_theme_context()
         self._view = view
         self._error_text = ""
         self._success_text = ""
@@ -316,11 +325,13 @@ class AccountDialog:
         self._refresh_content()
 
     def _set_error(self, message: str) -> None:
+        self._activate_theme_context()
         self._error_text = message
         self._success_text = ""
         self._refresh_content()
 
     def _set_success(self, message: str) -> None:
+        self._activate_theme_context()
         self._success_text = message
         self._error_text = ""
         self._refresh_content()
@@ -336,6 +347,7 @@ class AccountDialog:
         return (user_id, email, display_name, settings)
 
     def _refresh_content(self) -> None:
+        self._activate_theme_context()
         if self._content_ref.current is None:
             return
 
@@ -354,6 +366,7 @@ class AccountDialog:
         return ft.BorderRadius.all(_PANEL_RADIUS)
 
     def _build_overlay(self) -> ft.Container:
+        self._activate_theme_context()
         theme = current_theme()
         page_width, page_height = self._page_size()
         panel_padding = 18 if self._is_mobile else _PANEL_PADDING
@@ -385,6 +398,7 @@ class AccountDialog:
         )
 
     def _build_content_host(self) -> ft.Control:
+        self._activate_theme_context()
         return ft.Column(
             expand=True,
             spacing=0,
@@ -393,6 +407,7 @@ class AccountDialog:
         )
 
     def _build_view(self) -> ft.Control:
+        self._activate_theme_context()
         if self._view == self._VIEW_LOGGED_IN:
             return self._view_logged_in()
         if self._view == self._VIEW_LOGIN:

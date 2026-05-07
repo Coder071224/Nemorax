@@ -18,6 +18,11 @@ from nemorax.frontend.responsive import is_desktop, is_web
 from nemorax.frontend.splash_page import SplashPage
 
 
+_STARTUP_BG = "#081018"
+_STARTUP_TEXT = "#CBD5E1"
+_STARTUP_ACCENT = "#6EE7B7"
+
+
 def _clear_page_overlays(page: ft.Page) -> None:
     if not page.overlay:
         return
@@ -33,19 +38,19 @@ def _mount_fullscreen(page: ft.Page, control: ft.Control) -> None:
 
 
 def _build_startup_loader() -> ft.Control:
-    theme = current_theme()
     return ft.Container(
         expand=True,
+        bgcolor=_STARTUP_BG,
         alignment=ft.Alignment(0, 0),
         content=ft.Column(
             tight=True,
             horizontal_alignment=ft.CrossAxisAlignment.CENTER,
             controls=[
-                ft.ProgressRing(width=28, height=28, stroke_width=3, color=theme.accent),
+                ft.ProgressRing(width=28, height=28, stroke_width=3, color=_STARTUP_ACCENT),
                 ft.Text(
                     "Restoring session...",
                     size=14,
-                    color=theme.text_secondary,
+                    color=_STARTUP_TEXT,
                 ),
             ],
         ),
@@ -72,7 +77,7 @@ async def main(page: ft.Page) -> None:
     page.title = f"{APP_NAME} by {BRAND_NAME}"
     page.padding = 0
     page.spacing = 0
-    page.bgcolor = current_theme().grad_bottom
+    page.bgcolor = _STARTUP_BG
     page.theme_mode = ft.ThemeMode.DARK
     page.scroll = ft.ScrollMode.HIDDEN
     page.horizontal_alignment = ft.CrossAxisAlignment.STRETCH

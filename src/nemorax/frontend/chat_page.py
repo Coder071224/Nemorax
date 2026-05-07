@@ -17,6 +17,7 @@ import flet as ft
 
 from nemorax.frontend import api_client
 from nemorax.frontend.account_dialog import AccountDialog
+from nemorax.frontend.app_state import AppState
 from nemorax.frontend.auth_session import clear_auth_session, resolve_login_auth_user
 from nemorax.frontend.config import (
     APP_NAME,
@@ -79,8 +80,8 @@ class ChatPage(ft.Container):
         self._sending = False
         self._sidebar_expanded = False
         self._settings_open = False
-        self._theme_name = DEFAULT_THEME
         self._guest_theme_name = initial_theme_name if initial_theme_name in THEMES else DEFAULT_THEME
+        self._state = AppState(self._guest_theme_name)
         self._session_greeting_name = self._roll_greeting_name()
 
         self._mobile_backdrop: ft.Container | None = None
@@ -282,9 +283,14 @@ class ChatPage(ft.Container):
         return should_show_splash(user if user is not None else self._current_user)
 
     def _set_theme_runtime(self, name: str) -> None:
-        theme_name = name if name in THEMES else DEFAULT_THEME
-        apply_theme(theme_name)
-        self._theme_name = theme_name
+        self._state.set_theme(name)
+
+    def _activate_theme_context(self):
+        return self._state.activate_theme()
+
+    @property
+    def _theme_name(self) -> str:
+        return self._state.active_theme_name
 
     def _persist_user_settings(self, updates: dict[str, Any], user: UserInfo | None = None) -> None:
         target_user = user if user is not None else self._current_user
@@ -422,6 +428,7 @@ class ChatPage(ft.Container):
     # Mobile drawer
 
     def _sync_mobile_drawer(self) -> None:
+        self._activate_theme_context()
         if not self._is_mobile:
             return
 
@@ -442,12 +449,14 @@ class ChatPage(ft.Container):
         self._safe_update(self)
 
     def _close_drawer(self, e=None) -> None:
+        self._activate_theme_context()
         if not self._custom_drawer_open:
             return
         self._custom_drawer_open = False
         self._sync_mobile_drawer()
 
     def _open_drawer(self, e=None) -> None:
+        self._activate_theme_context()
         if not self._is_mobile:
             return
         self._custom_drawer_open = True
@@ -469,6 +478,7 @@ class ChatPage(ft.Container):
         selected: bool,
         cfg: dict[str, Any],
     ) -> ft.Control:
+        self._activate_theme_context()
         theme = current_theme()
         subtitle = self._drawer_subtitle(conversation)
 
@@ -506,6 +516,7 @@ class ChatPage(ft.Container):
         self._open_settings_dialog()
 
     def _build_custom_drawer(self, cfg: dict[str, Any]) -> ft.Container:
+        self._activate_theme_context()
         theme = current_theme()
         current_id = self._history.current_conversation.id if self._history.current_conversation else None
 
@@ -650,6 +661,7 @@ class ChatPage(ft.Container):
         self._safe_page_update()
 
     def _open_settings_dialog(self) -> None:
+        self._activate_theme_context()
         theme = current_theme()
         dialog_ref = ft.Ref[ft.AlertDialog]()
         page_width = float(self._page.width or 360)
@@ -714,6 +726,7 @@ class ChatPage(ft.Container):
         self._safe_page_update()
 
     def _toggle_settings(self, e=None) -> None:
+        self._activate_theme_context()
         if self._is_mobile:
             self._open_settings_dialog()
             return
@@ -728,6 +741,7 @@ class ChatPage(ft.Container):
         self._safe_update(self._settings_panel)
 
     def _apply_theme(self, name: str) -> None:
+        self._activate_theme_context()
         theme_name = name if name in THEMES else DEFAULT_THEME
         if theme_name == self._theme_name:
             if self._is_mobile:
@@ -745,6 +759,7 @@ class ChatPage(ft.Container):
         if self._is_mobile:
             self._custom_drawer_open = False
 
+        self._dismiss_theme_sensitive_overlays()
         had_messages = self._current_conversation_has_messages()
 
         self._refresh()
@@ -758,6 +773,7 @@ class ChatPage(ft.Container):
     # UI assembly
 
     def _refresh(self) -> None:
+        self._activate_theme_context()
         theme = current_theme()
         self.width = float(self._page.width or 1320)
         self.height = self._page_height()
@@ -1223,6 +1239,7 @@ class ChatPage(ft.Container):
         )
 
     def _build_sidebar(self) -> SidebarPanel:
+        self._activate_theme_context()
         current_id = self._history.current_conversation.id if self._history.current_conversation else None
         return SidebarPanel(
             expanded=self._sidebar_expanded,
@@ -1346,6 +1363,7 @@ class ChatPage(ft.Container):
         )
 
     def _build_settings_panel(self) -> ft.Container:
+        self._activate_theme_context()
         theme = current_theme()
 
         inner = ft.Container(
@@ -1412,6 +1430,7 @@ class ChatPage(ft.Container):
         )
 
     def _assemble(self) -> ft.Control:
+        self._activate_theme_context()
         theme = current_theme()
         cfg = get_layout_config(self._page)
 
@@ -1493,10 +1512,12 @@ class ChatPage(ft.Container):
     # Account handlers
 
     def _handle_account(self, e=None) -> None:
+        self._activate_theme_context()
         AccountDialog(
             page=self._page,
             current_user=self._current_user,
             is_mobile=self._is_mobile,
+            theme_name=self._theme_name,
             on_login=self._handle_login,
             on_logout=self._handle_logout,
             on_guest=self._handle_guest_continue,
@@ -1504,13 +1525,13 @@ class ChatPage(ft.Container):
         ).open()
 
     def _handle_login(self, user: UserInfo) -> None:
+        self._activate_theme_context()
         self._dismiss_history_context_menu()
         self._dismiss_history_delete_sheet()
         self._auth_transition_id += 1
         transition_id = self._auth_transition_id
         self._cancel_pending_chat_request()
         self._reset_session_greeting_name()
-        self._set_theme_runtime(DEFAULT_THEME)
         self._show_auth_banner("Signing in and loading your account...", "success")
         self._refresh()
         self._safe_update(self)
@@ -1523,7 +1544,7 @@ class ChatPage(ft.Container):
                 if transition_id != self._auth_transition_id:
                     return
                 if profile is None:
-                    self._set_theme_runtime(DEFAULT_THEME)
+                    self._activate_theme_context()
                     self._show_auth_banner("Unable to restore this account right now.", "error")
                     self._refresh()
                     self._safe_update(self)
@@ -1567,13 +1588,14 @@ class ChatPage(ft.Container):
         self._run_in_thread(_background_work)
 
     def _handle_logout(self) -> None:
+        self._activate_theme_context()
         self._dismiss_history_context_menu()
         self._dismiss_history_delete_sheet()
         self._auth_transition_id += 1
         self._current_user = None
         self._cancel_pending_chat_request()
         self._reset_session_greeting_name()
-        self._set_theme_runtime(DEFAULT_THEME)
+        self._set_theme_runtime(self._guest_theme_name)
 
         self._history.reload(None)
         self._history.new_conversation()
@@ -1593,6 +1615,7 @@ class ChatPage(ft.Container):
         self._page.run_task(self._restore_guest_theme_after_logout)
 
     async def _restore_guest_theme_after_logout(self) -> None:
+        self._activate_theme_context()
         theme_name = await load_local_theme(self._page)
         if self._current_user is not None or theme_name == self._theme_name:
             return
@@ -1603,6 +1626,7 @@ class ChatPage(ft.Container):
         self._refresh_sidebar()
 
     def _handle_guest_continue(self) -> None:
+        self._activate_theme_context()
         self._dismiss_history_context_menu()
         self._dismiss_history_delete_sheet()
         if self._current_user is None:
@@ -1610,6 +1634,7 @@ class ChatPage(ft.Container):
         self._show_auth_banner("Continuing as guest.", "success")
 
     def _handle_user_update(self, user: UserInfo) -> None:
+        self._activate_theme_context()
         if _user_state_snapshot(user) == _user_state_snapshot(self._current_user):
             return
         self._current_user = user
@@ -1631,6 +1656,7 @@ class ChatPage(ft.Container):
     # Message flow
 
     def _handle_send(self, e=None) -> None:
+        self._activate_theme_context()
         text = (self._input.value or "").strip() if self._input else ""
         if text:
             self._send_message(text)
@@ -1649,6 +1675,7 @@ class ChatPage(ft.Container):
         self._on_error(error, session_id)
 
     def _send_message(self, text: str) -> None:
+        self._activate_theme_context()
         if self._sending:
             return
 
@@ -1696,6 +1723,7 @@ class ChatPage(ft.Container):
             self._unlock_input()
 
     def _on_response(self, response: str, session_id: str) -> None:
+        self._activate_theme_context()
         if self._pending_request_session_id != session_id:
             return
 
@@ -1713,6 +1741,7 @@ class ChatPage(ft.Container):
         self._unlock_input()
 
     def _on_error(self, error: str, session_id: str) -> None:
+        self._activate_theme_context()
         if self._pending_request_session_id != session_id:
             return
 
@@ -1726,6 +1755,7 @@ class ChatPage(ft.Container):
     # Conversation / sidebar
 
     def _refresh_sidebar(self) -> None:
+        self._activate_theme_context()
         if self._is_mobile:
             if self._mobile_drawer_container is None:
                 return
@@ -1754,6 +1784,7 @@ class ChatPage(ft.Container):
         self._safe_update(self._sidebar_host)
 
     def _render_conversation(self) -> None:
+        self._activate_theme_context()
         conversation = self._history.current_conversation
         if self._message_list is None or self._chat_host is None:
             return
@@ -1809,6 +1840,7 @@ class ChatPage(ft.Container):
         self._refresh_sidebar()
 
     def _toggle_sidebar(self, e=None) -> None:
+        self._activate_theme_context()
         if self._is_mobile:
             return
         self._sidebar_expanded = not self._sidebar_expanded
@@ -1816,6 +1848,7 @@ class ChatPage(ft.Container):
         self._safe_update(self)
 
     def _load_conversation(self, conversation_id: str) -> None:
+        self._activate_theme_context()
         self._dismiss_history_context_menu()
         self._dismiss_history_delete_sheet()
         if self._history.switch_conversation(conversation_id):
@@ -1823,6 +1856,7 @@ class ChatPage(ft.Container):
             self._render_conversation()
 
     def _handle_new_chat(self, e=None) -> None:
+        self._activate_theme_context()
         self._dismiss_history_context_menu()
         self._dismiss_history_delete_sheet()
         self._auth_banner = None
@@ -1853,19 +1887,28 @@ class ChatPage(ft.Container):
         self._safe_page_update()
         self._remove_overlay_control(sheet)
 
+    def _dismiss_theme_sensitive_overlays(self) -> None:
+        self._history_context_menu_overlay = None
+        self._history_delete_sheet = None
+        self._page.overlay.clear()
+        self._safe_page_update()
+
     def _handle_history_secondary_tap(self, conversation_id: str, position: Any) -> None:
+        self._activate_theme_context()
         if self._is_mobile:
             return
         self._dismiss_history_delete_sheet()
         self._show_history_context_menu(conversation_id, position)
 
     def _handle_history_long_press(self, conversation_id: str) -> None:
+        self._activate_theme_context()
         if not self._is_mobile:
             return
         self._dismiss_history_context_menu()
         self._show_history_delete_sheet(conversation_id)
 
     def _show_history_context_menu(self, conversation_id: str, position: Any) -> None:
+        self._activate_theme_context()
         self._dismiss_history_context_menu()
         theme = current_theme()
 
@@ -1945,6 +1988,7 @@ class ChatPage(ft.Container):
         self._append_overlay_control(overlay)
 
     def _show_history_delete_sheet(self, conversation_id: str) -> None:
+        self._activate_theme_context()
         self._dismiss_history_delete_sheet()
         theme = current_theme()
 
@@ -2011,6 +2055,7 @@ class ChatPage(ft.Container):
         self._safe_page_update()
 
     def _delete_conversation(self, conversation_id: str) -> None:
+        self._activate_theme_context()
         self._dismiss_history_context_menu()
 
         was_current = (
@@ -2066,6 +2111,7 @@ class ChatPage(ft.Container):
         self._page.run_task(_restore)
 
     def _handle_welcome_toggle(self, event: ft.ControlEvent) -> None:
+        self._activate_theme_context()
         if self._current_user is None:
             self._refresh()
             self._safe_update(self)
@@ -2075,6 +2121,7 @@ class ChatPage(ft.Container):
         self._safe_update(self)
 
     def _handle_show_splash(self, e=None) -> None:
+        self._activate_theme_context()
         self._custom_drawer_open = False
 
         def open_chat_again() -> None:
@@ -2104,6 +2151,7 @@ class ChatPage(ft.Container):
         self._safe_page_update()
 
     def _handle_info(self, e=None) -> None:
+        self._activate_theme_context()
         theme = current_theme()
         dialog_ref = ft.Ref[ft.AlertDialog]()
 
@@ -2173,6 +2221,7 @@ class ChatPage(ft.Container):
         self._open_dialog(dialog)
 
     def _handle_feedback(self, e=None) -> None:
+        self._activate_theme_context()
         theme = current_theme()
         dialog_ref = ft.Ref[ft.AlertDialog]()
 
