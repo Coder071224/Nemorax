@@ -25,6 +25,10 @@ async def finalize_login_auth_session(page: ft.Page, user: UserInfo | None) -> U
     return await _resolve_auth_session(page, user, allow_fallback_user=True)
 
 
+async def resolve_login_auth_user(user: UserInfo | None) -> UserInfo | None:
+    return await _resolve_auth_user(user, allow_fallback_user=True)
+
+
 async def refresh_auth_session(page: ft.Page, user: UserInfo | None) -> UserInfo | None:
     return await _resolve_auth_session(page, user, allow_fallback_user=False)
 
@@ -39,9 +43,22 @@ async def _resolve_auth_session(
     *,
     allow_fallback_user: bool,
 ) -> UserInfo | None:
+    resolved = await _resolve_auth_user(user, allow_fallback_user=allow_fallback_user)
+    if resolved is None:
+        await clear_auth_session(page)
+        return None
+
+    await save_native_auth_session(page, resolved)
+    return resolved
+
+
+async def _resolve_auth_user(
+    user: UserInfo | None,
+    *,
+    allow_fallback_user: bool,
+) -> UserInfo | None:
     candidate = sanitize_native_session_user(user)
     if candidate is None:
-        await clear_auth_session(page)
         return None
 
     profile = await asyncio.to_thread(api_client.load_user_profile, candidate["user_id"])
@@ -50,8 +67,6 @@ async def _resolve_auth_session(
         resolved = candidate
 
     if resolved is None:
-        await clear_auth_session(page)
         return None
 
-    await save_native_auth_session(page, resolved)
     return resolved

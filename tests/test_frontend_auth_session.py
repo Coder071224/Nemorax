@@ -79,6 +79,33 @@ def test_finalize_login_auth_session_falls_back_to_login_payload(monkeypatch) ->
     }
 
 
+def test_resolve_login_auth_user_does_not_touch_page_storage(monkeypatch) -> None:
+    def _fake_load_profile(user_id: str):
+        assert user_id == "user-1"
+        return {
+            "user_id": "user-1",
+            "email": "user@example.com",
+            "settings": {"theme": "glacier_pearl"},
+        }
+
+    monkeypatch.setattr(auth_session.api_client, "load_user_profile", _fake_load_profile)
+
+    resolved = asyncio.run(
+        auth_session.resolve_login_auth_user(
+            {
+                "user_id": "user-1",
+                "email": "user@example.com",
+            }
+        )
+    )
+
+    assert resolved == {
+        "user_id": "user-1",
+        "email": "user@example.com",
+        "settings": {"theme": "glacier_pearl"},
+    }
+
+
 def test_refresh_auth_session_clears_invalid_state(monkeypatch) -> None:
     cleared = {"called": False}
 

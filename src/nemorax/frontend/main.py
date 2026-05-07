@@ -12,7 +12,8 @@ import flet as ft
 from nemorax.frontend import api_client
 from nemorax.frontend.auth_session import restore_startup_auth_session
 from nemorax.frontend.chat_page import ChatPage
-from nemorax.frontend.config import APP_NAME, BRAND_NAME, current_theme, should_show_splash
+from nemorax.frontend.config import APP_NAME, BRAND_NAME, DEFAULT_THEME, apply_theme, current_theme, resolve_theme_name, should_show_splash
+from nemorax.frontend.preferences import load_local_theme
 from nemorax.frontend.responsive import is_desktop, is_web
 from nemorax.frontend.splash_page import SplashPage
 
@@ -67,6 +68,7 @@ async def _configure_desktop_window(page: ft.Page) -> None:
 
 
 async def main(page: ft.Page) -> None:
+    apply_theme(DEFAULT_THEME)
     page.title = f"{APP_NAME} by {BRAND_NAME}"
     page.padding = 0
     page.spacing = 0
@@ -79,9 +81,21 @@ async def main(page: ft.Page) -> None:
     await _configure_desktop_window(page)
     _mount_fullscreen(page, _build_startup_loader())
     restored_user = await restore_startup_auth_session(page)
+    if restored_user:
+        initial_theme_name = resolve_theme_name(restored_user)
+        settings = restored_user.get("settings", {})
+        if not isinstance(settings, dict) or "theme" not in settings:
+            initial_theme_name = await load_local_theme(page, restored_user["user_id"])
+    else:
+        initial_theme_name = await load_local_theme(page)
+    apply_theme(initial_theme_name)
+    page.bgcolor = current_theme().grad_bottom
 
     def open_chat() -> None:
-        _mount_fullscreen(page, ChatPage(page, initial_user=restored_user))
+        _mount_fullscreen(
+            page,
+            ChatPage(page, initial_user=restored_user, initial_theme_name=initial_theme_name),
+        )
 
     def persist_restored_user_splash(show_splash: bool) -> None:
         if not restored_user:
@@ -107,7 +121,11 @@ async def main(page: ft.Page) -> None:
             on_splash_preference_change=persist_restored_user_splash if restored_user else None,
         )
     else:
-        initial_view = ChatPage(page, initial_user=restored_user)
+        initial_view = ChatPage(
+            page,
+            initial_user=restored_user,
+            initial_theme_name=initial_theme_name,
+        )
 
     _mount_fullscreen(page, initial_view)
 

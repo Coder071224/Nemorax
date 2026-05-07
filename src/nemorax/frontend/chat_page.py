@@ -17,7 +17,7 @@ import flet as ft
 
 from nemorax.frontend import api_client
 from nemorax.frontend.account_dialog import AccountDialog
-from nemorax.frontend.auth_session import clear_auth_session, finalize_login_auth_session
+from nemorax.frontend.auth_session import clear_auth_session, resolve_login_auth_user
 from nemorax.frontend.config import (
     APP_NAME,
     DEFAULT_THEME,
@@ -34,6 +34,7 @@ from nemorax.frontend.config import (
 from nemorax.frontend.history_service import Conversation, HistoryService, Message
 from nemorax.frontend.message_bubble import assistant_bubble, typing_indicator, user_bubble
 from nemorax.frontend.native_auth import save_native_auth_session
+from nemorax.frontend.preferences import load_local_theme, save_local_theme
 from nemorax.frontend.responsive import get_layout_config, should_use_mobile_layout
 from nemorax.frontend.sidebar import SidebarPanel
 from nemorax.frontend.splash_page import SplashPage
@@ -63,7 +64,12 @@ def _user_state_snapshot(user: UserInfo | None) -> tuple[str, str, str, tuple[tu
 
 
 class ChatPage(ft.Container):
-    def __init__(self, page: ft.Page, initial_user: UserInfo | None = None) -> None:
+    def __init__(
+        self,
+        page: ft.Page,
+        initial_user: UserInfo | None = None,
+        initial_theme_name: str | None = None,
+    ) -> None:
         super().__init__()
         self._page = page
         initial_user_id = str((initial_user or {}).get("user_id", "")).strip() or None
@@ -74,6 +80,7 @@ class ChatPage(ft.Container):
         self._sidebar_expanded = False
         self._settings_open = False
         self._theme_name = DEFAULT_THEME
+        self._guest_theme_name = initial_theme_name if initial_theme_name in THEMES else DEFAULT_THEME
         self._session_greeting_name = self._roll_greeting_name()
 
         self._mobile_backdrop: ft.Container | None = None
@@ -115,6 +122,8 @@ class ChatPage(ft.Container):
 
         if initial_user is not None:
             self._set_theme_runtime(self._resolved_theme_name(initial_user))
+        else:
+            self._set_theme_runtime(self._guest_theme_name)
         self._history.new_conversation()
         self._update_mobile_state()
         self._refresh()
@@ -309,10 +318,19 @@ class ChatPage(ft.Container):
                 dict(updates),
             )
         )
+        theme_name = updates.get("theme")
+        if isinstance(theme_name, str) and theme_name in THEMES:
+            self._page.run_task(save_local_theme, self._page, theme_name, user_id)
 
     def _show_authenticated_splash(self, user: UserInfo) -> None:
         def open_chat_again() -> None:
-            self._replace_page_content(ChatPage(self._page, initial_user=user))
+            self._replace_page_content(
+                ChatPage(
+                    self._page,
+                    initial_user=user,
+                    initial_theme_name=self._resolved_theme_name(user),
+                )
+            )
 
         self._replace_page_content(
             SplashPage(
@@ -720,6 +738,9 @@ class ChatPage(ft.Container):
 
         if self._current_user:
             self._persist_user_settings({"theme": theme_name})
+        else:
+            self._guest_theme_name = theme_name
+            self._page.run_task(save_local_theme, self._page, theme_name)
 
         if self._is_mobile:
             self._custom_drawer_open = False
@@ -1490,9 +1511,13 @@ class ChatPage(ft.Container):
         self._cancel_pending_chat_request()
         self._reset_session_greeting_name()
         self._set_theme_runtime(DEFAULT_THEME)
+        self._show_auth_banner("Signing in and loading your account...", "success")
+        self._refresh()
+        self._safe_update(self)
 
         def _background_work() -> None:
-            profile = asyncio.run(finalize_login_auth_session(self._page, user))
+            profile = asyncio.run(resolve_login_auth_user(user))
+            loaded_history = HistoryService(profile["user_id"]) if profile is not None else None
 
             async def _apply_on_ui() -> None:
                 if transition_id != self._auth_transition_id:
@@ -1504,28 +1529,38 @@ class ChatPage(ft.Container):
                     self._safe_update(self)
                     return
 
+                await save_native_auth_session(self._page, profile)
+                settings = normalize_user_settings(profile)
+                if "theme" not in settings:
+                    local_theme = await load_local_theme(self._page, profile["user_id"])
+                    if local_theme in THEMES:
+                        settings["theme"] = local_theme
+                        profile["settings"] = settings
+
                 self._current_user = profile
                 self._set_theme_runtime(self._resolved_theme_name(profile))
-                self._history.reload(profile["user_id"])
-                if self._resolved_show_splash(profile):
-                    self._show_authenticated_splash(profile)
-                    return
+                if loaded_history is not None:
+                    self._history = loaded_history
 
                 self._history.current_conversation = None
                 self._history.new_conversation()
                 self._clear_input()
 
-                banner_message = (
-                    "Logged in. Fresh new chat ready; your past conversations are in the sidebar."
-                    if self._history.conversations
-                    else "Logged in. Start your first conversation."
-                )
+                if self._history.load_error:
+                    banner_message = "Logged in, but history could not load right now."
+                    banner_kind = "error"
+                elif self._history.conversations:
+                    banner_message = "Logged in. Your past conversations are in the sidebar."
+                    banner_kind = "success"
+                else:
+                    banner_message = "Logged in. Start your first conversation."
+                    banner_kind = "success"
 
                 self._refresh()
                 self._safe_update(self)
                 self._render_conversation()
                 self._refresh_sidebar()
-                self._show_auth_banner(banner_message, "success")
+                self._show_auth_banner(banner_message, banner_kind)
 
             self._page.run_task(_apply_on_ui)
 
@@ -1555,6 +1590,17 @@ class ChatPage(ft.Container):
             "Signed out successfully. Continuing as guest.",
             "success",
         )
+        self._page.run_task(self._restore_guest_theme_after_logout)
+
+    async def _restore_guest_theme_after_logout(self) -> None:
+        theme_name = await load_local_theme(self._page)
+        if self._current_user is not None or theme_name == self._theme_name:
+            return
+        self._guest_theme_name = theme_name
+        self._set_theme_runtime(theme_name)
+        self._refresh()
+        self._safe_update(self)
+        self._refresh_sidebar()
 
     def _handle_guest_continue(self) -> None:
         self._dismiss_history_context_menu()
@@ -1574,6 +1620,11 @@ class ChatPage(ft.Container):
         self._refresh_sidebar()
         async def _save_native_session() -> None:
             await save_native_auth_session(self._page, user)
+            settings = normalize_user_settings(user)
+            theme_name = settings.get("theme")
+            user_id = str(user.get("user_id", "")).strip()
+            if isinstance(theme_name, str) and user_id:
+                await save_local_theme(self._page, theme_name, user_id)
 
         self._page.run_task(_save_native_session)
 
@@ -2027,7 +2078,13 @@ class ChatPage(ft.Container):
         self._custom_drawer_open = False
 
         def open_chat_again() -> None:
-            self._replace_page_content(ChatPage(self._page, initial_user=self._current_user))
+            self._replace_page_content(
+                ChatPage(
+                    self._page,
+                    initial_user=self._current_user,
+                    initial_theme_name=self._resolved_theme_name(),
+                )
+            )
 
         self._replace_page_content(
             SplashPage(

@@ -9,6 +9,7 @@ but all real secrets belong in backend/config.py or the deployment environment.
 from __future__ import annotations
 
 import os
+from contextvars import ContextVar
 from dataclasses import dataclass
 from typing import Any
 
@@ -229,7 +230,10 @@ class _Colors:
 
 Colors = _Colors()
 
-_CURRENT_THEME: ThemePalette = THEMES[DEFAULT_THEME]
+_CURRENT_THEME: ContextVar[ThemePalette] = ContextVar(
+    "nemorax_current_theme",
+    default=THEMES[DEFAULT_THEME],
+)
 
 
 def normalize_user_settings(source: Any) -> dict[str, Any]:
@@ -285,13 +289,13 @@ def should_show_splash(source: Any = None) -> bool:
 
 
 def apply_theme(name: str) -> ThemePalette:
-    global _CURRENT_THEME
-    _CURRENT_THEME = THEMES.get(name, THEMES[DEFAULT_THEME])
-    return _CURRENT_THEME
+    theme = THEMES.get(name, THEMES[DEFAULT_THEME])
+    _CURRENT_THEME.set(theme)
+    return theme
 
 
 def current_theme() -> ThemePalette:
-    return _CURRENT_THEME
+    return _CURRENT_THEME.get()
 
 
 apply_theme(DEFAULT_THEME)

@@ -5,6 +5,7 @@ from datetime import datetime
 import uuid
 
 from nemorax.frontend import api_client
+from nemorax.frontend.api_client import ApiClientError
 from nemorax.frontend.time_utils import parse_backend_datetime, ph_now
 
 _HISTORY_LIMIT = 10
@@ -40,6 +41,7 @@ class HistoryService:
         self.user_id = user_id
         self.conversations: list[Conversation] = []
         self.current_conversation: Conversation | None = None
+        self.load_error: str | None = None
 
         if user_id:
             self._load_from_backend()
@@ -49,7 +51,12 @@ class HistoryService:
             return
 
         self.conversations = []
-        items = api_client.list_history(self.user_id)
+        self.load_error = None
+        try:
+            items = api_client.list_history(self.user_id)
+        except ApiClientError as exc:
+            self.load_error = str(exc)
+            return
 
         for item in items:
             if not isinstance(item, dict):
@@ -76,6 +83,7 @@ class HistoryService:
         self.user_id = user_id
         self.conversations = []
         self.current_conversation = None
+        self.load_error = None
 
         if user_id:
             self._load_from_backend()

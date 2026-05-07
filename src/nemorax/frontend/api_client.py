@@ -247,10 +247,7 @@ def send_message(
 
 
 def list_history(user_id: str) -> list[JsonDict]:
-    try:
-        result = _get("/api/history", params={"user_id": user_id})
-    except ApiClientError:
-        return []
+    result = _get("/api/history", params={"user_id": user_id})
     return [item for item in result if isinstance(item, dict)] if isinstance(result, list) else []
 
 
