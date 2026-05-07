@@ -63,7 +63,8 @@ def _platform_config(page: ft.Page) -> PlatformConfig:
     # Mobile native and mobile web use almost-full-width cards so the layout
     # stays centered and never becomes a narrow side panel.
     if is_mobile:
-        card_width = max(280, page_width * 0.92)
+        # FIXED
+        card_width = min(max(280, page_width * 0.88), 400)
         return PlatformConfig(
             is_web=is_web,
             is_mobile=True,
@@ -79,7 +80,8 @@ def _platform_config(page: ft.Page) -> PlatformConfig:
     return PlatformConfig(
         is_web=is_web,
         is_mobile=False,
-        card_width=600,
+        # FIXED
+        card_width=520,
         card_padding_h=34,
         card_padding_v=34,
         font_scale=1.0,
@@ -310,7 +312,13 @@ async def main(page: ft.Page) -> None:
     print(f"[Nemis] Platform: {page.platform}, Web: {page.web}")
 
     page.title = "Nemis"
+    # FIXED
+    page.bgcolor = "#7B1FA2"
     page.padding = 0
+    # FIXED
+    if hasattr(page, "margin"):
+        # FIXED
+        page.margin = 0
     page.spacing = 0
     page.scroll = ft.ScrollMode.HIDDEN
     page.theme_mode = ft.ThemeMode.DARK
