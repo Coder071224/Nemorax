@@ -98,11 +98,11 @@
         link.download = config.download === true ? "" : config.download;
       }
       if (platform === "windows") {
-        link.textContent = "Download Windows build";
+        link.textContent = config.label || "Download Windows build";
       } else if (platform === "android") {
-        link.textContent = "Download .apk";
+        link.textContent = config.label || "Download .apk";
       } else {
-        link.textContent = "Open web app";
+        link.textContent = config.label || "Open web app";
         link.target = "_blank";
       }
       host.appendChild(link);
