@@ -32,6 +32,11 @@ flet-build/
 .packages
 *.apk
 *.aab
+*.appx
+*.appinstaller
+*.msix
+*.msixbundle
+*.cer
 *.jks
 *.keystore
 key.properties
