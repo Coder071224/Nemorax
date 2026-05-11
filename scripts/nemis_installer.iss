@@ -31,6 +31,10 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "{#AppSource}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#ProjectRoot}build\flutter\build\windows\x64\plugins\share_plus\Release\share_plus_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#ProjectRoot}build\flutter\build\windows\x64\plugins\url_launcher_windows\Release\url_launcher_windows_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#ProjectRoot}build\flutter\build\windows\x64\plugins\window_manager\Release\window_manager_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#ProjectRoot}build\flutter\build\windows\x64\plugins\window_to_front\Release\window_to_front_plugin.dll"; DestDir: "{app}"; Flags: ignoreversion
 
 [Icons]
 Name: "{autoprograms}\Nemis"; Filename: "{app}\Nemis.exe"
