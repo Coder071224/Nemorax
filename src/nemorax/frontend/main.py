@@ -178,8 +178,6 @@ def _build_startup_loader(page: ft.Page, app_state: AppState) -> ft.Control:
     return ft.Container(
         key="startup-loader-root",
         expand=True,
-        width=page_width,
-        height=page_height,
         bgcolor=theme.grad_bottom,
         clip_behavior=ft.ClipBehavior.HARD_EDGE,
         content=ft.Stack(

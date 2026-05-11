@@ -117,6 +117,8 @@ class FrontendPreferenceTests(unittest.TestCase):
         text_group = body.controls[4]
 
         self.assertEqual(loader.bgcolor, theme.grad_bottom)
+        self.assertTrue(loader.expand)
+        self.assertIsNone(loader.height)
         self.assertEqual(loader.content.controls[0].gradient.colors, [theme.grad_top, theme.grad_mid, theme.grad_bottom])
         self.assertEqual(card.bgcolor, ft.Colors.with_opacity(0.22, theme.sidebar_bg))
         self.assertEqual(progress.color, theme.accent)
