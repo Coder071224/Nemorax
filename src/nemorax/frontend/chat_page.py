@@ -112,6 +112,8 @@ class ChatPage(ft.Container):
         self._chat_bottom_anchor = ft.Container(key="chat-bottom-anchor", height=1)
         self._history_context_menu_overlay: ft.Stack | None = None
         self._history_delete_sheet: ft.BottomSheet | None = None
+        self._settings_dialog: ft.AlertDialog | None = None
+        self._settings_dialog_content: ft.Container | None = None
         self._scroll_to_latest_requested = False
         self._last_viewport_width = self._page_width()
         self._last_viewport_height = self._page_height()
@@ -325,7 +327,17 @@ class ChatPage(ft.Container):
         )
         theme_name = updates.get("theme")
         if isinstance(theme_name, str) and theme_name in THEMES:
-            self._page.run_task(save_local_theme, self._page, theme_name, user_id)
+            self._page.run_task(self._persist_theme_locally, theme_name, user_id, target_user)
+
+    async def _persist_theme_locally(
+        self,
+        theme_name: str,
+        user_id: str | None = None,
+        user: UserInfo | None = None,
+    ) -> None:
+        await save_local_theme(self._page, theme_name, user_id)
+        if user is not None:
+            await save_native_auth_session(self._page, user)
 
     def _show_authenticated_splash(self, user: UserInfo) -> None:
         def open_chat_again() -> None:
@@ -654,75 +666,94 @@ class ChatPage(ft.Container):
 
     # Settings
 
-    def _close_settings_dialog(self, ref: ft.Ref[ft.AlertDialog]) -> None:
-        if ref.current is None:
+    def _close_settings_dialog(self, dialog: ft.AlertDialog | None = None) -> None:
+        target = dialog or self._settings_dialog
+        if target is None:
             return
-        ref.current.open = False
+        target.open = False
+        if target in self._page.overlay:
+            self._page.overlay.remove(target)
+        if target is self._settings_dialog:
+            self._settings_dialog = None
+            self._settings_dialog_content = None
         self._safe_page_update()
 
     def _open_settings_dialog(self) -> None:
         self._activate_theme_context()
         theme = current_theme()
-        dialog_ref = ft.Ref[ft.AlertDialog]()
         page_width = float(self._page.width or 360)
         dialog_width = min(max(page_width - 24, 260), 340)
+        content_host = ft.Container(
+            width=dialog_width,
+            padding=ft.Padding.all(16),
+            content=self._build_settings_dialog_content(theme),
+        )
 
         dialog = ft.AlertDialog(
-            ref=dialog_ref,
             bgcolor=theme.dialog_bg,
             shape=ft.RoundedRectangleBorder(radius=24),
-            content=ft.Container(
-                width=dialog_width,
-                padding=ft.Padding.all(16),
-                content=ft.Column(
-                    spacing=12,
-                    tight=True,
-                    controls=[
-                        ft.Text(
-                            "Settings",
-                            size=20,
-                            weight=ft.FontWeight.W_800,
-                            color=theme.text_primary,
-                        ),
-                        ft.Text(
-                            "Choose theme and behavior",
-                            size=14,
-                            color=theme.text_secondary,
-                        ),
-                        ft.Divider(height=1),
-                        ft.Text(
-                            "Appearance",
-                            size=14,
-                            weight=ft.FontWeight.W_700,
-                            color=theme.text_muted,
-                        ),
-                        ft.Column(
-                            spacing=10,
-                            controls=[self._build_theme_card(theme_key) for theme_key in THEMES],
-                        ),
-                        ft.Text(
-                            "Behavior",
-                            size=14,
-                            weight=ft.FontWeight.W_700,
-                            color=theme.text_muted,
-                        ),
-                        self._build_welcome_toggle_card(
-                            on_change=self._handle_welcome_toggle
-                        ),
-                    ],
-                ),
-            ),
+            content=content_host,
             actions=[
                 ft.TextButton(
                     "Close",
-                    on_click=lambda _: self._close_settings_dialog(dialog_ref),
+                    on_click=lambda _: self._close_settings_dialog(dialog),
                     style=ft.ButtonStyle(color=theme.accent),
                 )
             ],
         )
 
+        self._close_settings_dialog()
+        self._settings_dialog = dialog
+        self._settings_dialog_content = content_host
         self._page.overlay.append(dialog)
         dialog.open = True
+        self._safe_page_update()
+
+    def _build_settings_dialog_content(self, theme) -> ft.Column:
+        return ft.Column(
+            spacing=12,
+            tight=True,
+            controls=[
+                ft.Text(
+                    "Settings",
+                    size=20,
+                    weight=ft.FontWeight.W_800,
+                    color=theme.text_primary,
+                ),
+                ft.Text(
+                    "Choose theme and behavior",
+                    size=14,
+                    color=theme.text_secondary,
+                ),
+                ft.Divider(height=1),
+                ft.Text(
+                    "Appearance",
+                    size=14,
+                    weight=ft.FontWeight.W_700,
+                    color=theme.text_muted,
+                ),
+                ft.Column(
+                    spacing=10,
+                    controls=[self._build_theme_card(theme_key) for theme_key in THEMES],
+                ),
+                ft.Text(
+                    "Behavior",
+                    size=14,
+                    weight=ft.FontWeight.W_700,
+                    color=theme.text_muted,
+                ),
+                self._build_welcome_toggle_card(on_change=self._handle_welcome_toggle),
+            ],
+        )
+
+    def _refresh_settings_dialog(self) -> None:
+        if self._settings_dialog is None or self._settings_dialog_content is None:
+            return
+        self._activate_theme_context()
+        theme = current_theme()
+        self._settings_dialog.bgcolor = theme.dialog_bg
+        self._settings_dialog_content.content = self._build_settings_dialog_content(theme)
+        self._safe_update(self._settings_dialog_content)
         self._safe_page_update()
 
     def _toggle_settings(self, e=None) -> None:
@@ -756,14 +787,12 @@ class ChatPage(ft.Container):
             self._guest_theme_name = theme_name
             self._page.run_task(save_local_theme, self._page, theme_name)
 
-        if self._is_mobile:
-            self._custom_drawer_open = False
-
         self._dismiss_theme_sensitive_overlays()
         had_messages = self._current_conversation_has_messages()
 
         self._refresh()
         self._safe_update(self)
+        self._refresh_settings_dialog()
 
         if had_messages:
             self._render_conversation()
@@ -1888,10 +1917,8 @@ class ChatPage(ft.Container):
         self._remove_overlay_control(sheet)
 
     def _dismiss_theme_sensitive_overlays(self) -> None:
-        self._history_context_menu_overlay = None
-        self._history_delete_sheet = None
-        self._page.overlay.clear()
-        self._safe_page_update()
+        self._dismiss_history_context_menu()
+        self._dismiss_history_delete_sheet()
 
     def _handle_history_secondary_tap(self, conversation_id: str, position: Any) -> None:
         self._activate_theme_context()
@@ -2151,15 +2178,21 @@ class ChatPage(ft.Container):
         dialog.open = True
         self._safe_page_update()
 
+    def _close_dialog(self, dialog: ft.AlertDialog | None) -> None:
+        if dialog is None:
+            return
+        dialog.open = False
+        if dialog in self._page.overlay:
+            self._page.overlay.remove(dialog)
+        self._safe_page_update()
+
     def _handle_info(self, e=None) -> None:
         self._activate_theme_context()
         theme = current_theme()
         dialog_ref = ft.Ref[ft.AlertDialog]()
 
         def close(e=None) -> None:
-            if dialog_ref.current is not None:
-                dialog_ref.current.open = False
-            self._safe_page_update()
+            self._close_dialog(dialog_ref.current)
 
         if not self._backend_available:
             status_value = "Server is waking up"
@@ -2240,9 +2273,7 @@ class ChatPage(ft.Container):
         )
 
         def close(e=None) -> None:
-            if dialog_ref.current is not None:
-                dialog_ref.current.open = False
-            self._safe_page_update()
+            self._close_dialog(dialog_ref.current)
 
         def submit(e=None) -> None:
             comment = (feedback_box.value or "").strip()

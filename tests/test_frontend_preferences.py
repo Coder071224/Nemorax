@@ -110,13 +110,14 @@ class FrontendPreferenceTests(unittest.TestCase):
         state = AppState("glacier_pearl")
         theme = state.activate_theme()
         loader = _build_startup_loader(_LoaderPage(), state)
-        card = loader.content
+        centered = loader.content.controls[3]
+        card = centered.content
         body = card.content
         progress = body.controls[3]
         text_group = body.controls[4]
 
         self.assertEqual(loader.bgcolor, theme.grad_bottom)
-        self.assertEqual(loader.gradient.colors, [theme.grad_top, theme.grad_mid, theme.grad_bottom])
+        self.assertEqual(loader.content.controls[0].gradient.colors, [theme.grad_top, theme.grad_mid, theme.grad_bottom])
         self.assertEqual(card.bgcolor, ft.Colors.with_opacity(0.22, theme.sidebar_bg))
         self.assertEqual(progress.color, theme.accent)
         self.assertEqual(text_group.controls[0].value, "Restoring your session...")
@@ -143,6 +144,47 @@ class FrontendPreferenceTests(unittest.TestCase):
             self.assertEqual(asyncio.run(preferences.load_local_theme(page, "user-2")), "royal_obsidian")
         finally:
             preferences._shared_preferences = original
+
+    def test_saved_local_theme_can_return_none_when_missing(self) -> None:
+        page = _FakePage()
+        store = _FakePreferences()
+
+        def _fake_preferences(_page):
+            self.assertIs(_page, page)
+            return store
+
+        original = preferences._shared_preferences
+        preferences._shared_preferences = _fake_preferences
+        try:
+            self.assertIsNone(asyncio.run(preferences.load_saved_local_theme(page, "missing-user")))
+            self.assertEqual(asyncio.run(preferences.load_local_theme(page, "missing-user")), DEFAULT_THEME)
+        finally:
+            preferences._shared_preferences = original
+
+    def test_startup_theme_prefers_saved_user_local_theme(self) -> None:
+        from nemorax.frontend import main as frontend_main
+
+        page = _FakePage()
+        store = _FakePreferences()
+
+        def _fake_preferences(_page):
+            self.assertIs(_page, page)
+            return store
+
+        original = preferences._shared_preferences
+        original_main = frontend_main.load_saved_local_theme
+        preferences._shared_preferences = _fake_preferences
+        frontend_main.load_saved_local_theme = preferences.load_saved_local_theme
+        try:
+            asyncio.run(preferences.save_local_theme(page, "royal_obsidian", "user-1"))
+            user = {"user_id": "user-1", "email": "u@example.com", "settings": {"theme": "aurora_luxe"}}
+            self.assertEqual(
+                asyncio.run(frontend_main._resolve_startup_theme_name(page, user)),
+                "royal_obsidian",
+            )
+        finally:
+            preferences._shared_preferences = original
+            frontend_main.load_saved_local_theme = original_main
 
     def test_logged_in_history_load_error_is_not_treated_as_guest_history(self) -> None:
         from nemorax.frontend import history_service

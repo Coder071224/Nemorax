@@ -25,12 +25,16 @@ def normalize_theme_name(value: object) -> str | None:
 
 
 async def load_local_theme(page: ft.Page, user_id: str | None = None) -> str:
+    return await load_saved_local_theme(page, user_id) or DEFAULT_THEME
+
+
+async def load_saved_local_theme(page: ft.Page, user_id: str | None = None) -> str | None:
     key = theme_user_key(user_id) if user_id else theme_guest_key()
     try:
         value = await _shared_preferences(page).get(key)
     except Exception:
-        return DEFAULT_THEME
-    return normalize_theme_name(value) or DEFAULT_THEME
+        return None
+    return normalize_theme_name(value)
 
 
 async def save_local_theme(page: ft.Page, theme_name: str, user_id: str | None = None) -> bool:
